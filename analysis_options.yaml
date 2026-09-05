@@ -1,0 +1,22 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Challenge subclasses need the params object inside their initializer list
+    # (durations are computed from it), which rules out super parameters.
+    use_super_parameters: false
+    # Our private dependencies are injected through named parameters, and Dart
+    # forbids named parameters starting with an underscore.
+    prefer_initializing_formals: false
+
+analyzer:
+  errors:
+    todo: ignore
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**

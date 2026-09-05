@@ -1,0 +1,23 @@
+name: are_you_stupid
+description: "ARE YOU STUPID? — a one-handed, offline hyper-casual game about failing at simple instructions."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.1
+
+dependencies:
+  app_tracking_transparency: ^2.0.7
+  flutter:
+    sdk: flutter
+  google_mobile_ads: ^9.1.0
+  share_plus: ^13.3.0
+  shared_preferences: ^2.5.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
