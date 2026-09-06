@@ -6,6 +6,12 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<!-- Export compliance: only standard HTTPS/TLS is used (ads, in-app
+	     purchase, external links) — no proprietary encryption — so this is
+	     answered once here instead of the manual question on every App Store
+	     Connect submission. See docs/Meta/Decision Log.md. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<!-- AdMob iOS app ID — see docs/Product/Monetization and Ads.md. -->
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-6747636382023443~5135428055</string>

@@ -9,17 +9,26 @@ class FlashOverlay extends StatelessWidget {
     required this.correct,
     required this.message,
     this.note,
+    this.onSkip,
+    this.skipHint,
   });
 
   final bool correct;
   final String message;
   final String? note;
 
+  /// When set, tapping anywhere on the overlay calls this instead of waiting
+  /// out the flash — see `GameEngine.skipWrongFlash`.
+  final VoidCallback? onSkip;
+  final String? skipHint;
+
   @override
   Widget build(BuildContext context) {
     final color = correct ? Ays.correct : Ays.wrong;
-    return IgnorePointer(
-      ignoring: false,
+    final textColor = correct ? Ays.bg : Ays.ink;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onSkip,
       child: Container(
         color: color,
         alignment: Alignment.center,
@@ -33,9 +42,7 @@ class FlashOverlay extends StatelessWidget {
                 child: Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: Ays.title(72).copyWith(
-                    color: correct ? Ays.bg : Ays.ink,
-                  ),
+                  style: Ays.title(72).copyWith(color: textColor),
                 ),
               ),
               if (note != null) ...[
@@ -46,6 +53,13 @@ class FlashOverlay extends StatelessWidget {
                     26,
                     color: correct ? Ays.bg.withValues(alpha: 0.7) : Ays.ink,
                   ),
+                ),
+              ],
+              if (onSkip != null && skipHint != null) ...[
+                const SizedBox(height: 20),
+                Text(
+                  skipHint!,
+                  style: Ays.mono(11, color: textColor.withValues(alpha: 0.55)),
                 ),
               ],
             ],

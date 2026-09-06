@@ -1,12 +1,14 @@
 ---
 tags: [gameplay, challenges, reference]
-updated: 2026-09-05
+updated: 2026-09-06
 ---
 
 # Challenge Catalog
 
 39 templates. Source of truth is `lib/challenges/registry.dart` — **if you add
 or change one, update this note in the same commit** ([[Documentation Rules]]).
+Everything below is shown in English; the app ships in five more languages —
+see [[Localization]] for how each instruction/hint/fail-line is translated.
 
 Legend: **Lv** = first level it can appear · **W** = pick weight ·
 ★ = starter (allowed in levels 1–3).

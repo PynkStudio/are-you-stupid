@@ -7,14 +7,17 @@ import 'base.dart';
 TapTargetChallenge buildTapColor(ChallengeParams p) {
   final colors = p.shuffled(kBasicColors);
   final target = p.pick(colors);
-  final targets = honestColorTargets(colors);
+  final targets = honestColorTargets(colors, p.locale);
   final correct = targets[colors.indexOf(target)].id;
   return TapTargetChallenge(
     p,
     id: 'tap_color',
     tag: ChallengeTag.color,
     duration: p.pace(const Duration(milliseconds: 2200)),
-    instruction: 'TAP ${target.label}',
+    instruction: p.tr(
+      'challenge.tap_color.instruction',
+      {'color': p.colorLabel(target)},
+    ),
     targets: targets,
     correctIds: {correct},
   );
@@ -55,10 +58,13 @@ class MovingColorChallenge extends TapTargetChallenge {
   static MovingColorChallenge build(ChallengeParams p) {
     final colors = p.shuffled(kBasicColors);
     final target = p.pick(colors);
-    final targets = honestColorTargets(colors);
+    final targets = honestColorTargets(colors, p.locale);
     return MovingColorChallenge(
       p,
-      instruction: 'TAP ${target.label}',
+      instruction: p.tr(
+        'challenge.tap_color_moving.instruction',
+        {'color': p.colorLabel(target)},
+      ),
       targets: targets,
       correctIds: {targets[colors.indexOf(target)].id},
     );
@@ -80,7 +86,7 @@ class MovingColorChallenge extends TapTargetChallenge {
   }
   final wordIndex = words.indexOf(color);
   return (
-    targets: mixedColorTargets(paints, words),
+    targets: mixedColorTargets(paints, words, p.locale),
     paintIndex: paintIndex,
     wordIndex: wordIndex,
     color: color,
@@ -96,10 +102,13 @@ TapTargetChallenge buildTapActualColor(ChallengeParams p) {
     id: 'tap_actual_color',
     tag: ChallengeTag.color,
     duration: p.pace(const Duration(milliseconds: 2400)),
-    instruction: 'TAP ${set.color.label}',
+    instruction: p.tr(
+      'challenge.tap_actual_color.instruction',
+      {'color': p.colorLabel(set.color)},
+    ),
     targets: set.targets,
     correctIds: {set.targets[set.paintIndex].id},
-    wrongReason: 'THAT ONE ONLY SAID IT.',
+    wrongReason: p.tr('challenge.tap_actual_color.wrong'),
   );
 }
 
@@ -111,10 +120,13 @@ TapTargetChallenge buildTapTheWord(ChallengeParams p) {
     id: 'tap_the_word',
     tag: ChallengeTag.word,
     duration: p.pace(const Duration(milliseconds: 2600)),
-    instruction: 'TAP THE ONE THAT SAYS ${set.color.label}',
+    instruction: p.tr(
+      'challenge.tap_the_word.instruction',
+      {'color': p.colorLabel(set.color)},
+    ),
     targets: set.targets,
     correctIds: {set.targets[set.wordIndex].id},
-    wrongReason: 'READ. DO NOT LOOK.',
+    wrongReason: p.tr('challenge.tap_the_word.wrong'),
   );
 }
 
@@ -122,7 +134,7 @@ TapTargetChallenge buildTapTheWord(ChallengeParams p) {
 TapTargetChallenge buildDontTapColor(ChallengeParams p) {
   final colors = p.shuffled(kBasicColors);
   final banned = p.pick(colors);
-  final targets = honestColorTargets(colors);
+  final targets = honestColorTargets(colors, p.locale);
   final correct = <String>{
     for (var i = 0; i < colors.length; i++)
       if (colors[i] != banned) targets[i].id,
@@ -132,11 +144,14 @@ TapTargetChallenge buildDontTapColor(ChallengeParams p) {
     id: 'dont_tap_color',
     tag: ChallengeTag.color,
     duration: p.pace(const Duration(milliseconds: 2400)),
-    instruction: "DON'T TAP ${banned.label}",
+    instruction: p.tr(
+      'challenge.dont_tap_color.instruction',
+      {'color': p.colorLabel(banned)},
+    ),
     targets: targets,
     correctIds: correct,
-    wrongReason: 'THAT WAS THE ONE.',
-    lateReason: 'YOU HAD TO TAP SOMETHING.',
+    wrongReason: p.tr('challenge.dont_tap_color.wrong'),
+    lateReason: p.tr('challenge.dont_tap_color.late'),
   );
 }
 
@@ -149,8 +164,11 @@ class ShiftingColorsChallenge extends BaseChallenge {
           tag: ChallengeTag.color,
           duration: p.pace(const Duration(milliseconds: 3200), floorMs: 1500),
         ) {
-    instruction = "DON'T TAP RED";
-    hint = 'THEY KEEP CHANGING';
+    instruction = p.tr(
+      'challenge.dont_tap_color_shifting.instruction',
+      {'color': p.colorLabel(GameColor.red)},
+    );
+    hint = p.tr('challenge.dont_tap_color_shifting.hint');
     layout = ChallengeLayout.grid2x2;
     _repaint();
   }
@@ -182,15 +200,21 @@ class ShiftingColorsChallenge extends BaseChallenge {
     if (tap.kind != TapKind.down || tap.isBackground) return;
     final hit = targets.firstWhere((t) => t.id == tap.targetId);
     if (hit.color == GameColor.red) {
-      host.fail(reason: 'THAT WAS RED.');
+      host.fail(
+        reason: params.tr(
+          'challenge.dont_tap_color_shifting.wrong',
+          {'color': params.colorLabel(GameColor.red)},
+        ),
+      );
     } else {
       host.pass();
     }
   }
 
   @override
-  void onTimeout(ChallengeHost host) =>
-      host.fail(reason: 'YOU HAD TO TAP SOMETHING.');
+  void onTimeout(ChallengeHost host) => host.fail(
+        reason: params.tr('challenge.dont_tap_color_shifting.late'),
+      );
 }
 
 /// 7 — four color words, four paints, one paint nobody wrote down.
@@ -200,15 +224,15 @@ TapTargetChallenge buildUnwrittenColor(ChallengeParams p) {
   // Words cover every color except [odd]; the leftover slot repeats one word.
   final others = paints.where((c) => c != odd).toList();
   final words = p.shuffled([...others, p.pick(others)]);
-  final targets = mixedColorTargets(paints, words);
+  final targets = mixedColorTargets(paints, words, p.locale);
   return TapTargetChallenge(
     p,
     id: 'tap_unwritten_color',
     tag: ChallengeTag.word,
     duration: p.pace(const Duration(milliseconds: 3400), floorMs: 1400),
-    instruction: 'TAP THE COLOR NOT WRITTEN',
+    instruction: p.tr('challenge.tap_unwritten_color.instruction'),
     targets: targets,
     correctIds: {targets[paints.indexOf(odd)].id},
-    wrongReason: 'ITS NAME WAS RIGHT THERE.',
+    wrongReason: p.tr('challenge.tap_unwritten_color.wrong'),
   );
 }

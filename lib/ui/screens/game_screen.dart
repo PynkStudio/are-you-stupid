@@ -4,8 +4,11 @@ import 'package:flutter/scheduler.dart';
 import '../../challenges/registry.dart';
 import '../../core/challenge.dart';
 import '../../core/challenge_generator.dart';
+import '../../core/difficulty.dart';
 import '../../core/game_engine.dart';
 import '../../core/game_state.dart';
+import '../../i18n/app_locale.dart';
+import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
 import '../theme.dart';
 import '../widgets/challenge_renderer.dart';
@@ -51,13 +54,16 @@ class _GameScreenState extends State<GameScreen>
       final services = AppServices.of(context);
       _services = services;
       _engine.spicyRoasts = services.settings.roastsEnabled;
+      _engine.locale = services.settings.locale;
       services.settings.addListener(_syncSettings);
       _engine.startRun();
     }
   }
 
-  void _syncSettings() =>
-      _engine.spicyRoasts = _services?.settings.roastsEnabled ?? true;
+  void _syncSettings() {
+    _engine.spicyRoasts = _services?.settings.roastsEnabled ?? true;
+    _engine.locale = _services?.settings.locale ?? _engine.locale;
+  }
 
   @override
   void dispose() {
@@ -178,6 +184,7 @@ class _GameScreenState extends State<GameScreen>
         animation: _engine,
         builder: (context, _) {
           final state = _engine.state;
+          final locale = _services?.settings.locale ?? _engine.locale;
           return Container(
             decoration: const BoxDecoration(gradient: Ays.pageGradient),
             child: Stack(
@@ -186,18 +193,21 @@ class _GameScreenState extends State<GameScreen>
                   behavior: HitTestBehavior.opaque,
                   onPointerDown: (_) => _onBackgroundDown(),
                   onPointerUp: (_) => _onBackgroundUp(),
-                  child: SafeArea(child: _buildBody(state)),
+                  child: SafeArea(child: _buildBody(state, locale)),
                 ),
                 if (state.phase == GamePhase.correct)
                   FlashOverlay(
                     correct: true,
-                    message: 'YES',
+                    message: Strings.t(locale, 'ui.game.yes'),
                     note: state.successNote,
                   ),
                 if (state.phase == GamePhase.wrong)
                   FlashOverlay(
                     correct: false,
-                    message: state.flashMessage ?? 'NOPE.',
+                    message: state.flashMessage ??
+                        Strings.t(locale, 'ui.game.default_wrong'),
+                    onSkip: _engine.skipWrongFlash,
+                    skipHint: Strings.t(locale, 'ui.game.tap_to_skip'),
                   ),
                 if (state.phase == GamePhase.gameOver)
                   GameOverView(
@@ -218,10 +228,10 @@ class _GameScreenState extends State<GameScreen>
     );
   }
 
-  Widget _buildBody(GameState state) {
+  Widget _buildBody(GameState state, AppLocale locale) {
     final challenge = state.challenge;
     if (state.phase == GamePhase.intro || challenge == null) {
-      return const Center(child: _ReadyText());
+      return Center(child: _ReadyText(locale: locale));
     }
 
     final view = challenge.view;
@@ -232,12 +242,21 @@ class _GameScreenState extends State<GameScreen>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('LEVEL ${state.level}', style: Ays.label(22)),
+              Text(
+                Strings.t(locale, 'ui.game.level', {'n': '${state.level}'}),
+                style: Ays.label(22),
+              ),
               if (state.fastStreak >= 3)
                 Text('🔥 ${state.fastStreak}', style: Ays.label(18))
               else
-                Text('BEST ${_services?.scores.bestLevel ?? 0}',
-                    style: Ays.mono(13)),
+                Text(
+                  Strings.t(
+                    locale,
+                    'ui.game.best',
+                    {'n': '${_services?.scores.bestLevel ?? 0}'},
+                  ),
+                  style: Ays.mono(13),
+                ),
             ],
           ),
         ),
@@ -245,9 +264,18 @@ class _GameScreenState extends State<GameScreen>
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: TimerBar(
             progress: state.progress,
-            visible: view.showTimer,
+            visible: view.showTimer && Difficulty.showTimerBar(state.level),
           ),
         ),
+        if (state.paceNote != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Text(
+              state.paceNote!,
+              textAlign: TextAlign.center,
+              style: Ays.mono(11, color: Ays.warning),
+            ),
+          ),
         if (state.viralPrompt != null)
           Padding(
             padding: const EdgeInsets.only(top: 10),
@@ -270,10 +298,12 @@ class _GameScreenState extends State<GameScreen>
 }
 
 class _ReadyText extends StatelessWidget {
-  const _ReadyText();
+  const _ReadyText({required this.locale});
+
+  final AppLocale locale;
 
   @override
   Widget build(BuildContext context) {
-    return Text('READY?', style: Ays.title(64));
+    return Text(Strings.t(locale, 'ui.game.ready'), style: Ays.title(64));
   }
 }

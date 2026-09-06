@@ -4,10 +4,14 @@ import 'settings_manager.dart';
 
 /// Audio without a single asset file: platform system sounds only.
 ///
+/// Only [SystemSoundType.click] is wired to anything on either platform —
+/// `alert` and `tick` are silently ignored by the Flutter engine's own
+/// Android and iOS embedders, so every distinct cue here is built out of
+/// `click` and timing, never a different [SystemSoundType].
+///
 /// Swapping in real sfx later = implementing [SoundBackend] and passing it in.
 abstract class SoundBackend {
   Future<void> click();
-  Future<void> alert();
 }
 
 class SystemSoundBackend implements SoundBackend {
@@ -15,9 +19,6 @@ class SystemSoundBackend implements SoundBackend {
 
   @override
   Future<void> click() => SystemSound.play(SystemSoundType.click);
-
-  @override
-  Future<void> alert() => SystemSound.play(SystemSoundType.alert);
 }
 
 class SoundManager {
@@ -38,7 +39,10 @@ class SoundManager {
   }
 
   Future<void> wrong() async {
-    if (_on) await _backend.alert();
+    if (!_on) return;
+    await _backend.click();
+    await Future<void>.delayed(const Duration(milliseconds: 45));
+    await _backend.click();
   }
 
   Future<void> levelUp() async {

@@ -10,21 +10,18 @@ library;
 
 import 'dart:math';
 
+import '../i18n/app_locale.dart';
+import '../i18n/spell_count_data.dart';
+import '../i18n/strings.dart';
+
 /// Semantic colors. Mapped to real Colors in `ui/theme.dart`.
 enum GameColor { red, blue, green, yellow, purple, orange, pink, white, slate }
 
 extension GameColorName on GameColor {
-  String get label => switch (this) {
-        GameColor.red => 'RED',
-        GameColor.blue => 'BLUE',
-        GameColor.green => 'GREEN',
-        GameColor.yellow => 'YELLOW',
-        GameColor.purple => 'PURPLE',
-        GameColor.orange => 'ORANGE',
-        GameColor.pink => 'PINK',
-        GameColor.white => 'WHITE',
-        GameColor.slate => 'GREY',
-      };
+  /// English label. Challenges needing the *current* language must go
+  /// through [ChallengeParams.colorLabel] instead — see
+  /// `docs/Architecture/Localization.md`.
+  String get label => Strings.t(AppLocale.en, 'color.$name');
 }
 
 /// The four colors used by the "easy" color challenges.
@@ -241,6 +238,7 @@ class ChallengeParams {
     required this.level,
     required this.rng,
     required this.speed,
+    this.locale = AppLocale.en,
   });
 
   final int level;
@@ -248,6 +246,51 @@ class ChallengeParams {
 
   /// 1.0 at level 1, grows with level. Time limits are divided by it.
   final double speed;
+
+  /// The player's current language. Defaults to English so every existing
+  /// call site (tests included) keeps behaving exactly as before.
+  final AppLocale locale;
+
+  /// Looks up a translated string for the current [locale]. See
+  /// `docs/Architecture/Localization.md` for the key naming convention.
+  String tr(String key, [Map<String, String>? args]) =>
+      Strings.t(locale, key, args);
+
+  /// The color vocabulary word for [color] in the current [locale].
+  String colorLabel(GameColor color) => Strings.t(locale, 'color.${color.name}');
+
+  /// Language-specific gameplay word content for the word challenges
+  /// (`tap_word_button`, `tap_nothing_button`, `odd_word_out`, `opposite`).
+  /// These are re-authored per language, not machine-translated, so the
+  /// gameplay stays equally fair in every locale.
+  String get wordButtonTarget => tr('word.tap_word_button.target');
+
+  List<String> get wordButtonDecoys =>
+      Strings.list(locale, 'word.tap_word_button.decoy', 7);
+
+  /// The "NOTHING / SOMETHING / EVERYTHING / a little" quartet. Index 0 is
+  /// always the correct answer.
+  List<String> get nothingWords =>
+      Strings.list(locale, 'word.tap_nothing_button', 4);
+
+  List<String> get oddWordIntruders =>
+      Strings.list(locale, 'word.odd_word_out.intruder', 6);
+
+  List<(String, String)> get oppositePairs => [
+        for (var i = 0; i < 6; i++)
+          () {
+            final parts = tr('word.opposite.pair.$i').split('|');
+            return (parts[0], parts[1]);
+          }(),
+      ];
+
+  /// word -> letter count (the correct `spell_count` answer) in [locale].
+  Map<String, int> get spellCountLetters =>
+      kSpellCountLetters[locale] ?? kSpellCountLetters[AppLocale.en]!;
+
+  /// word -> the number it names (the `spell_count` trap answer) in [locale].
+  Map<String, int> get spellCountDigits =>
+      kSpellCountDigits[locale] ?? kSpellCountDigits[AppLocale.en]!;
 
   /// Scales a base duration by the current speed, with a sane floor.
   Duration pace(Duration base, {int floorMs = 700}) {
@@ -294,7 +337,8 @@ abstract class Challenge {
   void onTap(TapInfo tap, ChallengeHost host);
 
   /// Timer ran out. Most challenges fail here; patience ones pass.
-  void onTimeout(ChallengeHost host) => host.fail(reason: 'TOO SLOW.');
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: params.tr('common.too_slow'));
 
   /// Extra text shown on the "correct" flash, e.g. "+0.13s".
   String? get successNote => null;

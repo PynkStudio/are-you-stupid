@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
 import '../theme.dart';
 import '../widgets/ays_button.dart';
@@ -17,13 +18,16 @@ class StatsScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 22),
             child: AnimatedBuilder(
-              animation: services.scores,
+              animation: Listenable.merge([services.scores, services.settings]),
               builder: (context, _) {
                 final s = services.scores;
+                final locale = services.settings.locale;
+                String t(String key, [Map<String, String>? args]) =>
+                    Strings.t(locale, key, args);
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('BEST SCORE', style: Ays.title(44)),
+                    Text(t('ui.stats.title'), style: Ays.title(44)),
                     const SizedBox(height: 24),
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 26),
@@ -33,21 +37,27 @@ class StatsScreen extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          Text('LEVEL', style: Ays.mono(14)),
+                          Text(t('ui.stats.level'), style: Ays.mono(14)),
                           Text('${s.bestLevel}', style: Ays.title(86)),
                         ],
                       ),
                     ),
                     const SizedBox(height: 18),
-                    _Row(label: 'TOTAL ATTEMPTS', value: '${s.totalAttempts}'),
                     _Row(
-                      label: 'AVERAGE LEVEL',
+                      label: t('ui.stats.total_attempts'),
+                      value: '${s.totalAttempts}',
+                    ),
+                    _Row(
+                      label: t('ui.stats.average_level'),
                       value: s.averageLevel.toStringAsFixed(1),
                     ),
-                    _Row(label: 'HIGHEST STREAK', value: '${s.bestStreak}'),
+                    _Row(
+                      label: t('ui.stats.highest_streak'),
+                      value: '${s.bestStreak}',
+                    ),
                     const Spacer(),
                     AysButton(
-                      label: 'BACK',
+                      label: t('ui.stats.back'),
                       height: 66,
                       fontSize: 24,
                       onTap: () => Navigator.of(context).pop(),

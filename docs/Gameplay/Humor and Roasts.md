@@ -1,11 +1,15 @@
 ---
 tags: [gameplay, tone, copy]
-updated: 2026-09-05
+updated: 2026-09-06
 ---
 
 # Humor and Roasts
 
-`lib/data/roasts.dart`
+`lib/data/roasts.dart` picks; the lines themselves live in
+`lib/i18n/strings_*.dart` under `roast.*`, one pool per language — see
+[[Localization]]. A translation must **transcreate** the joke, not translate
+it literally: the goal is "short, playful, teases the mistake" in that
+language, not a word-for-word rendering of the English slang.
 
 ## Tone
 

@@ -1,6 +1,6 @@
 ---
 tags: [design, pillars]
-updated: 2026-09-05
+updated: 2026-09-06
 ---
 
 # Game Design Pillars
@@ -22,7 +22,9 @@ Everything in this repo is judged against that sentence.
    challenge. See [[Challenge Catalog]].
 2. **Under 8 words** per instruction. Enforced by a test in [[Testing]].
 3. **Zero downtime.** Correct answer → 240 ms green flash → next challenge.
-   Mistake → 850 ms red flash → Game Over. No loading, no route changes.
+   Mistake → 2.85 s red flash with the roast (long enough to actually read
+   it — tap it to skip straight to Game Over if you already know why you
+   lost) → Game Over. No loading, no route changes.
 4. **One hand, one thumb.** Everything is a tap or a hold. No swipes, no
    multi-touch, no precision dragging.
 5. **Offline first.** No account, no network, no backend. The one deliberate

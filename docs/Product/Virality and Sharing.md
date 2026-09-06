@@ -1,6 +1,6 @@
 ---
 tags: [product, virality, social]
-updated: 2026-09-05
+updated: 2026-09-06
 ---
 
 # Virality and Sharing
@@ -42,13 +42,17 @@ Can you beat me?
 
 Plus `(my best: Level 31)` when relevant, plus `ShareManager.storeUrl` once the
 app is live — **fill that constant in before launch** ([[Release Checklist]]).
+`resultText()`/`shareResult()` take the player's `AppLocale` and render this
+in their language — see [[Localization]].
 
 Goes through the OS share sheet (`share_plus`). No account, no link shortener,
 no tracking.
 
 ## Challenge prompts
 
-`lib/data/viral_prompts.dart`, shown every 12 levels and on the Game Over card:
+`lib/data/viral_prompts.dart`, shown every 12 levels and on the Game Over
+card. The six lines (translated per language under `viral.*` in
+`lib/i18n/strings_*.dart` — [[Localization]]), in English:
 
 - CAN YOU BEAT YOUR FRIEND?
 - SEND THIS TO SOMEONE WHO THINKS THEY'RE SMART.

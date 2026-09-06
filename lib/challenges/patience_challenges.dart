@@ -12,10 +12,12 @@ class DontTapChallenge extends BaseChallenge {
           tag: ChallengeTag.patience,
           duration: p.pace(const Duration(milliseconds: 2900), floorMs: 1800),
         ) {
-    instruction = "DON'T TAP ANYTHING";
+    instruction = p.tr('challenge.dont_tap.instruction');
     layout = ChallengeLayout.none;
+    _bait = p.tr('challenge.dont_tap.bait');
   }
 
+  late final String _bait;
   late final Duration _baitAt = Duration(
     milliseconds: (duration.inMilliseconds * 0.42).round(),
   );
@@ -26,10 +28,10 @@ class DontTapChallenge extends BaseChallenge {
     if (!_baited && elapsed >= _baitAt) {
       _baited = true;
       layout = ChallengeLayout.single;
-      targets = const [
+      targets = [
         TargetSpec(
           id: 'bait',
-          label: 'TAP ME',
+          label: _bait,
           color: GameColor.green,
           scale: 1.3,
         ),
@@ -41,11 +43,12 @@ class DontTapChallenge extends BaseChallenge {
   @override
   void onTap(TapInfo tap, ChallengeHost host) {
     if (tap.kind == TapKind.up) return;
-    host.fail(reason: 'YOU HAD ONE JOB.');
+    host.fail(reason: params.tr('common.one_job'));
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.pass(note: 'NICE RESTRAINT.');
+  void onTimeout(ChallengeHost host) =>
+      host.pass(note: params.tr('challenge.dont_tap.success'));
 }
 
 /// 20 — DO NOTHING, while the screen does everything it can to make you tap.
@@ -57,9 +60,9 @@ class DoNothingChallenge extends BaseChallenge {
           tag: ChallengeTag.patience,
           duration: p.pace(const Duration(milliseconds: 3000), floorMs: 2000),
         ) {
-    instruction = 'DO NOTHING';
+    instruction = p.tr('challenge.do_nothing.instruction');
     layout = ChallengeLayout.none;
-    note = 'WOW. YOU DID NOTHING.';
+    note = p.tr('challenge.do_nothing.success');
   }
 
   @override
@@ -78,11 +81,12 @@ class DoNothingChallenge extends BaseChallenge {
   @override
   void onTap(TapInfo tap, ChallengeHost host) {
     if (tap.kind == TapKind.up) return;
-    host.fail(reason: 'NOTHING. IT MEANT NOTHING.');
+    host.fail(reason: params.tr('challenge.do_nothing.wrong'));
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.pass(note: 'WOW. YOU DID NOTHING.');
+  void onTimeout(ChallengeHost host) =>
+      host.pass(note: params.tr('challenge.do_nothing.success'));
 }
 
 /// 21 — WAIT FOR GREEN. Tapping early is the whole point.
@@ -94,7 +98,7 @@ class WaitForGreenChallenge extends BaseChallenge {
           tag: ChallengeTag.reaction,
           duration: _greenAt + window,
         ) {
-    instruction = 'WAIT FOR GREEN';
+    instruction = p.tr('challenge.wait_for_green.instruction');
     layout = ChallengeLayout.single;
     targets = const [
       TargetSpec(id: 'pad', label: '', color: GameColor.slate, scale: 1.35),
@@ -108,9 +112,10 @@ class WaitForGreenChallenge extends BaseChallenge {
   void onTick(Duration elapsed, ChallengeHost host) {
     if (!_green && elapsed >= _greenAt) {
       _green = true;
-      instruction = 'NOW';
-      targets = const [
-        TargetSpec(id: 'pad', label: 'NOW', color: GameColor.green, scale: 1.35),
+      final now = params.tr('common.now_label');
+      instruction = now;
+      targets = [
+        TargetSpec(id: 'pad', label: now, color: GameColor.green, scale: 1.35),
       ];
       host.invalidate();
     }
@@ -122,12 +127,13 @@ class WaitForGreenChallenge extends BaseChallenge {
     if (_green) {
       host.pass();
     } else {
-      host.fail(reason: 'IMPATIENT.');
+      host.fail(reason: params.tr('challenge.wait_for_green.wrong'));
     }
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.fail(reason: 'TOO SLOW.');
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: params.tr('common.too_slow'));
 
   static WaitForGreenChallenge build(ChallengeParams p) {
     final greenAt = Duration(milliseconds: 900 + p.rng.nextInt(1400));
@@ -148,7 +154,7 @@ class PreciseTimingChallenge extends BaseChallenge {
           duration: targetTime + tolerance + const Duration(milliseconds: 260),
         ) {
     final secs = (targetTime.inMilliseconds / 1000).toStringAsFixed(0);
-    instruction = 'TAP AFTER $secs SECONDS';
+    instruction = p.tr('challenge.precise_timing.instruction', {'secs': secs});
     layout = ChallengeLayout.none;
     showTimer = false;
   }
@@ -164,12 +170,15 @@ class PreciseTimingChallenge extends BaseChallenge {
     if (diff.abs() <= tolerance) {
       host.pass(note: label);
     } else {
-      host.fail(reason: '$label OFF.');
+      host.fail(
+        reason: params.tr('challenge.precise_timing.off', {'label': label}),
+      );
     }
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.fail(reason: 'YOU NEVER TAPPED.');
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: params.tr('challenge.precise_timing.late'));
 
   static String _format(Duration d) {
     final sign = d.isNegative ? '-' : '+';
@@ -195,13 +204,20 @@ class HoldButtonChallenge extends BaseChallenge {
           tag: ChallengeTag.patience,
           duration: p.pace(const Duration(milliseconds: 2800), floorMs: 1700),
         ) {
-    instruction = 'HOLD THE BUTTON';
+    instruction = p.tr('challenge.hold_button.instruction');
+    _holdingLabel = p.tr('challenge.hold_button.holding');
     layout = ChallengeLayout.single;
-    targets = const [
-      TargetSpec(id: 'pad', label: 'HOLD', color: GameColor.purple, scale: 1.3),
+    targets = [
+      TargetSpec(
+        id: 'pad',
+        label: p.tr('challenge.hold_button.target'),
+        color: GameColor.purple,
+        scale: 1.3,
+      ),
     ];
   }
 
+  late final String _holdingLabel;
   bool _holding = false;
   bool _everHeld = false;
 
@@ -211,11 +227,11 @@ class HoldButtonChallenge extends BaseChallenge {
       case TapKind.down:
         _holding = true;
         _everHeld = true;
-        mutateTarget('pad', (t) => t.copyWith(label: 'KEEP HOLDING'));
+        mutateTarget('pad', (t) => t.copyWith(label: _holdingLabel));
         host.invalidate();
       case TapKind.up:
         _holding = false;
-        host.fail(reason: 'YOU LET GO.');
+        host.fail(reason: params.tr('challenge.hold_button.let_go'));
     }
   }
 
@@ -224,7 +240,13 @@ class HoldButtonChallenge extends BaseChallenge {
     if (_holding) {
       host.pass();
     } else {
-      host.fail(reason: _everHeld ? 'YOU LET GO.' : 'HOLD MEANS HOLD.');
+      host.fail(
+        reason: params.tr(
+          _everHeld
+              ? 'challenge.hold_button.let_go'
+              : 'challenge.hold_button.never_held',
+        ),
+      );
     }
   }
 }
@@ -238,9 +260,9 @@ class NoInstructionChallenge extends PatienceChallenge {
           tag: ChallengeTag.trick,
           duration: p.pace(const Duration(milliseconds: 2400), floorMs: 1600),
           instruction: '',
-          tapReason: 'NOBODY ASKED YOU TO TAP.',
+          tapReason: p.tr('challenge.no_instruction.tap_reason'),
         ) {
-    note = 'THERE WAS NOTHING TO DO.';
+    note = p.tr('challenge.no_instruction.success');
   }
 }
 
@@ -253,20 +275,26 @@ class DontFollowChallenge extends BaseChallenge {
           tag: ChallengeTag.trick,
           duration: p.pace(const Duration(milliseconds: 2800), floorMs: 1900),
         ) {
-    instruction = 'DO NOT FOLLOW THIS INSTRUCTION';
+    instruction = p.tr('challenge.dont_follow.instruction');
     layout = ChallengeLayout.single;
-    targets = const [
-      TargetSpec(id: 'pad', label: 'TAP', color: GameColor.orange, scale: 1.25),
+    targets = [
+      TargetSpec(
+        id: 'pad',
+        label: p.tr('common.tap_label'),
+        color: GameColor.orange,
+        scale: 1.25,
+      ),
     ];
-    note = 'PARADOX SURVIVED.';
+    note = p.tr('challenge.dont_follow.success');
   }
 
   @override
   void onTap(TapInfo tap, ChallengeHost host) {
     if (tap.kind == TapKind.up) return;
-    host.fail(reason: 'YOU FOLLOWED IT.');
+    host.fail(reason: params.tr('challenge.dont_follow.wrong'));
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.pass(note: 'PARADOX SURVIVED.');
+  void onTimeout(ChallengeHost host) =>
+      host.pass(note: params.tr('challenge.dont_follow.success'));
 }

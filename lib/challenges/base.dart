@@ -1,4 +1,6 @@
 import '../core/challenge.dart';
+import '../i18n/app_locale.dart';
+import '../i18n/strings.dart';
 
 /// Mutable scaffolding shared by every challenge.
 ///
@@ -87,7 +89,9 @@ class TapTargetChallenge extends BaseChallenge {
   void onTap(TapInfo tap, ChallengeHost host) {
     if (tap.kind != TapKind.down) return;
     if (tap.isBackground) {
-      if (backgroundFails) host.fail(reason: 'YOU MISSED. THE WHOLE BUTTON.');
+      if (backgroundFails) {
+        host.fail(reason: params.tr('common.you_missed_button'));
+      }
       return;
     }
     if (correctIds.contains(tap.targetId)) {
@@ -98,7 +102,8 @@ class TapTargetChallenge extends BaseChallenge {
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.fail(reason: lateReason ?? 'TOO SLOW.');
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: lateReason ?? params.tr('common.too_slow'));
 }
 
 /// "Do nothing and survive" — passes when the timer runs out.
@@ -109,18 +114,18 @@ class PatienceChallenge extends BaseChallenge {
     required super.tag,
     required super.duration,
     required String instruction,
-    this.tapReason = 'YOU HAD ONE JOB.',
+    this.tapReason,
   }) {
     this.instruction = instruction;
     layout = ChallengeLayout.none;
   }
 
-  final String tapReason;
+  final String? tapReason;
 
   @override
   void onTap(TapInfo tap, ChallengeHost host) {
     if (tap.kind == TapKind.up) return;
-    host.fail(reason: tapReason);
+    host.fail(reason: tapReason ?? params.tr('common.one_job'));
   }
 
   @override
@@ -130,19 +135,28 @@ class PatienceChallenge extends BaseChallenge {
 // --------------------------------------------------------------- tiny helpers
 
 /// Four (or N) buttons whose label matches their own color.
-List<TargetSpec> honestColorTargets(List<GameColor> colors) => [
+List<TargetSpec> honestColorTargets(List<GameColor> colors, AppLocale locale) => [
       for (var i = 0; i < colors.length; i++)
-        TargetSpec(id: 'c$i', label: colors[i].label, color: colors[i]),
+        TargetSpec(
+          id: 'c$i',
+          label: Strings.t(locale, 'color.${colors[i].name}'),
+          color: colors[i],
+        ),
     ];
 
 /// Buttons where label and paint are decoupled.
 List<TargetSpec> mixedColorTargets(
   List<GameColor> paints,
   List<GameColor> words,
+  AppLocale locale,
 ) =>
     [
       for (var i = 0; i < paints.length; i++)
-        TargetSpec(id: 'c$i', label: words[i].label, color: paints[i]),
+        TargetSpec(
+          id: 'c$i',
+          label: Strings.t(locale, 'color.${words[i].name}'),
+          color: paints[i],
+        ),
     ];
 
 List<TargetSpec> numberTargets(List<int> numbers) => [

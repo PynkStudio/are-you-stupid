@@ -34,7 +34,8 @@ class GameState {
         fastStreak = 0,
         bestFastStreak = 0,
         continueUsed = false,
-        viralPrompt = null;
+        viralPrompt = null,
+        paceNote = null;
 
   GameState({
     required this.phase,
@@ -48,6 +49,7 @@ class GameState {
     required this.bestFastStreak,
     required this.continueUsed,
     required this.viralPrompt,
+    required this.paceNote,
   });
 
   final GamePhase phase;
@@ -71,6 +73,9 @@ class GameState {
 
   /// Occasional "send this to someone who thinks they're smart" line.
   final String? viralPrompt;
+
+  /// One-off "the game just changed" callout — see [Difficulty.milestoneKey].
+  final String? paceNote;
 
   double get progress {
     if (duration.inMilliseconds <= 0) return 0;
@@ -97,6 +102,8 @@ class GameState {
     bool? continueUsed,
     String? viralPrompt,
     bool clearViral = false,
+    String? paceNote,
+    bool clearPaceNote = false,
   }) {
     return GameState(
       phase: phase ?? this.phase,
@@ -110,6 +117,7 @@ class GameState {
       bestFastStreak: bestFastStreak ?? this.bestFastStreak,
       continueUsed: continueUsed ?? this.continueUsed,
       viralPrompt: clearViral ? null : (viralPrompt ?? this.viralPrompt),
+      paceNote: clearPaceNote ? null : (paceNote ?? this.paceNote),
     );
   }
 }

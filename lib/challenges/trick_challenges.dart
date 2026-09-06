@@ -13,7 +13,9 @@ class LeftRightSwapChallenge extends BaseChallenge {
           duration: p.pace(const Duration(milliseconds: 2600), floorMs: 1400),
         ) {
     _wantLeft = params.chance(0.5);
-    instruction = _wantLeft ? 'TAP LEFT' : 'TAP RIGHT';
+    instruction = p.tr(
+      _wantLeft ? 'challenge.left_right_swap.left' : 'challenge.left_right_swap.right',
+    );
     layout = ChallengeLayout.row;
     targets = [
       const TargetSpec(id: 'a', color: GameColor.blue),
@@ -44,12 +46,13 @@ class LeftRightSwapChallenge extends BaseChallenge {
     if (tappedLeft == _wantLeft) {
       host.pass();
     } else {
-      host.fail(reason: 'THEY MOVED. YOU DIDN\'T.');
+      host.fail(reason: params.tr('challenge.left_right_swap.wrong'));
     }
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.fail(reason: 'TOO SLOW.');
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: params.tr('common.too_slow'));
 }
 
 /// 35 — the rule changes halfway through. Read again.
@@ -64,9 +67,9 @@ class RuleFlipChallenge extends BaseChallenge {
     final colors = params.shuffled(kBasicColors);
     _first = colors[0];
     _second = colors[1];
-    instruction = 'TAP ${_first.label}';
+    instruction = p.tr('challenge.rule_flip.instruction', {'color': p.colorLabel(_first)});
     layout = ChallengeLayout.grid2x2;
-    targets = honestColorTargets(colors);
+    targets = honestColorTargets(colors, p.locale);
   }
 
   late final GameColor _first;
@@ -80,7 +83,10 @@ class RuleFlipChallenge extends BaseChallenge {
   void onTick(Duration elapsed, ChallengeHost host) {
     if (!_flipped && elapsed >= _flipAt) {
       _flipped = true;
-      instruction = 'TAP ${_second.label}';
+      instruction = params.tr(
+        'challenge.rule_flip.instruction',
+        {'color': params.colorLabel(_second)},
+      );
       host.invalidate();
     }
   }
@@ -93,33 +99,40 @@ class RuleFlipChallenge extends BaseChallenge {
     if (hit.color == wanted) {
       host.pass();
     } else {
-      host.fail(reason: _flipped ? 'IT CHANGED. READ.' : 'NOPE.');
+      host.fail(
+        reason: params.tr(
+          _flipped
+              ? 'challenge.rule_flip.wrong_after_flip'
+              : 'challenge.rule_flip.wrong_before_flip',
+        ),
+      );
     }
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.fail(reason: 'TOO SLOW.');
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: params.tr('common.too_slow'));
 }
 
 /// 36 — IGNORE THE NEXT LINE. Then a perfectly good instruction shows up.
 TapTargetChallenge buildIgnoreNext(ChallengeParams p) {
   final colors = p.shuffled(kBasicColors);
   final banned = p.pick(colors);
-  final targets = honestColorTargets(colors);
+  final targets = honestColorTargets(colors, p.locale);
   return TapTargetChallenge(
     p,
     id: 'ignore_next',
     tag: ChallengeTag.trick,
     duration: p.pace(const Duration(milliseconds: 3000), floorMs: 1600),
-    instruction: 'IGNORE THE NEXT LINE',
-    hint: 'TAP ${banned.label}',
+    instruction: p.tr('challenge.ignore_next.instruction'),
+    hint: p.tr('challenge.ignore_next.hint', {'color': p.colorLabel(banned)}),
     targets: targets,
     correctIds: {
       for (var i = 0; i < colors.length; i++)
         if (colors[i] != banned) targets[i].id,
     },
-    wrongReason: 'YOU WERE TOLD TO IGNORE IT.',
-    lateReason: 'IGNORING IS NOT FREEZING.',
+    wrongReason: p.tr('challenge.ignore_next.wrong'),
+    lateReason: p.tr('challenge.ignore_next.late'),
   );
 }
 
@@ -132,12 +145,17 @@ class TooFastChallenge extends BaseChallenge {
           tag: ChallengeTag.trick,
           duration: const Duration(milliseconds: 2600),
         ) {
-    instruction = 'TAP AS FAST AS POSSIBLE';
+    instruction = p.tr('challenge.too_fast.instruction');
+    _hintText = p.tr('challenge.too_fast.hint');
+    _goLabel = p.tr('common.go_label');
     layout = ChallengeLayout.single;
     targets = const [
       TargetSpec(id: 'pad', label: '', color: GameColor.slate, scale: 1.3),
     ];
   }
+
+  late final String _hintText;
+  late final String _goLabel;
 
   static const _revealAt = Duration(milliseconds: 320);
   late final Duration _goAt = Duration(
@@ -148,13 +166,13 @@ class TooFastChallenge extends BaseChallenge {
   @override
   void onTick(Duration elapsed, ChallengeHost host) {
     if (hint == null && elapsed >= _revealAt) {
-      hint = '...AFTER THE GREEN LIGHT';
+      hint = _hintText;
       host.invalidate();
     }
     if (!_go && elapsed >= _goAt) {
       _go = true;
-      targets = const [
-        TargetSpec(id: 'pad', label: 'GO', color: GameColor.green, scale: 1.3),
+      targets = [
+        TargetSpec(id: 'pad', label: _goLabel, color: GameColor.green, scale: 1.3),
       ];
       host.invalidate();
     }
@@ -166,12 +184,13 @@ class TooFastChallenge extends BaseChallenge {
     if (_go) {
       host.pass();
     } else {
-      host.fail(reason: 'TOO FAST.');
+      host.fail(reason: params.tr('challenge.too_fast.too_early'));
     }
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.fail(reason: 'TOO SLOW. IRONIC.');
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: params.tr('challenge.too_fast.too_late'));
 }
 
 /// 38/39 — TAP 1 → 2 → 3, or the exact opposite.
@@ -186,7 +205,9 @@ class OrderChallenge extends BaseChallenge {
             floorMs: 1800,
           ),
         ) {
-    instruction = ascending ? 'TAP 1 THEN 2 THEN 3' : 'TAP IN REVERSE ORDER';
+    instruction = p.tr(
+      ascending ? 'challenge.tap_in_order.instruction' : 'challenge.tap_reverse_order.instruction',
+    );
     hint = ascending ? null : _sequence.join(' → ');
     layout = ChallengeLayout.grid2x2;
     final numbers = params.shuffled(List.generate(count, (i) => i + 1));
@@ -209,7 +230,7 @@ class OrderChallenge extends BaseChallenge {
     if (tap.kind != TapKind.down || tap.isBackground) return;
     final wanted = _sequence[_step];
     if (tap.targetId != 'o$wanted') {
-      host.fail(reason: 'ORDER MATTERS.');
+      host.fail(reason: params.tr('challenge.order.wrong'));
       return;
     }
     mutateTarget('o$wanted', (t) => t.copyWith(color: GameColor.green));
@@ -222,7 +243,8 @@ class OrderChallenge extends BaseChallenge {
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.fail(reason: 'TOO SLOW.');
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: params.tr('common.too_slow'));
 
   static OrderChallenge ascendingBuild(ChallengeParams p) =>
       OrderChallenge(p, true, 3);

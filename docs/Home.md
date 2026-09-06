@@ -35,6 +35,7 @@ repository MUST read [[Documentation Rules]] before touching code.**
 - [[Rendering Pipeline]]
 - [[Services]]
 - [[State and Persistence]]
+- [[Localization]]
 
 ### Product
 - [[Monetization and Ads]]
@@ -46,6 +47,22 @@ repository MUST read [[Documentation Rules]] before touching code.**
 - [[Adding a Challenge]]
 - [[Testing]]
 - [[Release Checklist]]
+
+### Multiplayer — Apple TV party mode
+A 2–8 player party mode: tvOS host + phones as controllers over the local
+network. **Specified below; not yet implemented.** As it ships, per-phase
+changes update these notes (see [[Multiplayer Development]]).
+
+- [[Multiplayer Product]] — concept, QR joining, ads, sharing, scope
+- [[Multiplayer Gameplay]] — Last Stupid Standing + Stupid Battle, rounds,
+  TV presentation, humor
+- [[Multiplayer Challenges]] — synchronized seeded challenges + the four
+  new families
+- [[Multiplayer Architecture]] — topology and host authority
+- [[Multiplayer Protocol]] — the versioned wire contract (v1)
+- [[Multiplayer Host (tvOS)]] — the native SwiftUI host/display app
+- [[Multiplayer Client (Mobile)]] — the Flutter controller app
+- [[Multiplayer Development]] — phases, tests, simulation harness
 
 ### Meta
 - [[Documentation Rules]] — **mandatory for AI agents**
@@ -62,17 +79,20 @@ repository MUST read [[Documentation Rules]] before touching code.**
 | Sound / haptics | System sounds + platform haptics |
 | Sharing | OS share sheet via `share_plus` |
 | Backend | None. On purpose. |
+| Multiplayer party mode (Apple TV) | **Spec'd, not built.** Design lives in the Multiplayer section below; see [[Multiplayer Development]] for phases |
 | Version control | Git, public on GitHub: `PynkStudio/are-you-stupid` |
+| Languages | English, Italian, French, Spanish, Portuguese, German — see [[Localization]] |
 
 ## Build status (2026-09-06)
 
 | Target | State |
 |---|---|
 | `flutter analyze` | clean |
-| `flutter test` | 38 tests, one intermittently flaky — see [[Testing]] |
+| `flutter test` | 45 tests, one intermittently flaky — see [[Testing]] |
 | Android debug APK | builds |
 | Android release APK | builds, signed with a real upload key (not debug) — see [[Release Checklist]] |
 | iOS simulator | builds and runs via `flutter run`, hot reload included |
 
-Still open before store submission: app icon, launch screen, privacy policy —
-see [[Release Checklist]].
+Still open before store submission: app icon, launch screen, entering the
+privacy policy URL into App Store Connect / Play Console — see [[Release
+Checklist]].

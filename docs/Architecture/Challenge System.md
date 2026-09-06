@@ -1,6 +1,6 @@
 ---
 tags: [architecture, challenges]
-updated: 2026-09-05
+updated: 2026-09-06
 ---
 
 # Challenge System
@@ -20,12 +20,18 @@ abstract class Challenge {
   void onStart(ChallengeHost host) {}
   void onTick(Duration elapsed, ChallengeHost host) {}
   void onTap(TapInfo tap, ChallengeHost host);
-  void onTimeout(ChallengeHost host) => host.fail(reason: 'TOO SLOW.');
+  void onTimeout(ChallengeHost host) => host.fail(reason: params.tr('common.too_slow'));
 }
 ```
 
 A `Challenge` instance lives for exactly one round. It is built by a
-`ChallengeTemplate` from `ChallengeParams { level, rng, speed }`.
+`ChallengeTemplate` from `ChallengeParams { level, rng, speed, locale }`.
+`locale` defaults to English, so every existing call site (including tests)
+keeps working unchanged. `ChallengeParams` also exposes `tr(key, {args})`,
+`colorLabel(color)` and the word-content getters
+(`wordButtonDecoys`, `nothingWords`, `oddWordIntruders`, `oppositePairs`,
+`spellCountLetters`, `spellCountDigits`) a challenge needs to build a
+translated `instruction`/`hint`/fail reason — see [[Localization]].
 
 ## ChallengeView
 
@@ -56,8 +62,10 @@ by "TAP LEFT" after the buttons swap) and `elapsed`.
 - `TapTargetChallenge` — "tap the right one", with `correctIds`
 - `PatienceChallenge` — passes on timeout, fails on any touch
 
-Plus helpers: `honestColorTargets`, `mixedColorTargets`, `numberTargets`,
-`wordTargets`.
+Plus helpers: `honestColorTargets(colors, locale)`,
+`mixedColorTargets(paints, words, locale)`, `numberTargets`, `wordTargets` —
+the two color-target helpers take the current `AppLocale` so button labels
+come out in the player's language.
 
 ## Registry
 
@@ -83,4 +91,5 @@ See [[Adding a Challenge]] and the full list in [[Challenge Catalog]].
 2. drops the last 4 played ids so nothing repeats back to back,
 3. picks by `weight`.
 
-Rules covered by tests in [[Testing]].
+Rules covered by tests in [[Testing]]. See [[Localization]] for how
+`instruction`/`hint`/fail-reason strings are translated.

@@ -24,6 +24,11 @@ class TimerBar extends StatelessWidget {
       child: SizedBox(
         height: 8,
         child: Row(
+          // The colored DecoratedBox below has no child of its own, so
+          // without stretching it to the Row's full height it lays out at
+          // zero height (loose cross-axis constraints) and is invisible —
+          // this is why the bar never rendered on a real device.
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
               flex: (left * 1000).round().clamp(1, 1000),

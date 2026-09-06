@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required by in_app_purchase_android for the "remove ads" IAP — see
+         docs/Product/Monetization and Ads.md. -->
+    <uses-permission android:name="com.android.vending.BILLING" />
+    <!-- Required for HapticManager's HapticFeedback.* calls to actually
+         vibrate on Android — see docs/Architecture/Services.md. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:label="Are You Stupid"
         android:name="${applicationName}"
@@ -44,6 +50,13 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Required by url_launcher to open the PynkStudio links from
+             Settings (about page, privacy policy) on Android 11+, see
+             docs/Architecture/Services.md. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
         </intent>
     </queries>
 </manifest>

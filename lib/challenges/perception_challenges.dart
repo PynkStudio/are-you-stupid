@@ -28,10 +28,10 @@ TapTargetChallenge buildSpotDifferent(ChallengeParams p) {
     id: 'spot_different',
     tag: ChallengeTag.perception,
     duration: p.pace(const Duration(milliseconds: 3200), floorMs: 1500),
-    instruction: 'TAP THE DIFFERENT ONE',
+    instruction: p.tr('challenge.spot_different.instruction'),
     targets: targets,
     correctIds: {'s$odd'},
-    wrongReason: 'LOOK CLOSER.',
+    wrongReason: p.tr('challenge.spot_different.wrong'),
   );
 }
 
@@ -47,7 +47,7 @@ class DidntChangeChallenge extends BaseChallenge {
     final base = params.pick(kWideColors);
     _other = params.pick(kWideColors.where((c) => c != base).toList());
     _changing = params.rng.nextInt(2);
-    instruction = "TAP THE ONE THAT DIDN'T CHANGE";
+    instruction = p.tr('challenge.didnt_change.instruction');
     layout = ChallengeLayout.row;
     targets = [
       TargetSpec(id: 'a', color: base),
@@ -76,19 +76,20 @@ class DidntChangeChallenge extends BaseChallenge {
   void onTap(TapInfo tap, ChallengeHost host) {
     if (tap.kind != TapKind.down || tap.isBackground) return;
     if (!_changed) {
-      host.fail(reason: 'WAIT FOR IT.');
+      host.fail(reason: params.tr('challenge.didnt_change.too_early'));
       return;
     }
     final correct = _changing == 0 ? 'b' : 'a';
     if (tap.targetId == correct) {
       host.pass();
     } else {
-      host.fail(reason: 'THAT ONE CHANGED.');
+      host.fail(reason: params.tr('challenge.didnt_change.wrong'));
     }
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.fail(reason: 'TOO SLOW.');
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: params.tr('common.too_slow'));
 }
 
 /// 32 — TAP THE BIGGEST / SMALLEST.
@@ -117,10 +118,12 @@ TapTargetChallenge buildSizeCompare(ChallengeParams p) {
     id: 'size_compare',
     tag: ChallengeTag.perception,
     duration: p.pace(const Duration(milliseconds: 2400), floorMs: 1200),
-    instruction: biggest ? 'TAP THE BIGGEST' : 'TAP THE SMALLEST',
+    instruction: p.tr(
+      biggest ? 'challenge.size_compare.biggest' : 'challenge.size_compare.smallest',
+    ),
     targets: targets,
     correctIds: {'z$wanted'},
-    wrongReason: 'SIZE. IT WAS ABOUT SIZE.',
+    wrongReason: p.tr('challenge.size_compare.wrong'),
   );
 }
 
@@ -128,11 +131,12 @@ TapTargetChallenge buildSizeCompare(ChallengeParams p) {
 TapTargetChallenge buildFakeButtons(ChallengeParams p) {
   final real = p.rng.nextInt(6);
   final color = p.pick(kWideColors);
+  final label = p.tr('challenge.fake_buttons.target');
   final targets = [
     for (var i = 0; i < 6; i++)
       TargetSpec(
         id: 'f$i',
-        label: 'BUTTON',
+        label: label,
         color: color,
         opacity: i == real ? 1.0 : 0.32,
       ),
@@ -142,10 +146,10 @@ TapTargetChallenge buildFakeButtons(ChallengeParams p) {
     id: 'fake_buttons',
     tag: ChallengeTag.perception,
     duration: p.pace(const Duration(milliseconds: 2600), floorMs: 1300),
-    instruction: 'TAP THE REAL BUTTON',
+    instruction: p.tr('challenge.fake_buttons.instruction'),
     targets: targets,
     correctIds: {'f$real'},
     layout: ChallengeLayout.grid3,
-    wrongReason: 'THAT ONE WAS PAINT.',
+    wrongReason: p.tr('challenge.fake_buttons.wrong'),
   );
 }

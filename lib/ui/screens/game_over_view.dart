@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/roasts.dart';
 import '../../data/viral_prompts.dart';
+import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
 import '../theme.dart';
 import '../widgets/ays_button.dart';
@@ -35,8 +36,10 @@ class GameOverView extends StatefulWidget {
 class _GameOverViewState extends State<GameOverView> {
   late final String _roast = Roasts.gameOver(
         allowSpicy: AppServices.of(context).settings.roastsEnabled,
+        locale: AppServices.of(context).settings.locale,
       );
-  late final String _viral = ViralPrompts.random();
+  late final String _viral =
+      ViralPrompts.random(AppServices.of(context).settings.locale);
 
   Future<void> _share() async {
     final services = AppServices.of(context);
@@ -49,11 +52,15 @@ class _GameOverViewState extends State<GameOverView> {
       widget.level,
       best: widget.best,
       origin: origin,
+      locale: services.settings.locale,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final locale = AppServices.of(context).settings.locale;
+    String t(String key, [Map<String, String>? args]) =>
+        Strings.t(locale, key, args);
     return Container(
       color: Ays.bg,
       child: SafeArea(
@@ -63,54 +70,63 @@ class _GameOverViewState extends State<GameOverView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'ARE YOU STUPID?',
+                t('app.title'),
                 textAlign: TextAlign.center,
                 style: Ays.mono(13, color: Ays.inkDim),
               ),
               const Spacer(),
-              Text(
-                _roast,
-                textAlign: TextAlign.center,
-                style: Ays.title(40).copyWith(color: Ays.red),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  _roast,
+                  textAlign: TextAlign.center,
+                  style: Ays.title(40).copyWith(color: Ays.red),
+                ),
               ),
               const SizedBox(height: 28),
               Text(
-                'I REACHED',
+                t('ui.game_over.i_reached'),
                 textAlign: TextAlign.center,
                 style: Ays.label(20, color: Ays.inkDim),
               ),
               FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text('LEVEL ${widget.level}', style: Ays.title(92)),
+                child: Text(
+                  t('ui.game_over.level', {'n': '${widget.level}'}),
+                  style: Ays.title(92),
+                ),
               ),
               const SizedBox(height: 14),
               if (widget.isRecord)
                 Text(
-                  'NEW PERSONAL BEST!',
+                  t('ui.game_over.new_best'),
                   textAlign: TextAlign.center,
                   style: Ays.label(22, color: Ays.warning),
                 )
               else
                 Text(
-                  'BEST: LEVEL ${widget.best}',
+                  t('ui.game_over.best', {'n': '${widget.best}'}),
                   textAlign: TextAlign.center,
                   style: Ays.label(18, color: Ays.inkDim),
                 ),
               const SizedBox(height: 18),
               Text(
-                'CAN YOU BEAT ME?',
+                t('ui.game_over.can_you_beat_me'),
                 textAlign: TextAlign.center,
                 style: Ays.label(24),
               ),
               const SizedBox(height: 8),
-              Text(
-                _viral,
-                textAlign: TextAlign.center,
-                style: Ays.mono(11, color: Ays.inkDim),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  _viral,
+                  textAlign: TextAlign.center,
+                  style: Ays.mono(11, color: Ays.inkDim),
+                ),
               ),
               const Spacer(),
               AysButton(
-                label: 'TRY AGAIN',
+                label: t('ui.game_over.try_again'),
                 height: 88,
                 fontSize: 34,
                 onTap: widget.onRetry,
@@ -118,7 +134,7 @@ class _GameOverViewState extends State<GameOverView> {
               if (widget.canContinue) ...[
                 const SizedBox(height: 12),
                 AysButton(
-                  label: 'CONTINUE',
+                  label: t('ui.game_over.continue_btn'),
                   icon: '▶',
                   height: 62,
                   fontSize: 20,
@@ -132,7 +148,7 @@ class _GameOverViewState extends State<GameOverView> {
                 children: [
                   Expanded(
                     child: AysButton(
-                      label: 'SHARE RESULT',
+                      label: t('ui.game_over.share'),
                       height: 58,
                       fontSize: 17,
                       outlined: true,
@@ -143,7 +159,7 @@ class _GameOverViewState extends State<GameOverView> {
                   SizedBox(
                     width: 96,
                     child: AysButton(
-                      label: 'HOME',
+                      label: t('ui.game_over.home'),
                       height: 58,
                       fontSize: 15,
                       outlined: true,

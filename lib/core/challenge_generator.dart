@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../i18n/app_locale.dart';
 import 'challenge.dart';
 import 'difficulty.dart';
 
@@ -8,6 +9,7 @@ class ChallengeGenerator {
   ChallengeGenerator({
     required List<ChallengeTemplate> templates,
     Random? random,
+    this.locale = AppLocale.en,
   })  : _templates = templates,
         _rng = random ?? Random();
 
@@ -15,6 +17,10 @@ class ChallengeGenerator {
   final List<ChallengeTemplate> _templates;
   final Random _rng;
   final List<String> _recent = [];
+
+  /// The player's current language. Mutable so the UI layer can sync it from
+  /// settings without recreating the generator.
+  AppLocale locale;
 
   static const _memory = 4;
 
@@ -24,7 +30,12 @@ class ChallengeGenerator {
 
   Challenge next(int level) {
     final speed = Difficulty.speedForLevel(level);
-    final params = ChallengeParams(level: level, rng: _rng, speed: speed);
+    final params = ChallengeParams(
+      level: level,
+      rng: _rng,
+      speed: speed,
+      locale: locale,
+    );
     return _pick(level).build(params);
   }
 

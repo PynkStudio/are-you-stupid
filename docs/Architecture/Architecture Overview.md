@@ -1,6 +1,6 @@
 ---
 tags: [architecture, overview]
-updated: 2026-09-05
+updated: 2026-09-06
 ---
 
 # Architecture Overview
@@ -15,7 +15,8 @@ lib/
 │   ├── game_engine.dart      Run lifecycle, phases, scoring signals
 │   └── game_state.dart       Snapshot the UI renders
 ├── challenges/               One file per family + registry.dart
-├── data/                     Roast lines, viral prompts
+├── data/                     Roast lines, viral prompts (per-language)
+├── i18n/                     Pure Dart string tables — see [[Localization]]
 ├── services/                 Platform-facing side effects
 │   ├── ads/                  AdProvider abstraction + MockAdProvider + policy
 │   ├── app_services.dart     Injection root (InheritedWidget)
@@ -35,7 +36,9 @@ lib/
 **`core/` and `challenges/` never import Flutter widgets.**
 `core/game_engine.dart` imports `package:flutter/foundation.dart` only for
 `ChangeNotifier`. Challenges describe *what* to show; [[Rendering Pipeline]]
-decides *how*.
+decides *how*. `lib/i18n/` is pure Dart too, precisely so `core/` and
+`challenges/` can look up translated strings without breaking this rule —
+see [[Localization]].
 
 This is what makes every challenge testable without a widget tree — see
 [[Testing]].
@@ -55,7 +58,7 @@ Player touch
             └─ host.pass() / host.fail()      (the engine *is* the host)
 GameEngine
   ├─ phase = correct → 240 ms → next level
-  └─ phase = wrong   → 850 ms → gameOver
+  └─ phase = wrong   → 2.85 s (tap to skip) → gameOver
 ```
 
 ## Related
@@ -64,3 +67,4 @@ GameEngine
 - [[Challenge System]]
 - [[Services]]
 - [[State and Persistence]]
+- [[Localization]]

@@ -17,8 +17,13 @@ class ExactTapsChallenge extends BaseChallenge {
   }) : super(p, id: id, tag: ChallengeTag.counting, duration: duration) {
     this.instruction = instruction;
     layout = ChallengeLayout.single;
-    targets = const [
-      TargetSpec(id: 'pad', label: 'TAP', color: GameColor.slate, scale: 1.2),
+    targets = [
+      TargetSpec(
+        id: 'pad',
+        label: p.tr('common.tap_label'),
+        color: GameColor.slate,
+        scale: 1.2,
+      ),
     ];
     tapCounter = '0 / $required_';
   }
@@ -35,7 +40,7 @@ class ExactTapsChallenge extends BaseChallenge {
     _count++;
     tapCounter = '$_count / $required_';
     if (_count > required_) {
-      host.fail(reason: 'TOO MANY.');
+      host.fail(reason: params.tr('challenge.exact_taps.too_many'));
       return;
     }
     if (_count == required_) {
@@ -57,7 +62,13 @@ class ExactTapsChallenge extends BaseChallenge {
     if (_count == required_) {
       host.pass();
     } else {
-      host.fail(reason: _count < required_ ? 'NOT ENOUGH.' : 'TOO MANY.');
+      host.fail(
+        reason: params.tr(
+          _count < required_
+              ? 'challenge.exact_taps.not_enough'
+              : 'challenge.exact_taps.too_many',
+        ),
+      );
     }
   }
 
@@ -66,7 +77,7 @@ class ExactTapsChallenge extends BaseChallenge {
         required_: 2,
         id: 'tap_twice',
         duration: p.pace(const Duration(milliseconds: 2600), floorMs: 1400),
-        instruction: 'TAP TWICE',
+        instruction: p.tr('challenge.tap_twice.instruction'),
       );
 
   static ExactTapsChallenge exactly(ChallengeParams p) {
@@ -76,7 +87,10 @@ class ExactTapsChallenge extends BaseChallenge {
       required_: n,
       id: 'tap_exactly_n',
       duration: p.pace(const Duration(milliseconds: 3400), floorMs: 1800),
-      instruction: 'TAP EXACTLY $n TIMES',
+      instruction: p.tr(
+        'challenge.tap_exactly_n.instruction',
+        {'n': '$n'},
+      ),
     );
   }
 }
@@ -90,10 +104,15 @@ class SpamTapsChallenge extends BaseChallenge {
           tag: ChallengeTag.reaction,
           duration: p.pace(const Duration(milliseconds: 2600), floorMs: 1500),
         ) {
-    instruction = 'TAP $goal TIMES. FAST.';
+    instruction = p.tr('challenge.spam_taps.instruction', {'n': '$goal'});
     layout = ChallengeLayout.single;
-    targets = const [
-      TargetSpec(id: 'pad', label: 'GO', color: GameColor.green, scale: 1.25),
+    targets = [
+      TargetSpec(
+        id: 'pad',
+        label: p.tr('common.go_label'),
+        color: GameColor.green,
+        scale: 1.25,
+      ),
     ];
     tapCounter = '0 / $goal';
   }
@@ -114,7 +133,8 @@ class SpamTapsChallenge extends BaseChallenge {
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.fail(reason: 'SLOW HANDS.');
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: params.tr('challenge.spam_taps.wrong'));
 
   static SpamTapsChallenge build(ChallengeParams p) =>
       SpamTapsChallenge(p, 6 + min(6, p.level ~/ 5));
@@ -133,7 +153,7 @@ TapTargetChallenge buildTapNumber(ChallengeParams p) {
     id: 'tap_number',
     tag: ChallengeTag.counting,
     duration: p.pace(const Duration(milliseconds: 2200)),
-    instruction: 'TAP $answer',
+    instruction: p.tr('challenge.tap_number.instruction', {'n': '$answer'}),
     targets: numberTargets(list),
     correctIds: {'n$answer'},
   );
@@ -156,10 +176,13 @@ TapTargetChallenge buildMath(ChallengeParams p) {
     id: 'math',
     tag: ChallengeTag.counting,
     duration: p.pace(const Duration(milliseconds: 3000), floorMs: 1400),
-    instruction: plus ? 'TAP $a + $b' : 'TAP $a - $b',
+    instruction: p.tr(
+      plus ? 'challenge.math.instruction_plus' : 'challenge.math.instruction_minus',
+      {'a': '$a', 'b': '$b'},
+    ),
     targets: numberTargets(list),
     correctIds: {'n$answer'},
-    wrongReason: 'MATH. BASIC MATH.',
+    wrongReason: p.tr('challenge.math.wrong'),
   );
 }
 
@@ -183,11 +206,11 @@ TapTargetChallenge buildCountShapes(ChallengeParams p) {
     id: 'count_shapes',
     tag: ChallengeTag.counting,
     duration: p.pace(const Duration(milliseconds: 4000), floorMs: 1800),
-    instruction: 'HOW MANY CIRCLES?',
+    instruction: p.tr('challenge.count_shapes.instruction'),
     targets: numberTargets(list),
     correctIds: {'n$circles'},
     layout: ChallengeLayout.grid2x2,
-    wrongReason: 'COUNTING IS HARD, HUH.',
+    wrongReason: p.tr('challenge.count_shapes.wrong'),
   );
   challenge.bigCenterText = soup;
   return challenge;

@@ -11,8 +11,11 @@ updated: 2026-09-06
 - iOS: Xcode 26+, an iOS Simulator or device
 - Android: Android SDK + a device/emulator
 
-Dependencies are only `shared_preferences` and `share_plus`. Nothing else, on
-purpose ([[Game Design Pillars]]).
+Dependencies: `shared_preferences` (persistence), `share_plus` (share sheet),
+`google_mobile_ads` + `app_tracking_transparency` (ads, see [[Monetization and
+Ads]]), `in_app_purchase` (the "remove ads" purchase, same doc), `url_launcher`
+(the PynkStudio links in Settings, see [[Services]]). Every one earns its
+place — no dependency added speculatively ([[Game Design Pillars]]).
 
 ## Run
 
@@ -26,7 +29,7 @@ flutter run -d <device-id>  # flutter devices to list them
 
 ```bash
 flutter analyze   # must report zero issues
-flutter test      # 38 tests across 5 suites — see [[Testing]]
+flutter test      # 47 tests across 6 suites — see [[Testing]]
 ```
 
 ## Build

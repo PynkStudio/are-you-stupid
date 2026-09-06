@@ -1,6 +1,6 @@
 ---
 tags: [meta, rules, mandatory]
-updated: 2026-09-05
+updated: 2026-09-06
 ---
 
 # Documentation Rules
@@ -37,6 +37,14 @@ No "I'll document it later". No separate docs PR.
 | Tests or test strategy | [[Testing]] |
 | Scope: shipped / planned / rejected | [[Roadmap]] |
 | A non-obvious technical or design decision | [[Decision Log]] — append, never rewrite |
+| The multiplayer wire contract / messages / version | [[Multiplayer Protocol]] |
+| Host/room/game authority, timing, reconnect | [[Multiplayer Architecture]] |
+| tvOS host UI or host engine (`tvos/`) | [[Multiplayer Host (tvOS)]] |
+| Mobile controller UI or client engine (`lib/multiplayer/`) | [[Multiplayer Client (Mobile)]] |
+| Modes, rounds, scoring, elimination, TV humor | [[Multiplayer Gameplay]] |
+| Multiplayer challenge families or seeding | [[Multiplayer Challenges]] |
+| Multiplayer ads, sharing, join UX, scope | [[Multiplayer Product]] |
+| Multiplayer build order or test/sim harness | [[Multiplayer Development]] |
 
 ## How to write here
 

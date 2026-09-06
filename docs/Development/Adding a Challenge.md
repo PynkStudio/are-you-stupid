@@ -1,6 +1,6 @@
 ---
 tags: [development, howto, challenges]
-updated: 2026-09-05
+updated: 2026-09-06
 ---
 
 # Adding a Challenge
@@ -17,19 +17,19 @@ The most common task in this repo. Target: **one new class + one registry line.*
 Simplest case — reuse `TapTargetChallenge`:
 
 ```dart
-/// TAP THE ONE THAT IS LYING.
+/// TAP THE LIAR.
 TapTargetChallenge buildLiar(ChallengeParams p) {
   final colors = p.shuffled(kBasicColors);
-  final targets = honestColorTargets(colors);
+  final targets = honestColorTargets(colors, p.locale);
   return TapTargetChallenge(
     p,
     id: 'liar',
     tag: ChallengeTag.word,
     duration: p.pace(const Duration(milliseconds: 2600), floorMs: 1200),
-    instruction: 'TAP THE LIAR',
+    instruction: p.tr('challenge.liar.instruction'),
     targets: targets,
     correctIds: {targets.first.id},
-    wrongReason: 'THAT ONE WAS HONEST.',   // always ship a fail line
+    wrongReason: p.tr('challenge.liar.wrong'),   // always ship a fail line
   );
 }
 ```
@@ -44,6 +44,10 @@ Rules:
 - Always scale timing with `p.pace(base, floorMs: ...)`; never hardcode a raw
   duration unless the challenge *is* about absolute time.
 - Never import Flutter. See [[Challenge System]].
+- Never hardcode English text in the challenge file — every `instruction`,
+  `hint`, `wrongReason`/`lateReason` and success `note` goes through
+  `p.tr('challenge.<id>.<field>', {args})`, with the key added to **all six**
+  `lib/i18n/strings_*.dart` files. See [[Localization]].
 
 ## 3. Register it
 
@@ -69,7 +73,16 @@ target ids). Add the *specific* behaviour to
 `test/challenge_behaviour_test.dart`: the winning input, the losing input, and
 the trap. See [[Testing]].
 
-## 5. Document it — mandatory
+## 5. Translate it
+
+Add every new key to **all six** `lib/i18n/strings_*.dart` files (English is
+the source of truth; the other five must define the same keys — see
+[[Localization]]). If the challenge's gameplay content *is* words (a decoy
+list, an antonym pair, a letter count) it needs a hand-authored equivalent per
+language, not a literal translation — [[Localization]] explains why and shows
+the existing examples.
+
+## 6. Document it — mandatory
 
 Add a row to [[Challenge Catalog]] in the **same commit**. See
 [[Documentation Rules]].
@@ -80,5 +93,6 @@ Add a row to [[Challenge Catalog]] in the **same commit**. See
 - [ ] Own fail line
 - [ ] `minLevel` / `weight` set honestly
 - [ ] Behaviour test (win + lose + trap)
+- [ ] Every string added to all six `lib/i18n/strings_*.dart` files
 - [ ] Row in [[Challenge Catalog]]
 - [ ] `flutter analyze` clean, `flutter test` green

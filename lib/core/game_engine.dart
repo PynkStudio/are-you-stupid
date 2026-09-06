@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 
 import '../data/roasts.dart';
 import '../data/viral_prompts.dart';
+import '../i18n/app_locale.dart';
+import '../i18n/strings.dart';
 import 'challenge.dart';
 import 'challenge_generator.dart';
 import 'difficulty.dart';
@@ -36,13 +38,22 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
   /// Mirrors the "SAVAGE MODE" setting. When false only neutral lines show up.
   bool spicyRoasts = true;
 
+  /// The player's current language. Setting it also updates the generator so
+  /// the next round's challenge is built in that language.
+  AppLocale get locale => _generator.locale;
+  set locale(AppLocale value) => _generator.locale = value;
+
   GameState _state = GameState.initial();
   GameState get state => _state;
 
-  /// How long the flashes last. Kept tiny: downtime kills the loop.
+  /// How long the flashes last. Correct stays tiny: downtime kills the loop.
+  /// Wrong is long enough to actually read the roast — see
+  /// `docs/Meta/Decision Log.md` — but [skipWrongFlash] lets an impatient
+  /// player cut it short, so a player who already knows the drill still gets
+  /// near-zero downtime.
   static const introDuration = Duration(milliseconds: 550);
   static const correctFlash = Duration(milliseconds: 240);
-  static const wrongFlash = Duration(milliseconds: 850);
+  static const wrongFlash = Duration(milliseconds: 2850);
 
   Duration _phaseElapsed = Duration.zero;
 
@@ -83,6 +94,7 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
 
   void _startLevel(int level) {
     final challenge = _generator.next(level);
+    final milestoneKey = Difficulty.milestoneKey(level);
     _phaseElapsed = Duration.zero;
     _state = _state.copyWith(
       phase: GamePhase.playing,
@@ -92,9 +104,12 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
       duration: challenge.duration,
       clearFlash: true,
       clearNote: true,
-      viralPrompt:
-          Difficulty.showViralPrompt(level) ? ViralPrompts.random(_rng) : null,
+      viralPrompt: Difficulty.showViralPrompt(level)
+          ? ViralPrompts.random(locale, _rng)
+          : null,
       clearViral: !Difficulty.showViralPrompt(level),
+      paceNote: milestoneKey != null ? Strings.t(locale, milestoneKey) : null,
+      clearPaceNote: milestoneKey == null,
     );
     challenge.onStart(this);
     if (_state.phase == GamePhase.playing) {
@@ -121,11 +136,7 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
         return;
       case GamePhase.wrong:
         _phaseElapsed += delta;
-        if (_phaseElapsed >= wrongFlash) {
-          _state = _state.copyWith(phase: GamePhase.gameOver);
-          _emit(GameEvent.gameOver);
-          notifyListeners();
-        }
+        if (_phaseElapsed >= wrongFlash) _enterGameOver();
         return;
       case GamePhase.playing:
         break;
@@ -157,6 +168,20 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
     notifyListeners();
   }
 
+  /// Lets the player cut the wrong-flash roast short instead of waiting out
+  /// [wrongFlash] — a no-op outside that phase.
+  void skipWrongFlash() {
+    if (_state.phase != GamePhase.wrong) return;
+    _enterGameOver();
+  }
+
+  void _enterGameOver() {
+    _phaseElapsed = Duration.zero;
+    _state = _state.copyWith(phase: GamePhase.gameOver);
+    _emit(GameEvent.gameOver);
+    notifyListeners();
+  }
+
   // -------------------------------------------------------- ChallengeHost API
 
   @override
@@ -183,8 +208,8 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
     _phaseElapsed = Duration.zero;
     _state = _state.copyWith(
       phase: GamePhase.wrong,
-      flashMessage:
-          reason ?? Roasts.forMistake(rng: _rng, allowSpicy: spicyRoasts),
+      flashMessage: reason ??
+          Roasts.forMistake(rng: _rng, allowSpicy: spicyRoasts, locale: locale),
       fastStreak: 0,
     );
     _emit(GameEvent.wrong);

@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../i18n/strings.dart';
+import '../../services/app_services.dart';
 import '../theme.dart';
 import 'ays_button.dart';
 
@@ -40,6 +42,8 @@ class _MockAdOverlayState extends State<MockAdOverlay> {
   @override
   Widget build(BuildContext context) {
     final done = _left <= 0;
+    final locale = AppServices.of(context).settings.locale;
+    String t(String key) => Strings.t(locale, key);
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -52,9 +56,9 @@ class _MockAdOverlayState extends State<MockAdOverlay> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('SPONSORED', style: Ays.mono(13)),
+                    Text(t('ui.ad.sponsored'), style: Ays.mono(13)),
                     Text(
-                      done ? 'READY' : '$_left',
+                      done ? t('ui.ad.ready') : '$_left',
                       style: Ays.mono(13, color: Ays.warning),
                     ),
                   ],
@@ -77,14 +81,14 @@ class _MockAdOverlayState extends State<MockAdOverlay> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('YOUR AD HERE',
+                          Text(t('ui.ad.your_ad_here'),
                               textAlign: TextAlign.center,
                               style: Ays.title(46)),
                           const SizedBox(height: 12),
                           Text(
                             widget.rewarded
-                                ? 'WATCH TO CONTINUE'
-                                : 'THIS SPACE PAYS THE BILLS',
+                                ? t('ui.ad.watch_to_continue')
+                                : t('ui.ad.pays_bills'),
                             textAlign: TextAlign.center,
                             style: Ays.label(16, color: Ays.ink),
                           ),
@@ -96,8 +100,8 @@ class _MockAdOverlayState extends State<MockAdOverlay> {
                 const SizedBox(height: 18),
                 AysButton(
                   label: done
-                      ? (widget.rewarded ? 'CLAIM' : 'CLOSE')
-                      : 'PLEASE WAIT',
+                      ? (widget.rewarded ? t('ui.ad.claim') : t('ui.ad.close'))
+                      : t('ui.ad.please_wait'),
                   color: done ? Ays.ink : Ays.surfaceHigh,
                   textColor: done ? Ays.bg : Ays.inkDim,
                   onTap: () {
@@ -109,7 +113,7 @@ class _MockAdOverlayState extends State<MockAdOverlay> {
                   const SizedBox(height: 10),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    child: Text('NO THANKS', style: Ays.mono(13)),
+                    child: Text(t('ui.ad.no_thanks'), style: Ays.mono(13)),
                   ),
                 ],
               ],

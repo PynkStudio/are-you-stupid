@@ -47,7 +47,8 @@ abstract class _ShowThenAskChallenge extends BaseChallenge {
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.fail(reason: 'GONE ALREADY?');
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: params.tr('common.gone_already'));
 }
 
 /// 26 — REMEMBER: BLUE.
@@ -68,7 +69,7 @@ class RememberColorChallenge extends _ShowThenAskChallenge {
 
   @override
   void showPhase() {
-    instruction = 'REMEMBER';
+    instruction = params.tr('common.remember_label');
     layout = ChallengeLayout.single;
     showTimer = false;
     targets = [
@@ -78,7 +79,7 @@ class RememberColorChallenge extends _ShowThenAskChallenge {
 
   @override
   void askPhase() {
-    instruction = 'TAP THE COLOR';
+    instruction = params.tr('challenge.remember_color.ask');
     layout = ChallengeLayout.grid2x2;
     showTimer = true;
     targets = [
@@ -94,7 +95,12 @@ class RememberColorChallenge extends _ShowThenAskChallenge {
     if (hit.color == _secret) {
       host.pass();
     } else {
-      host.fail(reason: 'IT WAS ${_secret.label}.');
+      host.fail(
+        reason: params.tr(
+          'challenge.remember_color.fail',
+          {'color': params.colorLabel(_secret)},
+        ),
+      );
     }
   }
 }
@@ -123,7 +129,7 @@ class RememberNumberChallenge extends _ShowThenAskChallenge {
 
   @override
   void showPhase() {
-    instruction = 'REMEMBER';
+    instruction = params.tr('common.remember_label');
     layout = ChallengeLayout.none;
     showTimer = false;
     bigCenterText = '$_secret';
@@ -131,7 +137,7 @@ class RememberNumberChallenge extends _ShowThenAskChallenge {
 
   @override
   void askPhase() {
-    instruction = 'TAP THE NUMBER';
+    instruction = params.tr('challenge.remember_number.ask');
     bigCenterText = null;
     layout = ChallengeLayout.grid2x2;
     showTimer = true;
@@ -144,7 +150,9 @@ class RememberNumberChallenge extends _ShowThenAskChallenge {
     if (tap.targetId == 'n$_secret') {
       host.pass();
     } else {
-      host.fail(reason: 'IT WAS $_secret.');
+      host.fail(
+        reason: params.tr('challenge.remember_number.fail', {'n': '$_secret'}),
+      );
     }
   }
 }
@@ -159,7 +167,7 @@ class LastColorChallenge extends BaseChallenge {
           duration: Duration(milliseconds: _sequence.length * _stepMs) +
               answerWindow,
         ) {
-    instruction = 'WATCH';
+    instruction = p.tr('common.watch_label');
     layout = ChallengeLayout.single;
     showTimer = false;
     targets = [TargetSpec(id: 'show', color: _sequence.first, scale: 1.35)];
@@ -178,7 +186,7 @@ class LastColorChallenge extends BaseChallenge {
     final step = elapsed.inMilliseconds ~/ _stepMs;
     if (step >= _sequence.length) {
       _asking = true;
-      instruction = 'TAP THE LAST COLOR';
+      instruction = params.tr('challenge.last_color.ask');
       layout = ChallengeLayout.grid2x2;
       showTimer = true;
       targets = [
@@ -204,12 +212,13 @@ class LastColorChallenge extends BaseChallenge {
     if (hit.color == _sequence.last) {
       host.pass();
     } else {
-      host.fail(reason: 'THE LAST ONE.');
+      host.fail(reason: params.tr('challenge.last_color.wrong'));
     }
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.fail(reason: 'GONE ALREADY?');
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: params.tr('common.gone_already'));
 
   static LastColorChallenge build(ChallengeParams p) {
     final len = 3 + min(2, p.level ~/ 12);
@@ -242,7 +251,7 @@ class RememberPositionChallenge extends _ShowThenAskChallenge {
 
   @override
   void showPhase() {
-    instruction = 'WATCH';
+    instruction = params.tr('common.watch_label');
     layout = ChallengeLayout.grid2x2;
     showTimer = false;
     targets = [
@@ -256,7 +265,7 @@ class RememberPositionChallenge extends _ShowThenAskChallenge {
 
   @override
   void askPhase() {
-    instruction = 'WHICH ONE LIT UP?';
+    instruction = params.tr('challenge.remember_position.ask');
     showTimer = true;
     targets = [
       for (var i = 0; i < 4; i++) TargetSpec(id: 'p$i', color: GameColor.slate),
@@ -269,7 +278,7 @@ class RememberPositionChallenge extends _ShowThenAskChallenge {
     if (tap.targetId == 'p$_lit') {
       host.pass();
     } else {
-      host.fail(reason: 'WRONG CORNER.');
+      host.fail(reason: params.tr('challenge.remember_position.wrong'));
     }
   }
 }
