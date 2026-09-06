@@ -31,13 +31,30 @@ host needs to:
    existing template registry (`lib/challenges/registry.dart`), the `ChallengeParams`
    constructor, and the host's own reference RNG seeded by `seed`.
 
-On the Flutter client side, exactly the same step happens when `ROUND_START`
-arrives: `ChallengeTemplate(id: challengeId).build(ChallengeParams(level, ...,
-rng: Random(seed)))` — the same deterministic `ChallengeView`, no random state
-outside `seed`, no Flutter dependency in `lib/core/` or `lib/challenges/`.
+Phase 1 is landed in Dart: `lib/challenges/registry.dart` exposes the two
+pieces of that contract:
 
-This refactor **does not** change single-player behaviour — the existing
-`ChallengeGenerator` remains the only entry point for solo play.
+- `templateById(String id)` — resolves a `ChallengeTemplate` by its stable
+  id, or `null` for an unknown id (a host must treat `null` as a bad round,
+  not crash).
+- `buildFromSeed({challengeId, seed, level, locale})` — builds the canonical
+  `Challenge` from `{ challengeId, seed }`. It seeds a fresh `Random(seed)`
+  per call and derives `speed` from `level` via `Difficulty.speedForLevel`,
+  exactly like the solo path, so every end agrees on timings without the host
+  sending an explicit speed.
+
+```dart
+buildFromSeed(challengeId: 'tap_actual_color', seed: 28374, level: 12);
+```
+
+Same tuple → same `Challenge` → same `ChallengeView` on the Dart side, every
+time. `buildFromSeed` is **not** used by single-player: `ChallengeGenerator`
+remains the only solo entry point, and its behaviour is unchanged.
+
+The determinism guarantee is scoped to Dart runtimes today (every Flutter
+phone and the in-process simulation harness). Mirroring the exact seeded
+stream when the native tvOS host lands is an open decision — see the
+[[Decision Log]] entry *"Multiplayer Phase 1 landed: `buildFromSeed` …"*.
 
 ## How challenges land on every phone
 
@@ -61,15 +78,17 @@ player, and to what the host itself built.
 ## Reusing the existing 39 templates
 
 Most rounds use a template straight from [[Challenge Catalog]]. The host picks
-one via the seeded sequence; the host and every client call the same
-`.build()` with the same `rng` and `level`, producing the same `ChallengeView`.
-No new challenge code is needed — the host's `ROUND_START` is all that is
-required.
+one via the seeded sequence; every Dart end (the Flutter phones and the
+in-process simulation harness) calls `buildFromSeed(challengeId:, seed:,
+level:)`, producing the same `ChallengeView`. No new challenge code is needed
+— the host's `ROUND_START` is all that is required.
 
-The host's `ChallengeMaster` (see [[Multiplayer Host (tvOS)]]) exposes a
-`nextChallenge(level: Int, seed: UInt64) -> (challengeId, builtView)` method
-that mirrors `ChallengeGenerator`; the Flutter client's `PartyEngine` does the
-same in Dart.
+**Phase 4 open question:** the native tvOS host ([[Multiplayer Host (tvOS)]])
+is a separate Swift process and — unlike the all-Dart ends — is **not**
+guaranteed to reproduce the seeded stream yet (see the [[Decision Log]] entry
+*"Multiplayer Phase 1 landed: `buildFromSeed` …"*). Two options, neither
+chosen: replicate Dart's PRNG in Swift so the host can rebuild locally, or keep
+the host from needing a local rebuild at all.
 
 ## Multiplayer-specific challenge families
 

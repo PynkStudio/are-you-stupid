@@ -29,7 +29,7 @@ flutter run -d <device-id>  # flutter devices to list them
 
 ```bash
 flutter analyze   # must report zero issues
-flutter test      # 47 tests across 6 suites — see [[Testing]]
+flutter test      # 63 tests across 7 suites — see [[Testing]]
 ```
 
 ## Build

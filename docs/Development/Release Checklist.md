@@ -8,7 +8,7 @@ updated: 2026-09-06
 ## Code
 
 - [x] `flutter analyze` — zero issues (verified 2026-09-06)
-- [ ] `flutter test` — 38 tests across 5 suites, but **one is intermittently
+- [ ] `flutter test` — 63 tests across 7 suites, but **one is intermittently
       flaky** (`app_flow_test.dart`, "the run is recorded in the stats
       screen", ~1 in 5–8 runs) — a genuine `RenderFlex` overflow in
       `StatsScreen`, not a test bug. See [[Testing]] before treating this as a

@@ -31,7 +31,15 @@ already used for the level number two lines below (see [[Rendering
 Pipeline]]'s "Labels use `FittedBox`" rule) — a long line shrinks to fit
 instead of wrapping and blowing the column. See [[Decision Log]].
 
-## The six suites
+## The seven suites
+
+### `test/challenge_determinism_test.dart` — the multiplayer seed contract
+For every registered template across 4 seeds × 3 level bands: same
+`{ challengeId, seed, level }` → deep-identical `ChallengeView` (every
+render-relevant field compared), stable duration/id, unknown ids resolve to
+`null` from `templateById`, and unknown ids throw from `buildFromSeed`. This
+is what guarantees host and every phone rebuild the same challenge from a
+`ROUND_START` tuple — see [[Multiplayer Challenges]] and [[Decision Log]].
 
 ### `test/challenge_templates_test.dart` — the contract
 Runs **every** registered template across 12 seeds × 3 level bands and asserts:

@@ -69,7 +69,24 @@ come out in the player's language.
 
 ## Registry
 
-`lib/challenges/registry.dart` holds `kChallengeTemplates`:
+`lib/challenges/registry.dart` holds `kChallengeTemplates`, plus two lookup /
+deterministic-build helpers:
+
+```dart
+templateById('tap_color');                        // ChallengeTemplate? (null if unknown)
+buildFromSeed(challengeId: 'tap_color', seed: 42, level: 7);
+```
+
+- `templateById(String id)` — resolves a template by its stable `id`, or
+  `null` for an unknown id. Used by the multiplayer contract; a caller that
+  receives a challenge id over the wire must treat `null` as a bad round, not
+  crash.
+- `buildFromSeed({challengeId, seed, level, locale})` — builds the canonical
+  `Challenge` for a round from `{ challengeId, seed }`, seeding a fresh
+  `Random(seed)` and deriving `speed` via `Difficulty.speedForLevel(level)`.
+  Same tuple → same `ChallengeView`, every time. Multiplayer-only: solo play
+  still goes through `ChallengeGenerator` (below). See [[Multiplayer
+  Challenges]].
 
 ```dart
 ChallengeTemplate(

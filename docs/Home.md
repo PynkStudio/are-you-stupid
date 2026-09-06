@@ -50,8 +50,9 @@ repository MUST read [[Documentation Rules]] before touching code.**
 
 ### Multiplayer — Apple TV party mode
 A 2–8 player party mode: tvOS host + phones as controllers over the local
-network. **Specified below; not yet implemented.** As it ships, per-phase
-changes update these notes (see [[Multiplayer Development]]).
+network. **Phase 1 (deterministic seeded challenge build) landed;** the rest
+below is specification. As it ships, per-phase changes update these notes
+(see [[Multiplayer Development]]).
 
 - [[Multiplayer Product]] — concept, QR joining, ads, sharing, scope
 - [[Multiplayer Gameplay]] — Last Stupid Standing + Stupid Battle, rounds,
@@ -79,7 +80,7 @@ changes update these notes (see [[Multiplayer Development]]).
 | Sound / haptics | System sounds + platform haptics |
 | Sharing | OS share sheet via `share_plus` |
 | Backend | None. On purpose. |
-| Multiplayer party mode (Apple TV) | **Spec'd, not built.** Design lives in the Multiplayer section below; see [[Multiplayer Development]] for phases |
+| Multiplayer party mode (Apple TV) | Phase 1 landed (deterministic seeded challenge build in Dart); phases 2+ still spec'd. See [[Multiplayer Development]] |
 | Version control | Git, public on GitHub: `PynkStudio/are-you-stupid` |
 | Languages | English, Italian, French, Spanish, Portuguese, German — see [[Localization]] |
 
@@ -88,7 +89,7 @@ changes update these notes (see [[Multiplayer Development]]).
 | Target | State |
 |---|---|
 | `flutter analyze` | clean |
-| `flutter test` | 45 tests, one intermittently flaky — see [[Testing]] |
+| `flutter test` | 63 tests across 7 suites, one intermittently flaky — see [[Testing]] |
 | Android debug APK | builds |
 | Android release APK | builds, signed with a real upload key (not debug) — see [[Release Checklist]] |
 | iOS simulator | builds and runs via `flutter run`, hot reload included |

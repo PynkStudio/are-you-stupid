@@ -1,4 +1,8 @@
+import 'dart:math';
+
 import '../core/challenge.dart';
+import '../core/difficulty.dart';
+import '../i18n/app_locale.dart';
 import 'color_challenges.dart';
 import 'counting_challenges.dart';
 import 'memory_challenges.dart';
@@ -278,3 +282,62 @@ const kChallengeTemplates = <ChallengeTemplate>[
     weight: 0.8,
   ),
 ];
+
+/// Id → template index for the deterministic rebuild path ([templateById]).
+final Map<String, ChallengeTemplate> _templatesById = {
+  for (final t in kChallengeTemplates) t.id: t,
+};
+
+/// Looks up a registered template by its stable [id]. Returns null for
+/// unknown ids — callers (multiplayer hosts) must treat null as a bad round,
+/// not a crash.
+ChallengeTemplate? templateById(String id) => _templatesById[id];
+
+/// Builds the canonical challenge for a multiplayer round from
+/// `{ challengeId, seed }` (plus the round's [level] and, when the host has a
+/// room language, [locale]).
+///
+/// This is the deterministic contract shared by the host, the simulation
+/// harness and every phone ([`ROUND_START`] carries exactly this tuple —
+/// see `docs/Gameplay/Multiplayer Challenges.md` and
+/// `docs/Architecture/Multiplayer Protocol.md`):
+///
+/// ```dart
+/// buildFromSeed(challengeId: 'tap_actual_color', seed: 28374, level: 12);
+/// ```
+///
+/// Same tuple → same [Challenge] → same [ChallengeView] on every end. The rng
+/// is seeded fresh from [seed] and never re-used across rounds, so nothing but
+/// [seed] influences the outcome. `speed` is derived from the [level] via
+/// [Difficulty.speedForLevel], exactly like the solo path, so both ends agree
+/// on timings without the host sending an explicit speed.
+///
+/// This does **not** change single-player behaviour: [ChallengeGenerator]
+/// remains the only solo entry point. Throws [ArgumentError] for an unknown
+/// [challengeId].
+///
+/// NOTE (cross-language portability, decision logged in `docs/Meta/Decision
+/// Log.md`): `Random(seed)` is deterministic within a given Dart runtime, so
+/// every Dart end (Flutter phone, Dart harness) rebuilds identically. When the
+/// native tvOS host lands (Phase 4), mirroring this exact seeded stream in
+/// Swift is still an open decision: either the host reproduces the stream
+/// identically, or it judges without a local rebuild.
+Challenge buildFromSeed({
+  required String challengeId,
+  required int seed,
+  required int level,
+  AppLocale locale = AppLocale.en,
+}) {
+  final template = templateById(challengeId);
+  if (template == null) {
+    throw ArgumentError.value(
+        challengeId, 'challengeId', 'template not found in registry');
+  }
+  final params = ChallengeParams(
+    level: level,
+    rng: Random(seed),
+    speed: Difficulty.speedForLevel(level),
+    locale: locale,
+  );
+  return template.build(params);
+}

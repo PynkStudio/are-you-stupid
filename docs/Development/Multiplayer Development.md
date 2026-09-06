@@ -16,6 +16,12 @@ multiplayer slice is additive ([[Multiplayer Architecture]]). Built in the
 Refactor the challenge path so a template can be built from
 `{ challengeId, seed }` deterministically, without changing single-player
 behaviour ([[Multiplayer Challenges]]).
+**Status: ✅ landed** (Dart). `lib/challenges/registry.dart` ships
+`templateById(id)` and the canonical `buildFromSeed({challengeId, seed,
+level, locale})`; `test/challenge_determinism_test.dart` proves the same
+tuple → identical `ChallengeView` across every template. Cross-language
+determinism (the Swift host in Phase 4) stays an open decision — [[Decision
+Log]].
 
 ### Phase 2 — Protocol + local host/client networking abstraction
 Port [[Multiplayer Protocol]] to a pure-Dart layer (`lib/multiplayer/`) and a

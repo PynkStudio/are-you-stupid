@@ -572,3 +572,32 @@ competitive advantage ([[Multiplayer Product]] → Ads). This extends — doesn'
 wedge — the single-player [[Monetization and Ads]] guards (still
 user-initiated, still offline-safe). If a future "remove ads" IAP applies here,
 it follows the same `PurchaseManager` pattern ([[Services]]).
+
+### 2026-09-06 — Multiplayer Phase 1 landed: `buildFromSeed` is the canonical deterministic build, scoped to Dart for now
+Phase 1 of [[Multiplayer Development]] is in: `lib/challenges/registry.dart`
+now exposes `templateById(id)` (null for unknown ids — a future host treats a
+bad id as a bad round, not a crash) and `buildFromSeed({challengeId, seed,
+level, locale})`, which returns the canonical `Challenge` for a round. Same
+tuple → same `ChallengeView`, guaranteed by `test/challenge_determinism_test
+.dart` (deep-compares every render-relevant field across all 39 templates ×
+four seeds × three level bands). `ChallengeGenerator` and single-player
+behaviour are untouched — `buildFromSeed` is additive only.
+**Why one function, not `Random(seed)` sprinkled at call sites:** the whole
+point of the seeded contract is that the host, every phone *and* the
+simulation harness rebuild the identical challenge. One entry point makes that
+a property of the codebase, not of each caller remembering to seed correctly.
+The `rng` is created fresh per call and never shared across rounds, so nothing
+but `seed` (and the derived `level`/`locale`/`speed`) influences the result;
+`speed` comes from `Difficulty.speedForLevel(level)` exactly as in solo play,
+so no explicit speed needs to travel in `ROUND_START`.
+**Deliberate scope cut — cross-language determinism is NOT solved yet.**
+`Random(seed)` is deterministic within a Dart runtime, which covers every
+Flutter phone and the in-process Dart harness (Phases 1–3). When the native
+tvOS host ([[Multiplayer Host (tvOS)]]) needs its own rebuild to judge rounds
+(Phase 4), two options exist and neither is chosen yet: (a) replicate Dart's
+exact seeded stream in Swift so the host can rebuild locally, or (b) keep the
+host from needing a local rebuild at all (e.g. judge from semantics the
+protocol already carries). Revisit in Phase 4; this entry exists so nobody
+assumes the Swift side "just works" by copying a seed. **Cost:** if (a) is
+chosen, the Swift mirror must chase Dart's PRNG precisely, or the seed
+contract becomes the protocol-level coupling point.

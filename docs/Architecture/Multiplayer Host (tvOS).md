@@ -50,6 +50,8 @@ AreYouStupidTV/
 ├── Game/Host/
 │   ├── RoomHost.swift           room lifecycle, ownership, gatekeeper
 │   ├── ChallengeMaster.swift    seed generation + canonical challenge state
+│   │                            (whether it rebuilds the challenge locally is
+│   │                            the Phase 4 [[Decision Log]] determinism call)
 │   ├── RoundOrchestrator.swift  countdown, timing, judging, result assembly
 │   └── ScoreKeeper.swift        mode scoring (lives vs points), standing
 ├── Net/
