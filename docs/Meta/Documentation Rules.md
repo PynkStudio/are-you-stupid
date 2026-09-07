@@ -1,6 +1,6 @@
 ---
 tags: [meta, rules, mandatory]
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 # Documentation Rules
@@ -39,12 +39,35 @@ No "I'll document it later". No separate docs PR.
 | A non-obvious technical or design decision | [[Decision Log]] — append, never rewrite |
 | The multiplayer wire contract / messages / version | [[Multiplayer Protocol]] |
 | Host/room/game authority, timing, reconnect | [[Multiplayer Architecture]] |
-| tvOS host UI or host engine (`tvos/`) | [[Multiplayer Host (tvOS)]] |
+| Host UI or host engine (tvOS **and** macOS board host, `tvos/` / host target) | [[Multiplayer Host (tvOS)]] |
 | Mobile controller UI or client engine (`lib/multiplayer/`) | [[Multiplayer Client (Mobile)]] |
 | Modes, rounds, scoring, elimination, TV humor | [[Multiplayer Gameplay]] |
 | Multiplayer challenge families or seeding | [[Multiplayer Challenges]] |
 | Multiplayer ads, sharing, join UX, scope | [[Multiplayer Product]] |
 | Multiplayer build order or test/sim harness | [[Multiplayer Development]] |
+| AI: the director, its pipeline, the bridge contract, or phase plan | [[Dynamic AI Director]] (+ [[Feature Flags]] if flags/modes changed; [[Foundation Models Integration]] if the `ays/apple_intelligence` contract changed; [[Development Plan]] when a Phase lands) |
+| AI: proposal schema, mechanics, any generated-challenge shape | [[AI Challenge Generation]] (+ [[AI Challenge Validator]] if validation rules changed) |
+| AI: validator rules or verdicts | [[AI Challenge Validator]] |
+| AI: telemetry/profile/adaptive territory | [[Player Telemetry and Adaptive Difficulty]] |
+| AI: commentary kinds or length gates | [[AI Commentary]] |
+| AI: caching/SLA/cancellation | [[Pre-generation Cache]] (+ [[Performance and Resource Budgets]]) |
+| AI: profiles, tool set, prompts | [[Dynamic Profiles and Tool Calling]] |
+| AI: multiplayer wire kinds / Director Host election | [[Multiplayer AI Director]] (+ [[Multiplayer Protocol]]) |
+| AI: privacy, persistence, observability, offline posture | [[Privacy and Offline]] (+ [[State and Persistence]]) |
+| AI: localization/locale gating | [[Localization and Language]] |
+| AI: quality/guardrail/rollback posture | [[Quality Neutrality and Guardrails]] |
+| AI: test strategy for the AI suites | [[Testing and Evaluation]] (+ [[Testing]]) |
+
+### Spec documents
+
+The `docs/AI/` set is, until implementation, the *only* authorized
+"aspirational" documentation in the vault: they are the spec for a
+deliberately docs-first phase ([[Development Plan]] Phase 0) and each one
+carries an explicit "spec, not shipped code" posture. **Every other rule
+applies to them the moment their subject ships** — and what ships must be
+described truthfully then (addendum + `updated:` bump, same commit). Until a
+`docs/AI/` subject ships, no other note may cite it as if it were landed;
+[[Home]] marks the whole area as spec.
 
 ## How to write here
 

@@ -1,6 +1,6 @@
 ---
 tags: [architecture, services]
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 # Services
@@ -22,6 +22,13 @@ final services = AppServices.of(context);
 | `ShareManager` | share text + OS share sheet | `share_plus` |
 | `AdManager` | *policy*: when ads may show | see [[Monetization and Ads]] |
 | `PurchaseManager` | *policy*: buy/restore the "remove ads" IAP | `ChangeNotifier`, see [[Monetization and Ads]] |
+| `AppleAIService` (Phase 2) | on-device Foundation Models client via the `ays/apple_intelligence` MethodChannel | **spec only** — [[Foundation Models Integration]]; mock-backed until the native side lands |
+
+The **dynamic AI director** itself is *not* a service — it's the
+`lib/ai/` layer (providers, validator, prefetch cache, telemetry) that lives
+*above* `lib/services/`. Services stay platform-facing; `AppleAIService` is
+the **only** AI-related member of this table and its whole job is to own that
+one channel. See [[Dynamic AI Director]].
 
 ## External links
 

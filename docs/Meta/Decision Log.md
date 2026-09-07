@@ -1,6 +1,6 @@
 ---
 tags: [meta, decisions, adr]
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 # Decision Log
@@ -601,3 +601,85 @@ protocol already carries). Revisit in Phase 4; this entry exists so nobody
 assumes the Swift side "just works" by copying a seed. **Cost:** if (a) is
 chosen, the Swift mirror must chase Dart's PRNG precisely, or the seed
 contract becomes the protocol-level coupling point.
+
+### 2026-09-07 — Apple Intelligence dynamic game director: spec-first docs + branch
+Before any AI code, captured the whole feature in the vault the same way the
+multiplayer slice was (see the 2026-09-06 spec-first entry): 18 new
+`docs/AI/` notes (router rows added in [[Documentation Rules]]), plus updates
+to [[Home]], [[Roadmap]], [[Architecture Overview]], [[Services]], [[State
+and Persistence]], [[Testing]], [[Getting Started]]. Work happens on a new
+branch **`ai/dynamic-director`** cut from `multiplayer` @ `0282408`.
+**Decisions locked in this pass** (each has a dedicated note):
+- **The model is never the authority.** Every generation is a *proposal*;
+  the deterministic Dart [[AI Challenge Validator]] is the only gate, and a
+  served challenge is always validated ([[AI Challenge Validator]]).
+- **Generated content is closed-vocabulary.** The model picks from
+  `ChallengeMechanic`s the engine can render + judge; it never paints pixels
+  and never sets floors ([[AI Challenge Generation]]).
+- **Gameplay never blocks on the model.** Pre-generation cache + silent
+  scripted fallback; a model failure is invisible to the player, and Settings
+  is the only honest place the machine's state is shown ([[Pre-generation
+  Cache]], [[Error States and Failure Communication]]).
+- **On-device only, additive only.** Foundation Models via one MethodChannel,
+  no server/analytics/identity; everything is opt-out of a *complete* scripted
+  game and flips off with the `dynamicAIEnabled` master flag
+  ([[Privacy and Offline]], [[Feature Flags]], [[Quality Neutrality and
+  Guardrails]]).
+- **Apple TV never runs the model.** `FoundationModels` has no tvOS support;
+  one capable iPhone/iPad among controllers is elected AI Director Host
+  ([[Multiplayer AI Director]]).
+- **v1 model output is English-only**; all other locales play the fully
+  localized scripted path ([[Localization and Language]]).
+- **Unconfirmed API guesses dropped:** earlier session notes speculated about
+  `GuidedGenerationRequest`, `DynamicProfileRequest`, `LanguageModelParameters`,
+  `SessionUpdateConfigurationRequest` — the completed FoundationModels
+  interface survey (module 1.5.2) confirms the real surface
+  (`LanguageModelSession`, `SystemLanguageModel.default`, `@Generable`,
+  `GenerationGuide`, ... — the tables in [[Foundation Models Integration]])
+  and those names were discarded.
+- The uncommitted multiplayer WIP (`lib/multiplayer/`, `test/multiplayer/`,
+  `test/support/party_host_reference.dart`) was deliberately **not** included
+  on the new branch — it's someone's in-progress work, kept untracked.
+
+### 2026-09-07 — Multiplayer Phase 2 landed: protocol + client core + in-process host reference (test-only, never shipped)
+Phase 2 ([[Multiplayer Development]]) is in: `lib/multiplayer/` carries the
+full wire model + JSONL codec, the client session/state/controller, and an
+in-memory transport; `test/support/party_host_reference.dart` implements the
+**authoritative host** (gatekeeper, joining, ready gate, round orchestration,
+countdown, judging, LSS lives/elimination/sole-survivor and Battle bonus
+scoring, reconnect grace window) that the 32 headless tests in
+`test/multiplayer/` run against. Three sub-decisions locked in with it:
+- **The host reference lives in `test/support/`, not `lib/` or `tvos/`.** It is
+  a reference for the rules, not the shipped host; the real host is the future
+  native Swift target ([[Multiplayer Host (tvOS)]]). Keeping it test-side stops
+  Dart and Swift competing as host implementations. **Cost:** two host
+  implementations exist across the repo's life; the protocol is the single
+  coupling point and the tests pin it.
+- **Reconnect identity is `playerName` + `emoji`**, not a stored client id —
+  no persistent identity exists in this offline product. The host re-sends
+  `PLAYER_JOINED` (so the client re-learns its `selfClientId`) and broadcasts
+  `PLAYER_RECONNECTED`. **Cost:** two phones using the same name+emoji down to
+  collisions; acceptable at party scale and matches [[Multiplayer Product]].
+- **Counting challenges commit a count, not replayed taps.** One
+  `PLAYER_ACTION` per player per round is the protocol rule (duplicates →
+  `DUPLICATE_ACTION`), so families like `tap_twice`/`tap_exactly_n` are
+  answered `{ kind: "count", count }` and the host replays that count against
+  its canonical challenge. **Cost:** two `PartyAction` kinds to model; the
+  judge stays canonical regardless of timing.
+
+### 2026-09-07 — macOS host is board-only (no direct play) with an AirPlay mirror button
+The native host ([[Multiplayer Host (tvOS)]]) ships one shared Swift
+`Host/`+`Net/`+`UI/` core for **tvOS and macOS**. On the Mac it is
+**board-only by design**: it hosts, owns the rules and displays
+lobby/rounds/results exactly like the TV, but the person at the Mac does not
+play on the Mac — they use their phone like everyone else
+([[Multiplayer Product]]). The macOS host adds an **AirPlay button** to mirror
+the board to another screen; tvOS has no mirror button because the board *is*
+its output. **Why:** most prospective groups don't own an Apple TV, but a Mac +
+AirPlay covers them with zero extra surface; a Mac controller would be a second
+input paradigm (keyboard/mouse/remote) that the 8-inch-tap game was never
+designed for, and it would quietly fork the "TV is display-only" rule
+([[Multiplayer Architecture]]). **Cost:** tvOS and macOS share every screen
+and rule, so any tvOS-only shortcut (e.g. relying on remote focus) must be
+abstracted; AirPlay latency is display-only and never touches judging, which
+stays on the host clock ([[Multiplayer Protocol]]).

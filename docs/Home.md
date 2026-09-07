@@ -1,6 +1,6 @@
 ---
 tags: [moc, index]
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 # ARE YOU STUPID? — Documentation Home
@@ -49,9 +49,10 @@ repository MUST read [[Documentation Rules]] before touching code.**
 - [[Release Checklist]]
 
 ### Multiplayer — Apple TV party mode
-A 2–8 player party mode: tvOS host + phones as controllers over the local
-network. **Phase 1 (deterministic seeded challenge build) landed;** the rest
-below is specification. As it ships, per-phase changes update these notes
+A 2–8 player party mode: tvOS host (or a macOS **board-only** host with AirPlay
+mirroring) + phones as controllers over the local network. **Phase 2 (protocol
++ client core + in-process host reference, 32 headless tests) landed;** the
+rest below is specification. As it ships, per-phase changes update these notes
 (see [[Multiplayer Development]]).
 
 - [[Multiplayer Product]] — concept, QR joining, ads, sharing, scope
@@ -64,6 +65,25 @@ below is specification. As it ships, per-phase changes update these notes
 - [[Multiplayer Host (tvOS)]] — the native SwiftUI host/display app
 - [[Multiplayer Client (Mobile)]] — the Flutter controller app
 - [[Multiplayer Development]] — phases, tests, simulation harness
+
+### AI — dynamic game director
+Apple Intelligence (Foundation Models) on-device director: AI challenge
+generation, commentary, adaptive territory and a multiplayer AI host — all
+behind a **validated, scripted-fallback-first** pipeline. **Spec only, no
+shipped code.** The branch `ai/dynamic-director` carries the full spec below;
+implementation phases are tracked in [[Development Plan]].
+
+- [[Dynamic AI Director]] — the overview and pipeline
+- [[Foundation Models Integration]] — the Swift/Dart bridge contract
+- [[AI Challenge Generation]] / [[AI Challenge Validator]]
+- [[Player Telemetry and Adaptive Difficulty]]
+- [[AI Commentary]] / [[Pre-generation Cache]]
+- [[Dynamic Profiles and Tool Calling]]
+- [[Multiplayer AI Director]]
+- [[Feature Flags]] / [[Quality Neutrality and Guardrails]]
+- [[Privacy and Offline]] / [[Performance and Resource Budgets]]
+- [[Localization and Language]] / [[Error States and Failure Communication]]
+- [[AI as Playing Style]] / [[Testing and Evaluation]] / [[Development Plan]]
 
 ### Meta
 - [[Documentation Rules]] — **mandatory for AI agents**
@@ -80,16 +100,17 @@ below is specification. As it ships, per-phase changes update these notes
 | Sound / haptics | System sounds + platform haptics |
 | Sharing | OS share sheet via `share_plus` |
 | Backend | None. On purpose. |
-| Multiplayer party mode (Apple TV) | Phase 1 landed (deterministic seeded challenge build in Dart); phases 2+ still spec'd. See [[Multiplayer Development]] |
+| Multiplayer party mode (Apple TV + macOS board host) | Phase 2 landed: wire protocol, client core + in-process host reference, 32 headless tests. Phase 3+ spec'd. See [[Multiplayer Development]] |
+| AI dynamic director (Apple Intelligence) | Spec only — `docs/AI/` is the source of truth; no shipped code yet. See [[Dynamic AI Director]] |
 | Version control | Git, public on GitHub: `PynkStudio/are-you-stupid` |
 | Languages | English, Italian, French, Spanish, Portuguese, German — see [[Localization]] |
 
-## Build status (2026-09-06)
+## Build status (2026-09-07)
 
 | Target | State |
 |---|---|
 | `flutter analyze` | clean |
-| `flutter test` | 63 tests across 7 suites, one intermittently flaky — see [[Testing]] |
+| `flutter test` | 95 tests across 12 suites (32 are the multiplayer Phase 2 headless suites), one intermittently flaky — see [[Testing]] |
 | Android debug APK | builds |
 | Android release APK | builds, signed with a real upload key (not debug) — see [[Release Checklist]] |
 | iOS simulator | builds and runs via `flutter run`, hot reload included |

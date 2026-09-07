@@ -1,6 +1,6 @@
 ---
 tags: [architecture, persistence, offline]
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 # State and Persistence
@@ -21,6 +21,19 @@ needed. Everything lives in `SharedPreferences` on the device.
 | `ays.locale` | chosen language; absent = follow the device language — see [[Localization]] |
 | `ays.noAdsPurchased` | the "remove ads" IAP, set by `PurchaseManager` after a store purchase or restore — see [[Monetization and Ads]] |
 
+### AI feature keys (`ayu.*`, spec — [[Feature Flags]], [[Privacy and Offline]])
+
+| Key | Meaning |
+|---|---|
+| `ayu.dynamicAI.mode` | AI Experience Modes: `genius \| focused \| classic` |
+| `ayu.dynamicAI.*` | per-flag tri-state overrides (`aiChallengeGenerationEnabled`, …) |
+| `ayu.profile` | rolling `PlayerGameplayProfile` (~2 KB, 50-round window, no identity) |
+| `ayu.ai.observability.*` | local-only QA counters (dev screen) |
+
+All `ayu.*` keys are wiped by Settings → RESET STATS *and* revert to shipped
+defaults; nothing touches them except the `lib/ai/` layer
+([[Privacy and Offline]] → "What's persisted").
+
 ## Run state vs stored state
 
 `GameState` (in memory, one run) and `ScoreManager` (on disk, forever) are
@@ -33,8 +46,9 @@ so continues update the best level but do not inflate attempts or the average.
 ## Resetting
 
 Settings → RESET STATS wipes the score keys (`ays.best`, `ays.attempts`,
-`ays.levelSum`, `ays.streak`, `ays.runsSinceAd`) via `ScoreManager.reset()`.
-Sound/haptics/roasts/language and `ays.noAdsPurchased` are untouched — a
-purchase is not "progress" and must survive a stats reset. There is no UI path
-that removes it short of reinstalling and not restoring, and nothing leaves
-the phone either way.
+`ays.levelSum`, `ays.streak`, `ays.runsSinceAd`) via `ScoreManager.reset()`,
+plus the AI keys (`ayu.*`) via the `lib/ai/` reset path
+([[Privacy and Offline]]). Sound/haptics/roasts/language and
+`ays.noAdsPurchased` are untouched — a purchase is not "progress" and must
+survive a stats reset. There is no UI path that removes it short of
+reinstalling and not restoring, and nothing leaves the phone either way.

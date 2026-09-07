@@ -1,6 +1,6 @@
 ---
 tags: [development, testing]
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 # Testing
@@ -31,7 +31,33 @@ already used for the level number two lines below (see [[Rendering
 Pipeline]]'s "Labels use `FittedBox`" rule) — a long line shrinks to fit
 instead of wrapping and blowing the column. See [[Decision Log]].
 
-## The seven suites
+## The suites
+
+### `test/multiplayer/` — the party-mode protocol + host rules (Phase 2)
+Headless, no widgets. Five suites driven by the `PartyHarness`/`SimClient`
+test double (`test/multiplayer/support/sim.dart`) sitting on top of the
+in-process **host reference** (`test/support/party_host_reference.dart`),
+which speaks the same [[Multiplayer Protocol]] the future Swift host will:
+
+- `protocol_codec_test.dart` — every message (de)serializes losslessly,
+  including `PartyAction` `tap` (target + index) and `count`; unknown
+  `type`/fields ignored (forward-tolerant); malformed/empty lines →
+  `DECODED_MALFORMED`.
+- `room_lifecycle_test.dart` — version mismatch → `REJECTED`, gatekeeper
+  malformed-input/unknown-type tolerance, join → `PLAYER_JOINED` + self-id +
+  roster, `ROOM_FULL` at capacity, leave, ready propagation, `START_GAME`
+  guard (<2 ready → error, host clock held still).
+- `round_sync_test.dart` — two clients fed the same `ROUND_START` render the
+  identical `ChallengeView` (same seed); countdown READY/GO; count action
+  judged correct/wrong; LSS lives + elimination at 0 + sole-survivor
+  `GAME_END`; Battle base scoring + the exact speed-bonus split (fastest
+  150, slower 125 from +50/+25).
+- `reconnect_test.dart` — in-game drop holds the seat, matching reconnect
+  restores self-id + roster (`PLAYER_RECONNECTED`), grace-window expiry
+  prunes, outside-window reconnect rejected; duplicate/stale/closed-round
+  `PLAYER_ACTION` → `DUPLICATE_ACTION` / `ROUND_CLOSED`.
+- `simulation_test.dart` — full 8-player roster and a complete 4-player LSS
+  game run to a sole survivor, all in one test process.
 
 ### `test/challenge_determinism_test.dart` — the multiplayer seed contract
 For every registered template across 4 seeds × 3 level bands: same
@@ -101,6 +127,15 @@ instruction rule across every template in every language (not just English —
 this is what caught a French instruction going over the limit from padded
 guillemets during the initial pass). Plus one widget test: booting with
 `ays.locale = 'it'` renders the home screen in Italian.
+
+### `test/ai/` — the dynamic-AI director suites (spec, land with Phases 2–10)
+Not present in the tree yet. The **defined suite layout** — validator,
+prefetch-cache, provider composition, telemetry, flags matrix, bridge contract
+against `MockAppleAIService`, plus multiplayer wire kinds — and the CI/no-real-
+model strategy live in [[Testing and Evaluation]]. The one hard rule from that
+spec already applies: Phase 1's `ChallengeProvider` refactor must keep every
+suite in this file green *unchanged*, and `flutter analyze` stays zero-issue
+at each phase ([[Development Plan]]).
 
 ## Writing tests for a new challenge
 

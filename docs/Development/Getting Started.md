@@ -1,6 +1,6 @@
 ---
 tags: [development, setup, troubleshooting]
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 # Getting Started
@@ -10,6 +10,13 @@ updated: 2026-09-06
 - Flutter **3.47+** / Dart **3.13+** (built and verified on 3.47.1 / 3.13.1)
 - iOS: Xcode 26+, an iOS Simulator or device
 - Android: Android SDK + a device/emulator
+
+**AI director (spec — [[Dynamic AI Director]]):** Foundation Models needs
+iOS 26 / Apple Intelligence on device. Faces `swiftc -typecheck` in CI via the
+iPhoneOS 26 SDK; runtime generation cannot run in a simulator, so Dart `mocks`
+cover it ([[Testing and Evaluation]]). Not needed to build or test the game —
+the whole feature is off and scripted by default until Phase 2+
+([[Feature Flags]]).
 
 Dependencies: `shared_preferences` (persistence), `share_plus` (share sheet),
 `google_mobile_ads` + `app_tracking_transparency` (ads, see [[Monetization and
