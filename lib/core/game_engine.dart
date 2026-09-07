@@ -2,12 +2,12 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
+import '../ai/providers.dart';
 import '../data/roasts.dart';
 import '../data/viral_prompts.dart';
 import '../i18n/app_locale.dart';
 import '../i18n/strings.dart';
 import 'challenge.dart';
-import 'challenge_generator.dart';
 import 'difficulty.dart';
 import 'game_state.dart';
 
@@ -26,22 +26,28 @@ typedef GameEventListener = void Function(GameEvent event, GameState state);
 
 /// The whole run lives here. No widgets, no platform calls, no I/O.
 class GameEngine extends ChangeNotifier implements ChallengeHost {
-  GameEngine({required ChallengeGenerator generator, Random? random})
-      : _generator = generator,
+  GameEngine({
+    required ChallengeProvider provider,
+    Random? random,
+    this.locale = AppLocale.en,
+  })  : _provider = provider,
         _rng = random ?? Random();
 
-  final ChallengeGenerator _generator;
+  /// Where the next challenge comes from. The engine never knows the source —
+  /// compatible from the engine's by-document posture, `core/` stays source-
+  /// agnostic. The UI composes a [FallbackChallengeProvider] front-to-back
+  /// ([[Development Plan]] Phase 1).
+  final ChallengeProvider _provider;
   final Random _rng;
+
+  /// The player's current language. Flows into every [ChallengeContext] so
+  /// the next round's challenge is built in that language.
+  AppLocale locale;
 
   final List<GameEventListener> _listeners = [];
 
   /// Mirrors the "SAVAGE MODE" setting. When false only neutral lines show up.
   bool spicyRoasts = true;
-
-  /// The player's current language. Setting it also updates the generator so
-  /// the next round's challenge is built in that language.
-  AppLocale get locale => _generator.locale;
-  set locale(AppLocale value) => _generator.locale = value;
 
   GameState _state = GameState.initial();
   GameState get state => _state;
@@ -70,7 +76,7 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
   // ---------------------------------------------------------------- lifecycle
 
   void startRun() {
-    _generator.reset();
+    _provider.reset();
     _phaseElapsed = Duration.zero;
     _state = GameState.initial().copyWith(phase: GamePhase.intro, level: 1);
     _emit(GameEvent.runStarted);
@@ -93,7 +99,21 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
   }
 
   void _startLevel(int level) {
-    final challenge = _generator.next(level);
+    final context = ChallengeContext(
+      level: level,
+      locale: locale,
+      allowTricks: Difficulty.allowsTricks(level),
+    );
+    final generated = _provider.next(context);
+    final challenge = generated?.challenge;
+    if (challenge == null) {
+      // Contract: a composed provider (Fallback → scripted) never returns
+      // null. Defend anyway: stay in the intro beat and re-ask next tick —
+      // a broken composition shows up as a stuck intro, never a crash.
+      assert(false,
+          'ChallengeProvider.next() returned null at level $level');
+      return;
+    }
     final milestoneKey = Difficulty.milestoneKey(level);
     _phaseElapsed = Duration.zero;
     _state = _state.copyWith(

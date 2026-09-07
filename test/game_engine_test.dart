@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:are_you_stupid/ai/providers.dart';
 import 'package:are_you_stupid/challenges/registry.dart';
 import 'package:are_you_stupid/core/challenge.dart';
 import 'package:are_you_stupid/core/challenge_generator.dart';
@@ -41,16 +42,20 @@ class _StubChallenge extends Challenge {
 }
 
 GameEngine buildEngine() => GameEngine(
-      generator: ChallengeGenerator(
-        templates: [
-          ChallengeTemplate(
-            id: 'stub',
-            tag: ChallengeTag.color,
-            build: _StubChallenge.new,
-            starter: true,
+      provider: FallbackChallengeProvider(
+        scripted: ScriptedChallengeProvider(
+          generator: ChallengeGenerator(
+            templates: [
+              ChallengeTemplate(
+                id: 'stub',
+                tag: ChallengeTag.color,
+                build: _StubChallenge.new,
+                starter: true,
+              ),
+            ],
+            random: Random(1),
           ),
-        ],
-        random: Random(1),
+        ),
       ),
       random: Random(1),
     );

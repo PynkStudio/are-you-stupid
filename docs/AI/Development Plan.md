@@ -23,17 +23,26 @@ Each phase ends with `flutter analyze` clean and `flutter test` green
 ([[Testing]]), and the docs updated in the same commit
 ([[Documentation Rules]]).
 
-### Phase 0 — Documentation branch  ✅ in progress
+### Phase 0 — Documentation branch  ✅ done
 Branch `ai/dynamic-director`; full `docs/AI/` set + cross-links; updates to
 [[Home]], [[Roadmap]], [[Architecture Overview]], [[Services]], [[State and Persistence]], [[Testing]], [[Getting Started]], [[Documentation Rules]],
-[[Decision Log]]. Commit and push the *documentation deliverable* on its own.
+[[Decision Log]]. Committed and pushed as the documentation deliverable on its
+own (`ai/dynamic-director` on `PynkStudio/are-you-stupid`).
 
-### Phase 1 — Provider seam (no behavior change)
-- `lib/ai/` scaffold: `ChallengeProvider` interface ([[AI Challenge Generation]]), `ScriptedChallengeProvider` (the existing
+### Phase 1 — Provider seam (no behavior change)  ✅ done
+- `lib/ai/` scaffold landed: `ChallengeProvider` seam + `ChallengeContext`
+  ([[AI Challenge Generation]]), `GeneratedChallenge`
+  (`lib/ai/generated_challenge.dart`), and the three providers in
+  `lib/ai/providers.dart` — `ScriptedChallengeProvider` (the existing
   `ChallengeGenerator` logic, unchanged), `AdaptiveChallengeProvider` shell,
   `FallbackChallengeProvider`.
-- `lib/core/` stops knowing about source: engine consumes `ChallengeProvider`.
-- No AI behavior yet — scripted engine test suites pass unchanged.
+- `lib/core/game_engine.dart` now consumes `ChallengeProvider`
+  (`FallbackChallengeProvider(scripted: ScriptedChallengeProvider(...))` in
+  `game_screen.dart`); `core/` is source-agnostic.
+- The seam is **synchronous by design** — the engine never awaits a model.
+  See the 2026-09-07 [[Decision Log]] entry.
+- No AI behavior yet — every assertion in the scripted engine suites passes
+  unchanged (three `GameEngine` constructions got the one-line wrap).
 
 ### Phase 2 — GeneratedChallenge + validator + native bridge
 - `GeneratedChallenge` model + `ChallengeMechanic` vocabulary

@@ -15,11 +15,11 @@ lib/
 │   ├── game_engine.dart      Run lifecycle, phases, scoring signals
 │   └── game_state.dart       Snapshot the UI renders
 ├── challenges/               One file per family + registry.dart
-├── ai/                       Dynamic AI director (SPEC — see docs/AI/ and [[Dynamic AI Director]])
-│   ├── providers.dart        ChallengeProvider seam + Scripted/Adaptive/Fallback providers
+├── ai/                       Dynamic AI director (seam+vocs land first; the rest per docs/AI/ and [[Dynamic AI Director]])
+│   ├── providers.dart        ChallengeProvider seam + Scripted/Adaptive/Fallback providers  ✅ Phase 1
+│   ├── generated_challenge.dart  provenance-wrapped Challenge  ✅ Phase 1
 │   ├── ai_feature_flags.dart Tri-state flags + AI Experience Modes
 │   ├── challenge_validator.dart
-│   ├── generated_challenge.dart
 │   ├── prefetch_cache.dart   Pre-generation loop — never blocks gameplay
 │   ├── telemetry.dart        Mistake classifier + PlayerGameplayProfile
 │   └── apple_ai_service.dart Darwin bridge client (ays/apple_intelligence)
@@ -59,8 +59,8 @@ This is what makes every challenge testable without a widget tree — see
 
 ```
 GameEngine._startLevel
-  └─ ChallengeProvider.next(level)   → a fresh Challenge
-       (Phase 1: lib/ai/ providers seam; today still ChallengeGenerator.next — [[Development Plan]])
+  └─ ChallengeProvider.next(context)   → a fresh GeneratedChallenge
+       (lib/ai/providers.dart seam, Phase 1 — [[Development Plan]])
 GameScreen Ticker (60 fps)
   └─ GameEngine.tick(delta)
        ├─ Challenge.onTick(elapsed, host)     may mutate its own view

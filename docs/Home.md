@@ -69,8 +69,9 @@ rest below is specification. As it ships, per-phase changes update these notes
 ### AI — dynamic game director
 Apple Intelligence (Foundation Models) on-device director: AI challenge
 generation, commentary, adaptive territory and a multiplayer AI host — all
-behind a **validated, scripted-fallback-first** pipeline. **Spec only, no
-shipped code.** The branch `ai/dynamic-director` carries the full spec below;
+behind a **validated, scripted-fallback-first** pipeline. The branch
+`ai/dynamic-director` carries the full spec below, plus the **Phase 1
+`ChallengeProvider` seam** (scripted floor shipped, no AI behavior on yet);
 implementation phases are tracked in [[Development Plan]].
 
 - [[Dynamic AI Director]] — the overview and pipeline
@@ -101,7 +102,7 @@ implementation phases are tracked in [[Development Plan]].
 | Sharing | OS share sheet via `share_plus` |
 | Backend | None. On purpose. |
 | Multiplayer party mode (Apple TV + macOS board host) | Phase 2 landed: wire protocol, client core + in-process host reference, 32 headless tests. Phase 3+ spec'd. See [[Multiplayer Development]] |
-| AI dynamic director (Apple Intelligence) | Spec only — `docs/AI/` is the source of truth; no shipped code yet. See [[Dynamic AI Director]] |
+| AI dynamic director (Apple Intelligence) | Phase 1 seam landed: `ChallengeProvider` providers in `lib/ai/`; engine consumes the seam, still 100% scripted. No AI behavior yet. See [[Dynamic AI Director]] / [[Development Plan]] |
 | Version control | Git, public on GitHub: `PynkStudio/are-you-stupid` |
 | Languages | English, Italian, French, Spanish, Portuguese, German — see [[Localization]] |
 

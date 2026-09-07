@@ -17,16 +17,24 @@ knows "give me a challenge for this context". Providers decide how:
 
 ```dart
 abstract class ChallengeProvider {
-  Future<GeneratedChallenge?> nextChallenge(ChallengeContext context);
+  // Engine face: synchronous on purpose — the game loop never awaits the
+  // model. null = "nothing to offer right now"; the Fallback swallows
+  // nulls and always lands on scripted ([[Pre-generation Cache]]).
+  // The async prefetch/warm face lives on AppleAIService (Phase 2) and the
+  // Director loop (Phase 5), composed BEHIND this interface, so _startLevel
+  // is never async. See the Phase 1 [[Decision Log]] entry.
+  GeneratedChallenge? next(ChallengeContext context);
+  void reset();                       // forget recent-memory at start of a run
 }
 
 class ChallengeContext {
   final int level;            // current round
-  final AppLocale locale;
-  final int seed;             // multiplayer only; solo uses the engine's own rng
-  final PlayerGameplayProfile? profile; // telemetry — may be null ([[Player Telemetry and Adaptive Difficulty]])
+  final AppLocale locale;     // player language; flows in per-call
   final bool allowTricks;     // level-based, mirrors Difficulty.allowsTricks
-  final Duration timeLimitSla; // prefetch budget for this call ([[Pre-generation Cache]])
+  final int seed;             // multiplayer only; solo uses the engine's own rng
+  // — joined by later phases, after the engine needs them —
+  // final PlayerGameplayProfile? profile;  // Phase 3 telemetry ([[Player Telemetry and Adaptive Difficulty]])
+  // final Duration timeLimitSla;           // Phase 5 prefetch budget ([[Pre-generation Cache]])
 }
 ```
 

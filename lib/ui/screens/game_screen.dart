@@ -10,6 +10,7 @@ import '../../core/game_state.dart';
 import '../../i18n/app_locale.dart';
 import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
+import '../../ai/providers.dart';
 import '../theme.dart';
 import '../widgets/challenge_renderer.dart';
 import '../widgets/flash_overlay.dart';
@@ -41,7 +42,11 @@ class _GameScreenState extends State<GameScreen>
   void initState() {
     super.initState();
     _engine = GameEngine(
-      generator: ChallengeGenerator(templates: kChallengeTemplates),
+      provider: FallbackChallengeProvider(
+        scripted: ScriptedChallengeProvider(
+          generator: ChallengeGenerator(templates: kChallengeTemplates),
+        ),
+      ),
     );
     _engine.addEventListener(_onGameEvent);
     _ticker = createTicker(_onTick)..start();

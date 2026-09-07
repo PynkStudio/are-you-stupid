@@ -683,3 +683,38 @@ designed for, and it would quietly fork the "TV is display-only" rule
 and rule, so any tvOS-only shortcut (e.g. relying on remote focus) must be
 abstracted; AirPlay latency is display-only and never touches judging, which
 stays on the host clock ([[Multiplayer Protocol]]).
+
+### 2026-09-07 — AI Phase 1 landed: the `ChallengeProvider` seam is synchronous by design
+Phase 1 ([[Development Plan]]) is in: `lib/ai/generated_challenge.dart` +
+`lib/ai/providers.dart` ship `GeneratedChallenge`, `ChallengeContext` and the
+`Scripted/Adaptive/Fallback` providers; `GameEngine` now consumes
+`ChallengeProvider` instead of a concrete `ChallengeGenerator`, and the UI
+composes `FallbackChallengeProvider(scripted: ScriptedChallengeProvider(...))`.
+**Decisions locked in with it:**
+- **The engine-facing seam is synchronous — no `Future` in the contract.**
+  The [[AI Challenge Generation]] spec sketch showed
+  `Future<GeneratedChallenge?> nextChallenge(ChallengeContext)` with a
+  `timeLimitSla`. That signature describes the *prefetch/warm* face, not the
+  engine face: the game loop must never await the model, and the
+  [[Pre-generation Cache]] design explicitly has the engine *pop* an already
+  validated candidate synchronously (`cache.popNext() ?? scripted`). So the
+  abstract seam is `GeneratedChallenge? next(ChallengeContext)`; the async
+  model interaction arrives on `AppleAIService` (Phase 2) and the
+  Director/prefetch loop (Phase 5), composed *behind* the Fallback. **Cost:**
+  the spec snippet needed rewording to show both faces (done in
+  [[AI Challenge Generation]]) so nobody re-introduces a blocking await into
+  `_startLevel`.
+- **`null` return means "nothing to offer right now".** AI providers
+  volunteer `null` instead of erroring; the Fallback swallows nulls and always
+  lands on scripted. The engine defends its end: on a top-level `null` it
+  stays in the intro beat and re-asks next tick (release) with a debug assert —
+  a broken composition shows as a stuck intro, never a crash.
+- **The seam lives in `lib/ai/`, and `core/` may import it.** Both are pure
+  Dart, so the "no widgets" rule ([[Architecture Overview]]) holds.
+- **Locale now flows per-call** via `ChallengeContext`; the engine owns its
+  own `locale` field and no longer writes into the generator. `Scripted`
+  syncs its generator's locale from the context, so behavior is bit-identical.
+- **Test suites unchanged in behaviour:** every assertion in
+  `test/game_engine_test.dart` passes untouched; the three `GameEngine`
+  construction sites gained the one-line provider wrap. The "never blocks,
+  never crashes" property is what Phase 1 (and later suites) pin.
