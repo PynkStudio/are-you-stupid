@@ -22,7 +22,7 @@ final services = AppServices.of(context);
 | `ShareManager` | share text + OS share sheet | `share_plus` |
 | `AdManager` | *policy*: when ads may show | see [[Monetization and Ads]] |
 | `PurchaseManager` | *policy*: buy/restore the "remove ads" IAP | `ChangeNotifier`, see [[Monetization and Ads]] |
-| `AppleAIService` (Phase 2) | on-device Foundation Models client via the `ays/apple_intelligence` MethodChannel | **spec only** — [[Foundation Models Integration]]; mock-backed until the native side lands |
+| `AppleAIService` (Phase 2) | on-device Foundation Models client via the `ays/apple_intelligence` MethodChannel | `lib/ai/apple_ai_service.dart` + `AppleAIController.swift`; `available` real, generation stubbed until Phases 4–5 ([[Foundation Models Integration]]); `MockAppleAIService` for tests |
 
 The **dynamic AI director** itself is *not* a service — it's the
 `lib/ai/` layer (providers, validator, prefetch cache, telemetry) that lives

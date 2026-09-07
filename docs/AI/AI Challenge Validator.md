@@ -19,8 +19,13 @@ dependencies, and is exhaustively unit-tested headless ([[Testing and Evaluation
 ```dart
 ChallengeVerdict validate(GeneratedChallenge proposal, ValidationContext ctx);
 
-enum ChallengeVerdict { valid, exitChallenge, retryableForcedExit,
-                        invalid(context: String), failureExit }
+// Sealed verdict types (lib/ai/challenge_validator.dart):
+sealed class ChallengeVerdict {}
+class VerdictValid             extends ChallengeVerdict {}
+class VerdictExitChallenge     extends ChallengeVerdict {}
+class VerdictRetryableForcedExit extends ChallengeVerdict {}
+class VerdictInvalid           extends ChallengeVerdict { final String context; }
+class VerdictFailureExit       extends ChallengeVerdict {}
 ```
 
 | Verdict | Meaning | Fallback effect |

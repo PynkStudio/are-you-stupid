@@ -15,14 +15,15 @@ lib/
 │   ├── game_engine.dart      Run lifecycle, phases, scoring signals
 │   └── game_state.dart       Snapshot the UI renders
 ├── challenges/               One file per family + registry.dart
-├── ai/                       Dynamic AI director (seam+vocs land first; the rest per docs/AI/ and [[Dynamic AI Director]])
+├── ai/                       Dynamic AI director (loader gated; the rest per docs/AI/ and [[Dynamic AI Director]])
 │   ├── providers.dart        ChallengeProvider seam + Scripted/Adaptive/Fallback providers  ✅ Phase 1
 │   ├── generated_challenge.dart  provenance-wrapped Challenge  ✅ Phase 1
 │   ├── ai_feature_flags.dart Tri-state flags + AI Experience Modes
-│   ├── challenge_validator.dart
+│   ├── challenge_vocabulary.dart  ChallengeMechanic vocabulary + registry  ✅ Phase 2
+│   ├── challenge_validator.dart  sealed verdicts  ✅ Phase 2
 │   ├── prefetch_cache.dart   Pre-generation loop — never blocks gameplay
 │   ├── telemetry.dart        Mistake classifier + PlayerGameplayProfile
-│   └── apple_ai_service.dart Darwin bridge client (ays/apple_intelligence)
+│   └── apple_ai_service.dart Darwin bridge client (ays/apple_intelligence)  ✅ Phase 2 (+ MockAppleAIService for tests)
 ├── data/                     Roast lines, viral prompts (per-language)
 ├── i18n/                     Pure Dart string tables — see [[Localization]]
 ├── services/                 Platform-facing side effects
@@ -39,9 +40,12 @@ lib/
     └── widgets/              renderer, target button, timer bar, flash, mock ad
 ```
 
-Native side: `ios/Runner/AppDelegate.swift` will register the
-`ays/apple_intelligence` MethodChannel once [[Foundation Models Integration]]
-lands (the **only** native AI code; Android is untouched).
+Native side: `ios/Runner/AppleAIService/` holds the **only** native AI code —
+`AYSChallengeProposal.swift` (the `@Generable` schema + availability rail) and
+`AppleAIController.swift` (the `ays/apple_intelligence` MethodChannel,
+registered in `AppDelegate.didInitializeImplicitFlutterEngine`). Android is
+untouched. The Swift sources are pinned by `tool/swiftc_ai_gate.sh` (Phase 2 —
+[[Foundation Models Integration]]).
 
 ## The one rule
 

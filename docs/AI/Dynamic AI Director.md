@@ -11,10 +11,14 @@ challenge difficulty in real time, roasts the player between rounds, and (in
 party mode) becomes a full game director for the room — while the scripted
 engine stays the floor underneath everything.
 
-> **Status: spec, not shipped code.** This is the Phase 0 design write-up,
-> mirroring how the multiplayer feature landed ([[Decision Log]] →
-> "spec-first documentation pass"). As each phase lands, these notes get bumped
-> to describe the code that exists. Home.md marks the feature's build state.
+> **Status: shipped in phases.** Phases 0–2 are in ([[Development Plan]]):
+> the `ChallengeProvider` seam runs in the engine, the generated-challenge
+> proposal model + vocabulary + validator ship pure-Dart with tests, and the
+> `ays/apple_intelligence` bridge is wired end-to-end (`available` real,
+> generation stubbed until later phases). Everything below that is speculative
+> is the design write-up that each remaining phase turns into code — as each
+> phase lands, these notes get bumped to describe the code that exists.
+> Home.md marks the feature's build state.
 
 ## The one sentence
 

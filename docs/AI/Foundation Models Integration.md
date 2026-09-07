@@ -11,11 +11,15 @@ not the engine, not `lib/core/`.
 ## Platform reality (verified against the SDK)
 
 - `FoundationModels.framework` ships in the **iPhoneOS 26.5 SDK**, module
-  version 1.5.2. The API is annotated `iOS 26.0+ / macOS 26.0+ / visionOS
-  26.0+`, **`tvOS` and `watchOS` unavailable** — this is why the Apple TV can
-  never be an AI compute node ([[Multiplayer AI Director]]).
-- The app's deployment target is **iOS 15.0**. Every native use must sit
-  behind `#if canImport(FoundationModels)` (compile) **and**
+  version 1.5.2. Phase 2 verified (via `swiftc -typecheck` against the real
+  SDK) that this Xcode generation ships the **session-based API** —
+  `LanguageModelSession` / `SystemLanguageModel` / `GenerationOptions` — not
+  the WWDC25 preview `GenerativeModel`/`Text` forms. The API is annotated
+  `iOS 26.0+ / macOS 26.0+ / visionOS 26.0+`, **`tvOS` and `watchOS`
+  unavailable** — this is why the Apple TV can never be an AI compute node
+  ([[Multiplayer AI Director]]).
+- The app's deployment target is **iOS 15.0**. Every native use sits behind
+  `#if canImport(FoundationModels)` (compile) **and**
   `if #available(iOS 26.0, *)` (runtime). On any earlier OS the bridge reports
   `unavailable` immediately and the Dart side behaves exactly as if the model
   were absent.
@@ -59,32 +63,36 @@ prompt whose text is then parsed. The Swift plugin owns the schema
 definitions; the Dart side sends semantic requests (an enum + a JSON payload),
 never prose.
 
-Key API used (from the Module 1.5.2 interface):
+Key API used (from the Module 1.5.2 interface, verified in Phase 2):
 
 ```swift
 // Model handle
 SystemLanguageModel.default                       // availability, isAvailable
-let model = SystemLanguageModel(useCase: .general, guardrails: .default)
+#available(iOS 26.0, *)  // guard, or the model headers are not even visible
 
 // One-shot session
-let session = LanguageModelSession(model: model,
+let session = LanguageModelSession(model: SystemLanguageModel.default,
                                    tools: [...],           // see [[Dynamic Profiles and Tool Calling]]
                                    instructions: "...")     // global system prompt
 
 // Constrained generation → JSON, never free text
 let response = try await session.respond(
     to: prompt,
-    schema: GenerationSchema(...),                 // or respond<C: Generable>(generating:)
+    generating: ChallengeProposal.self,          // <T: Generable>
     includeSchemaInPrompt: true,
     options: GenerationOptions(
         temperature: 0.9,
         maximumResponseTokens: 512,
-        // sampling: .greedy or .random(top:seed:) — seed available for determinism
+        sampling: ...                            // greedy or random — seed available for determinism
     )
 )
-// response.content where Content: Generable (the @Generable struct), plus
-// response.transcriptEntries for anything that needs logging.
+// response.content: the decoded @Generable struct; also response.rawContent
+// and response.transcriptEntries for logging.
 ```
+
+`registrar.messenger()` on the Flutter side is a zero-argument **method** (the
+imported ObjC module has no Swift overlay); the controller takes the returned
+`FlutterBinaryMessenger` directly.
 
 ### `@Generable` structs vs hand-built `GenerationSchema`
 
@@ -97,6 +105,16 @@ macro generates both the `GenerationSchema` and the typed decoding — and, for
   challenges, mechanics, colors, reasons), or `.pattern(regex)` (ids);
 - ints → `.range(min...max)` (level, thresholds, time limits, counts);
 - arrays → `.count(min...max)` / `.element(...)`.
+
+Phase 2 verified macro constraints ([[AI Challenge Generation]] →
+`ChallengeProposal`):
+
+- each struct needs `@available(iOS 26.0, macOS 26.0, *)` directly above
+  `@Generable`, or the macro is rejected;
+- `[String: String]`-style **dictionary fields are not supported**
+  (`'PartiallyGenerated' is not a member type of generic struct '…'`) — the
+  per-locale `failLine` map is therefore *not* part of the schema; the Swift
+  provider injects it from the mechanic's canonical fail lines at build time.
 
 Hand-built `GenerationSchema` (`GenerationSchema.Property(name:type:guides:)`)
 remains available for requests where a plain Swift struct doesn't fit; the
@@ -132,10 +150,13 @@ relies on the schema nailing the vocabulary down ([[AI Challenge Validator]]).
 
 ## The MethodChannel contract (Dart ⇄ Swift)
 
-A single channel, e.g. `ays/apple_intelligence`, is registered in
-`AppDelegate.application(_:didFinishLaunching:)` (the runner uses
-`FlutterImplicitEngineDelegate`). Every call is **request → JSON proposal**;
-the channel never streams the model to Dart, and Dart never sees the session.
+A single channel **`ays/apple_intelligence`** (constant
+`kAppleIntelligenceChannel` in `lib/ai/apple_ai_service.dart`) is registered
+in `AppDelegate.didInitializeImplicitFlutterEngine(:)` (the runner uses
+`FlutterImplicitEngineDelegate`; the controller is retained for app lifetime),
+in `ios/Runner/AppleAIService/AppleAIController.swift`. Every call is
+**request → JSON proposal**; the channel never streams the model to Dart, and
+Dart never sees the session.
 
 | Method | Request → payload | Response |
 |---|---|---|
@@ -145,6 +166,13 @@ the channel never streams the model to Dart, and Dart never sees the session.
 | `requestFinalRound` / `requestMultiplayerHost` | profiles + per-spec context | same `ok/proposal` shape |
 | `cancelUnit` | `{ unitId }` | `true` (best-effort; generation is a single await that completes or is discarded) |
 | `feedback` | `{ sentiment, issue, excerpt }` | `true` (best-effort; nothing depends on it) |
+
+**Phase 2 status:** `available` is fully implemented (reads
+`SystemLanguageModel.default.availability` through
+`AYSAppleAIAvailabilityRail`). The four generation methods return the error
+envelope `{ ok: false, error: { code: "notImplemented", retryable: false } }`
+until Phases 4–5; `cancelUnit` returns `true` and `feedback` returns `false`
+(no-op stubs). Unknown methods answer `FlutterMethodNotImplemented`.
 
 Shared rules:
 

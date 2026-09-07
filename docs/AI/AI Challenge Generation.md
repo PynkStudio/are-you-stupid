@@ -70,9 +70,9 @@ wire form). Same field contract:
   },
   "instruction": "TAP THE ONLY BLUE",     // < 8 words, uppercase, language = locale
   "elements": [                           // rendered by the existing engine layouts
-    {"id": "e1", "label": "BLUE",  "color": "blue",  "shape": "squircle",
+    {"id": "e1", "label": "BLUE",  "color": "blue",  "shape": "circle",
      "scale": 1.0, "rotation": 0, "dx": 0, "dy": 0, "opacity": 1.0, "hidden": false},
-    {"id": "e2", "label": "RED",   "color": "red",   "shape": "squircle",
+    {"id": "e2", "label": "RED",   "color": "red",   "shape": "circle",
      "scale": 0.8, "rotation": 0.3, "dx": 0.4, "dy": 0, "opacity": 1.0, "hidden": false}
   ],
   "correctAnswer": {"elementId": "e1", "startsCorrect": false},
@@ -91,7 +91,7 @@ Rules that hold regardless of the mechanic:
   map 1:1 to `TargetSpec`s. No new renderer is shipped for AI content — an
   unplayable mechanic is one the vocabulary doesn't contain.
 - **`instruction` is under 8 words and in the player's locale.** Hard rule,
-  validated ([[AI Challenge Validator]].  V1 ships English-only model output;
+  validated ([[AI Challenge Validator]]). V1 ships English-only model output;
   everything else falls back ([[Localization and Language]]).
 - **`correctAnswer` is exact.** A generated challenge that cannot name *the*
   winning input is rejected outright.

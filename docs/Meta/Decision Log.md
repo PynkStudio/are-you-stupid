@@ -718,3 +718,54 @@ composes `FallbackChallengeProvider(scripted: ScriptedChallengeProvider(...))`.
   `test/game_engine_test.dart` passes untouched; the three `GameEngine`
   construction sites gained the one-line provider wrap. The "never blocks,
   never crashes" property is what Phase 1 (and later suites) pin.
+
+### 2026-09-07 — AI Phase 2 landed: challenge vocabulary, validator, and the on-device bridge
+Phase 2 ([[Development Plan]]) is in: `challenge_vocabulary.dart`,
+`challenge_validator.dart`, `apple_ai_service.dart` (Dart) +
+`AppleAIService/` (Swift) — 61 AI tests green, `flutter analyze` clean, and
+`tool/swiftc_ai_gate.sh` typechecks the Swift against the real SDK.
+**Decisions locked in with it:**
+- **A proposal and a challenge are two types, both in
+  `generated_challenge.dart`.** `ChallengeProposal` is the *portable wire
+  form* the model fills; `GeneratedChallenge` is the *built, playable* object
+  the engine renders. The Swift `@Generable` structs mirror the proposal only;
+  `GeneratedChallenge` is Dart's own construction so the seam
+  (`challenge_provider.dart`) stays source-agnostic. Two types on the wire
+  would let the model bypass the construction step — rejected.
+- **`ChallengeProposal` is treated as untrusted.** It carries an envelope,
+  candidate `correctAnswer`, and optional `difficulty`/`trickType`, but the
+  deciding score is always the sealer verdict after the full
+  `ChallengeValidator` pass — proposal fields are *candidates*, never applied
+  as ground truth. The validator is the authority ([[AI Challenge Validator]]).
+- **Trick contract: `allowTricks=false` permits `none` and `swap`.** The Phase
+  0 spec sketch said "any trick type requires `allowTricks`"; the Difficulty
+  ladder itself ships `swap` in the pre-trick band (`Difficulty.speedForLevel`
+  floors), so banning `swap` would reject scripted-equivalent content the
+  engine already serves. Locked: `requiresTrick` mechanics are invalid without
+  `trickType != none`, and `trickType` must be in the mechanic's
+  `allowedTricks`. Enforced by the validator, pinned by its tests.
+- **`failLine` is keyed by `locale.name`, not `.code`.** `code` (`"en"`) rides
+  in channel payloads; the validator looks up the fail line by the locale's
+  *display name* (`"English"`) because that is the key the canonical mechanic
+  fail lines are stored under. Two fields, two jobs.
+- **`@Generable` cannot encode `[String: String]`, so `failLine` is not in the
+  schema.** Probe-compiled against the iPhoneOS 26.5 SDK: a dictionary field
+  fails with `'PartiallyGenerated' is not a member type of generic struct
+  '…'`. The Swift provider will inject fail lines from the mechanic's
+  canonical lines at build time ([[Foundation Models Integration]]), so the
+  schema stays one-locale-field-free and the Dart validator keeps enforcing
+  per-locale presence.
+- **The API generation in this SDK is the *session* API, not the WWDC25
+  preview.** `LanguageModelSession.respond(to:generating:options:)` +
+  `SystemLanguageModel.default` (probe-verified): spec snippets written
+  against `GenerativeModel`/`Text` do not compile here. The docs now show the
+  verified forms; anything unverified (error-case names, sampling seeds) is
+  re-checked in the phase that actually calls it (4–6).
+- **Phase 2 ships `available` real; generation stubbed.** The Dart side is
+  fully wired to the Wire contract (unitId UUIDs, error envelopes, bare
+  booleans), `_startLevel` still only ever pops sync. The Swift controller
+  answers `available` from `SystemLanguageModel.default.availability`,
+  generation methods with `{ok:false, error:{code:"notImplemented",
+  retryable:false}}` until Phases 4–5, `cancelUnit` true, `feedback` false.
+  Cost: honest `unavailable` at the moment of a feature flag, no other
+  observable change — the app is byte-for-byte scripted until a later phase.

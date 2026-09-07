@@ -70,9 +70,11 @@ rest below is specification. As it ships, per-phase changes update these notes
 Apple Intelligence (Foundation Models) on-device director: AI challenge
 generation, commentary, adaptive territory and a multiplayer AI host — all
 behind a **validated, scripted-fallback-first** pipeline. The branch
-`ai/dynamic-director` carries the full spec below, plus the **Phase 1
-`ChallengeProvider` seam** (scripted floor shipped, no AI behavior on yet);
-implementation phases are tracked in [[Development Plan]].
+`ai/dynamic-director` carries the full spec below, plus Phases 1–2 landed:
+the `ChallengeProvider` seam in the engine and the proposal vocabulary +
+validator + on-device bridge ([[Foundation Models Integration]]) — no AI
+served until later phases; implementation phases are tracked in
+[[Development Plan]].
 
 - [[Dynamic AI Director]] — the overview and pipeline
 - [[Foundation Models Integration]] — the Swift/Dart bridge contract
@@ -102,7 +104,7 @@ implementation phases are tracked in [[Development Plan]].
 | Sharing | OS share sheet via `share_plus` |
 | Backend | None. On purpose. |
 | Multiplayer party mode (Apple TV + macOS board host) | Phase 2 landed: wire protocol, client core + in-process host reference, 32 headless tests. Phase 3+ spec'd. See [[Multiplayer Development]] |
-| AI dynamic director (Apple Intelligence) | Phase 1 seam landed: `ChallengeProvider` providers in `lib/ai/`; engine consumes the seam, still 100% scripted. No AI behavior yet. See [[Dynamic AI Director]] / [[Development Plan]] |
+| AI dynamic director (Apple Intelligence) | Phases 1–2 landed: `ChallengeProvider` providers in `lib/ai/`, proposal vocabulary + `ChallengeValidator` + `ays/apple_intelligence` bridge (native `available` real, generation stubbed). Game still 100% scripted. See [[Dynamic AI Director]] / [[Development Plan]] |
 | Version control | Git, public on GitHub: `PynkStudio/are-you-stupid` |
 | Languages | English, Italian, French, Spanish, Portuguese, German — see [[Localization]] |
 

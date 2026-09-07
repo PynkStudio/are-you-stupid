@@ -13,14 +13,18 @@ type-checked and the *bridge* is mocked.
 
 | Suite | What it verifies | Runs where |
 |---|---|---|
-| `validator_test.dart` | Every [[AI Challenge Validator]] rule, both sides (valid passes, each rule flips to the right verdict); determinism (`same input ⇒ same verdict`; property test over seeds); regeneration keeps *exactly one* retry | CI, `flutter test` |
-| `cache_test.dart` | [[Pre-generation Cache]] invariants: no served invalid, no regen in input path, underflow ⇒ scripted, cancellation, stale-key eviction, exhaustion economics (≤ 1 in-flight, ≤ 1 regeneration) | CI |
-| `provider_test.dart` | `FallbackChallengeProvider`/`AdaptiveChallengeProvider` composition, territory/flag logic, rollback to scripted on every unit outcome | CI |
-| `telemetry_test.dart` | Mistake classification per category; rolling-window math; EMA; reset-on-`RESET STATS`; `ProfileForPrompts` truncation (nothing out of the allowed field set) | CI |
-| `flags_test.dart` | Tri-state matrix: every 3^6 combination yields a valid *posture* (never a served-unvalidated round, never a blocking path); mode ↔ flag mapping | CI |
-| `bridge_contract_test.dart` | Dart side of the `ays/apple_intelligence` contract: argument shapes, `proposal` envelope parsing, `error` mapping to fallback verdicts ([[Foundation Models Integration]]) | CI, **with `MockAppleAIService`** |
-| `widget_flow_test.dart` | One widget test running a full match with the mock bridge: AI challenge served mid-run, silent fallback mid-run, mode switch mid-session ([[Dynamic AI Director]]), no error UI ([[Error States and Failure Communication]]) | CI |
-| `multiplayer_test.dart` | New wire messages ([[Multiplayer AI Director]]): `aiCapabilities`/`aiDirectorAssignment`/`aiChallengeRound`/`aiCommentary` parsing, deterministic re-validation across "peers", Director Host failover to scripted | CI, harness goldens |
+| `challenge_validator_test.dart` | Every [[AI Challenge Validator]] rule, both sides (valid passes, each rule flips to the right verdict); determinism (`same input ⇒ same verdict`); regeneration keeps *exactly one* retry | CI, `flutter test`  ✅ Phase 2 |
+| `challenge_proposal_test.dart` | `ChallengeProposal` takeoff → `GeneratedChallenge` landing semantics (envelope, candidate → sealed answer) | CI  ✅ Phase 2 |
+| `apple_ai_service_test.dart` | Dart side of the `ays/apple_intelligence` contract with **`MockAppleAIService`**: `available` states/reasons, proposal decode + `decodingFailure`, `ok:false` error→fallback mapping, null/`PlatformException`, bare-boolean `cancelUnit`/`feedback` ([[Foundation Models Integration]]) | CI  ✅ Phase 2 |
+| `cache_test.dart` | [[Pre-generation Cache]] invariants: no served invalid, no regen in input path, underflow ⇒ scripted, cancellation, stale-key eviction, exhaustion economics (≤ 1 in-flight, ≤ 1 regeneration) | CI (Phase 5) |
+| `provider_test.dart` | `FallbackChallengeProvider`/`AdaptiveChallengeProvider` composition, territory/flag logic, rollback to scripted on every unit outcome | CI (Phase 3) |
+| `telemetry_test.dart` | Mistake classification per category; rolling-window math; EMA; reset-on-`RESET STATS`; `ProfileForPrompts` truncation (nothing out of the allowed field set) | CI (Phase 3) |
+| `flags_test.dart` | Tri-state matrix: every 3^6 combination yields a valid *posture* (never a served-unvalidated round, never a blocking path); mode ↔ flag mapping | CI (Phase 9) |
+| `widget_flow_test.dart` | One widget test running a full match with the mock bridge: AI challenge served mid-run, silent fallback mid-run, mode switch mid-session ([[Dynamic AI Director]]), no error UI ([[Error States and Failure Communication]]) | CI (Phase 10) |
+| `multiplayer_test.dart` | New wire messages ([[Multiplayer AI Director]]): `aiCapabilities`/`aiDirectorAssignment`/`aiChallengeRound`/`aiCommentary` parsing, deterministic re-validation across "peers", Director Host failover to scripted | CI, harness goldens (Phase 7) |
+
+Rows below "Phase 2" are the planned suites for their phase; they land with
+that phase ([[Development Plan]]).
 
 The existing `flutter test` gate ([[Testing]]) stays green at every step —
 the AI suites are additive, and Phase 1's provider refactor must keep the
@@ -29,11 +33,12 @@ scripted engine test suites passing *unchanged*.
 ## Environment strategy (no real model in CI)
 
 - **No simulator or CI device can run `FoundationModels` generation.** The
-  Swift code is `swiftc -typecheck`-verified in CI (compiles against the
-  iPhoneOS 26 SDK surface, [[Foundation Models Integration]]); runtime
-  behavior is exercised via the **`MockAppleAIService`**, an in-process Dart
-  fake that replays recorded `proposal` envelopes (valid, invalid, failure,
-  refusal, timeout) from fixtures.
+  Swift code is `swiftc -typecheck`-verified against the real iPhoneOS SDK
+  surface ([[Foundation Models Integration]]) via `tool/swiftc_ai_gate.sh`
+  (skips cleanly when the SDK is absent); runtime behavior is exercised via
+  the **`MockAppleAIService`**, an in-process Dart fake that replays recorded
+  `proposal` envelopes (valid, invalid, failure, refusal, timeout) from
+  fixtures.
 - The mock is the single seam the widget/bridge tests use; the *real* Swift
   service is only ever linked on-device.
 - **Offline/manual harness:** a dev Settings-screen "AI test" panel (flag

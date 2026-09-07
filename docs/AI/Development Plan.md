@@ -44,14 +44,23 @@ own (`ai/dynamic-director` on `PynkStudio/are-you-stupid`).
 - No AI behavior yet — every assertion in the scripted engine suites passes
   unchanged (three `GameEngine` constructions got the one-line wrap).
 
-### Phase 2 — GeneratedChallenge + validator + native bridge
-- `GeneratedChallenge` model + `ChallengeMechanic` vocabulary
+### Phase 2 — GeneratedChallenge + validator + native bridge  ✅ done
+- `ChallengeProposal` (portable wire model) + `GeneratedChallenge` (built,
+  playable) both in `lib/ai/generated_challenge.dart`; `ChallengeMechanic`
+  closed vocabulary + 9-mechanic registry in `lib/ai/challenge_vocabulary.dart`
   ([[AI Challenge Generation]]).
-- `ChallengeValidator` ([[AI Challenge Validator]]) — pure Dart, its own
-  test suite.
+- `ChallengeValidator` ([[AI Challenge Validator]]) — pure Dart, sealed
+  verdicts, its own suite (`test/ai/challenge_validator_test.dart`).
 - `AppleAIService` (Dart) + `ays/apple_intelligence` MethodChannel
-  ([[Foundation Models Integration]]); Swift `@Generable` `ChallengeProposal`
-  + `respond(schema:)`; `swiftc -typecheck` gate.
+  ([[Foundation Models Integration]]); `MockAppleAIService` and wire-contract
+  tests (`test/ai/apple_ai_service_test.dart`).
+- Swift side (`ios/Runner/AppleAIService/`): `@Generable` `AYSChallengeProposal`
+  schema + availability rail over `SystemLanguageModel`, channel registered in
+  `AppDelegate`; generation calls stubbed with `notImplemented` until Phases
+  4–5. `tool/swiftc_ai_gate.sh` typechecks it against the real FoundationModels
+  SDK at the iOS 15 target.
+- See the 2026-09-07 [[Decision Log]] entries (proposal/envelope split,
+  trick-contract interpretation, `@Generable` limitations).
 
 ### Phase 3 — Telemetry + adaptive difficulty
 - `TelemetryCollector` + `PlayerGameplayProfile` ([[Player Telemetry and Adaptive Difficulty]]), `ayu.profile` persistence, mistake classifier.
