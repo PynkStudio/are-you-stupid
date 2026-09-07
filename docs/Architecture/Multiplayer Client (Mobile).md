@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, client, flutter]
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 # Multiplayer Client (Mobile)
@@ -37,17 +37,21 @@ No account, no cloud, no network beyond the LAN ([[Game Design Pillars]]).
 
 ## Client structure (additive, pure-Dart core)
 
+Phase 2 ships the headless core; the widget layer + transport come in Phase 3.
+
 ```
-lib/multiplayer/                    NEW pure-Dart layer (no widgets)
-├── protocol/protocol.dart          mirrors [[Multiplayer Protocol]] (Dart models)
+lib/multiplayer/                    NEW pure-Dart layer (no widgets) — landed (Phase 2)
+├── protocol/protocol.dart          mirrors [[Multiplayer Protocol]] (Dart models + JSONL codec)
 ├── engine/party_session.dart       connection lifecycle + state machine
 ├── engine/party_state.dart         client mirror of host state for the UI
 ├── engine/party_controller.dart    tap → PLAYER_ACTION wiring
-└── networking/
-    ├── host_locator.dart           Bonjour resolve room code → host endpoint
-    └── session_socket.dart         dart:io Socket + JSONL framing
+└── networking/party_transport.dart in-memory transport (headless tests; the
+                                     real Bonjour + dart:io Socket arrive in Phase 3)
 
-lib/ui/screens/multiplayer/         NEW widget layer (controller UX)
+test/support/party_host_reference.dart  in-process host authority for the
+                                    simulation harness (stands in for the Swift host)
+
+lib/ui/screens/multiplayer/         NEW widget layer (controller UX) — Phase 3
 ├── mp_home_screen.dart             MULTIPLAYER tile landing / scan / enter code
 ├── mp_join_screen.dart             name + emoji + JOIN + waiting state
 ├── mp_lobby_screen.dart            "✓ JOINED … waiting for players" + roster

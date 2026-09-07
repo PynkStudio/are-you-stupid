@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, protocol, contract]
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 # Multiplayer Protocol
@@ -99,9 +99,9 @@ Message := { "protocolVersion": int,
 
 | type | sender → | payload | notes |
 |---|---|---|---|
-| `ROUND_START` | host → clients | `{ roundId, challengeId, seed, startAt, durationMs, config, configuration }` | the **same** challenge for every player, from one seed |
+| `ROUND_START` | host → clients | `{ roundId, challengeId, seed, startAt, durationMs, config }` | the **same** challenge for every player, from one seed; `config` carries e.g. `{ "level": N }` |
 | `ROUND_COUNTDOWN` | host → clients | `{ roundId, atMs, state }` | `state`: `READY` / `GO`; `atMs` = host monotonic when it fires |
-| `PLAYER_ACTION` | client → host | `{ playerId, roundId, action, clientTimestampMs }` | input only; host judges |
+| `PLAYER_ACTION` | client → host | `{ playerId, roundId, action, clientTimestampMs }` | input only; host judges. `action` is `{ kind: "tap", targetId?, index? }` (null `targetId` = background) or `{ kind: "count", count }` for counting families (see below) |
 | `ROUND_RESULT` | host → each client | `{ roundId, correct, reason, scoreDelta, actionReceivedMs }` | per-player private result; also drives lives/elimination |
 | `ROUND_RESULTS` | host → clients | `{ roundId, results[] }` | aggregated reveal for the TV + cross-phone standings |
 | `ROUND_END` | host → clients | `{ roundId, ... }` | bookend; clients lock accuracy/points, TV shows NEXT ROUND |
@@ -127,14 +127,24 @@ Message := { "protocolVersion": int,
 - The host never trusts the client's `clientTimestampMs` for correctness — it
    is used only for the reaction-time tie-break / bonus, cross-checked against
    the host's `actionReceivedMs`.
+- **Counting challenges commit a count, not repeated taps.** One
+   `PLAYER_ACTION` per player per round is the rule (a duplicate is answered
+   `DUPLICATE_ACTION`), so families like `tap_twice` / `tap_exactly_n` are
+   answered with `{ kind: "count", count }` and the host replays that count
+   against its canonical challenge — it never re-derives input from timestamps.
+   Correct answer = the exact count required for that seed.
 - Clients keep rendering the same `ChallengeView` as the host's canonical
    view for the round id; they do not regenerate it ([[Multiplayer
    Challenges]]).
+- On a grace-window reconnect the host re-sends `PLAYER_JOINED` (full roster,
+   `selfClientId` = the restored seat) to the reconnecting client **and** then
+   broadcasts `PLAYER_RECONNECTED` to the room — the reconnected phone learns
+   who it is again before gameplay continues.
 
 ## Message-size budget
 
 Keep messages under ~256 bytes in the happy path. `ROUND_START` includes the
-challenge `configuration`, which is the only larger message and is still under
+challenge `config`, which is the only larger message and is still under
 a few hundred bytes for a 4-button grid. `players[]` arrays scale with room
 size — capped at 8, so never big. If a message is big, compress later, not now
 ([[Decision Log]]).

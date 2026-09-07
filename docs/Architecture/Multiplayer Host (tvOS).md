@@ -1,13 +1,34 @@
 ---
-tags: [architecture, multiplayer, tvos, host]
-updated: 2026-09-06
+tags: [architecture, multiplayer, tvos, macos, host]
+updated: 2026-09-07
 ---
 
 # Multiplayer Host (tvOS)
 
-The Apple TV side of the party mode. A **separate, lightweight native tvOS
-application** written in Swift + SwiftUI. It is the game master / display; it
-owns every piece of authoritative state ([[Multiplayer Architecture]]).
+The board side of the party mode. A **separate, lightweight native app written
+in Swift + SwiftUI**. It is the game master / display; it owns every piece of
+authoritative state ([[Multiplayer Architecture]]). The same host binary ships
+for **tvOS and macOS** — on the Mac it runs **board-only** (host + display,
+no direct play — see [[Multiplayer Product]] and below).
+
+## macOS board host (no direct play) + AirPlay
+
+The **same native host target also runs on macOS**, and that Mac build is the
+user's "big-screen host" when they don't have an Apple TV:
+
+- **Board-only by design**: the Mac hosts rooms, owns the rules, renders the
+  lobby/roster/rounds/results exactly like the TV. The person running the Mac
+  does **not** play on the Mac — they play on their phone like everyone else
+  ([[Multiplayer Product]] → phone-first). This keeps Mac and TV feature-identical
+  with one shared host core (`Host/` Graph — see structure below) instead of a
+  half-baked local controller.
+- **AirPlay button**: the macOS host shows a mirror button that projects the
+  board (the same SwiftUI presentation the TV renders natively) to another
+  screen via AirPlay, for groups gathered around a regular monitor or a big
+  screen. On tvOS there is no mirror button — the board *is* the primary
+  output.
+- The protocol, authority rules, scoring and UI are shared unchanged between
+  the two targets; [[Decision Log]] records the scope call.
 
 ## Why a separate native app, not Flutter-on-tvOS
 
@@ -44,9 +65,14 @@ beyond trivial local settings/match stats ([[Multiplayer Product]]).
 
 ## Suggested structure (Swift)
 
+One shared target for tvOS + macOS; app shells differ, `Host/` + `Net/` + `UI/`
+are shared.
+
 ```
 AreYouStupidTV/
-├── AreYouStupidTVApp.swift      app entry
+├── App/                       per-platform entry points
+│   ├── AreYouStupidTVApp.swift      tvOS entry
+│   └── AreYouStupidMacApp.swift     macOS entry (board-only, AirPlay button)
 ├── Game/Host/
 │   ├── RoomHost.swift           room lifecycle, ownership, gatekeeper
 │   ├── ChallengeMaster.swift    seed generation + canonical challenge state

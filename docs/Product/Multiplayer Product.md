@@ -1,21 +1,23 @@
 ---
 tags: [product, multiplayer, party]
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 # Multiplayer Product
 
 The party-mode product concept and scope for **ARE YOU STUPID?** — a
-controller-led party game on the TV, building on the design pillars in
+controller-led party game, building on the design pillars in
 [[Game Design Pillars]] without breaking them.
 
 ## Concept
 
 The tagline stays **YOU HAD ONE JOB.**
 
-The party mode is for a group sitting in front of an Apple TV:
+The party mode is for a group sitting in front of a shared screen:
 
-- The **Apple TV is the game master** ([[Multiplayer Host (tvOS)]]).
+- The **board is the game master** ([[Multiplayer Host (tvOS)]]) — an Apple TV,
+  or a **Mac in board-only mode** (host + display, no direct play on the Mac;
+  see below).
 - Each player uses their **own iPhone/iPad as a controller**
   ([[Multiplayer Client (Mobile)]]).
 - Everyone receives the **same challenge simultaneously**
@@ -26,19 +28,36 @@ The party mode is for a group sitting in front of an Apple TV:
 
 ## Player experience (2-8 players)
 
-1. Open ARE YOU STUPID? on Apple TV.
-2. The TV creates a local room and shows a QR code.
+1. Open ARE YOU STUPID? on Apple TV **(or on your Mac — the Mac hosts the
+   room board-only, and you play on your phone like everyone else)**.
+2. The board creates a local room and shows a QR code.
 3. Players scan the QR with their phones → the mobile app opens.
-4. The player joins the room ({NAME} + optional emoji), name appears on the TV.
+4. The player joins the room ({NAME} + optional emoji), name appears on the board.
 5. Everyone presses READY; the host starts when ≥2 are ready.
 6. The same challenge appears on every connected device.
-7. Players answer independently; the TV shows live results and rankings.
+7. Players answer independently; the board shows live results and rankings.
 8. Players are eliminated ([[Multiplayer Gameplay|Last Stupid Standing]]) or
    accumulate points ([[Multiplayer Gameplay|Stupid Battle]]).
 9. The last player standing / highest scorer wins.
 10. Instantly rematch or return to menu.
 
 No account, no cloud, no internet once installed ([[Game Design Pillars]]).
+
+## macOS as the host (board-only, no direct play)
+
+The macOS build of the host runs the **exact same host core and screens as
+tvOS**, so groups without an Apple TV can host from any Mac:
+
+- It is **board-only by design**: the Mac hosts, displays, and owns the rules —
+  the person at the Mac does **not** play on the Mac. They grab their phone
+  like everyone else. There is deliberately **no local controller** on macOS;
+  keeping Mac and TV feature-identical beats a half-baked Mac controller.
+- It shows an **AirPlay button** that mirrors the board (the same screen the TV
+  renders natively) to another display, so the Mac can drive a big screen it is
+  not physically plugged into.
+- On tvOS there is no mirror button — the board *is* the TV's output.
+
+Same QR, same room code, same join flow, same rules either way.
 
 ## Screens (canonical copy)
 
@@ -103,7 +122,7 @@ Client (Mobile)]]). Same palette as the app theme ([[Rendering Pipeline]]).
 
 - Transient player drop: grace window (15s default) → rejoin with same player
   identity restores state ([[Multiplayer Architecture]]).
-- Host quits: TV room gone, mobile shows `HOST_DISCONNECTED`; MVP ends the
+- Host quits: board room gone, mobile shows `HOST_DISCONNECTED`; MVP ends the
   match, no host migration ([[Decision Log]]).
 
 ## Ads
@@ -143,7 +162,8 @@ share flow ([[Virality and Sharing]]); no account, no tracking.
 - **Mobile (persisted):** player name, preferred emoji, multiplayer statistics
   (matches, wins, best finish), settings — via `SharedPreferences`
   ([[State and Persistence]], [[Multiplayer Client (Mobile)]]).
-- **TV:** basic settings + optional local match stats (`UserDefaults`).
+- **Board (TV or macOS host):** basic settings + optional local match stats
+  (`UserDefaults`).
 - No cloud storage.
 
 ## Explicitly out of scope (MVP)
@@ -154,11 +174,11 @@ share flow ([[Virality and Sharing]]); no account, no tracking.
 
 ## Success criteria
 
-Done when, on a real LAN: launch TV app → see QR → scan with iPhone → app
-opens and joins → name appears on TV → second player joins → START GAME →
-**identical** challenge on both phones → independent answers → results on TV →
-multiple rounds → eliminations → winner → immediate rematch. Must feel like a
-polished party game, not a demo.
+Done when, on a real LAN: launch the host (Apple TV **or macOS board-only**)
+→ see QR → scan with iPhone → app opens and joins → name appears on the board
+→ second player joins → START GAME → **identical** challenge on both phones →
+independent answers → results on the board → multiple rounds → eliminations →
+winner → immediate rematch. Must feel like a polished party game, not a demo.
 
 ## Related
 

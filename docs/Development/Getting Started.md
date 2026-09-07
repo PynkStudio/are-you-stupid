@@ -36,7 +36,8 @@ flutter run -d <device-id>  # flutter devices to list them
 
 ```bash
 flutter analyze   # must report zero issues
-flutter test      # 63 tests across 7 suites — see [[Testing]]
+flutter test      # 95 tests across 12 suites — see [[Testing]]
+swift test        # from tvos/ — AYSProtocol mirror against Dart-emitted goldens (see [[Multiplayer Development]])
 ```
 
 ## Build

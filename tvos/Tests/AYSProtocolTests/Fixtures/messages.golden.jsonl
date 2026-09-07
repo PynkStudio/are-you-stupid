@@ -1,0 +1,26 @@
+{"protocolVersion":1,"type":"HELLO","ts":100,"appName":"AreYouStupid","appVersion":"1.0"}
+{"protocolVersion":1,"type":"HOST_HELLO","ts":200,"hostName":"Living Room TV","roomCode":"7F4K","maxPlayers":8,"protocolFeatures":["lss","battle","count"]}
+{"protocolVersion":1,"type":"REJECTED","ts":300,"reason":"protocol version mismatch"}
+{"protocolVersion":1,"type":"JOIN_ROOM","ts":400,"playerName":"MASSIMO","emoji":"smile"}
+{"protocolVersion":1,"type":"PLAYER_JOINED","ts":500,"selfClientId":"c1","roomId":"7F4K","players":[{"playerId":"c2","playerName":"SAMI","emoji":"","ready":false}]}
+{"protocolVersion":1,"type":"LEAVE_ROOM","ts":600}
+{"protocolVersion":1,"type":"PLAYER_LEAVE","ts":700,"playerId":"c2","reason":"disconnected"}
+{"protocolVersion":1,"type":"PLAYER_READY","ts":800,"playerId":"c1","ready":true}
+{"protocolVersion":1,"type":"PLAYER_READY_ROSTER","ts":900,"players":[{"playerId":"c1","playerName":"MASSIMO","emoji":"smile","ready":true},{"playerId":"c2","playerName":"SAMI","emoji":"","ready":false}]}
+{"protocolVersion":1,"type":"START_GAME","ts":1000,"mode":"battle","config":{"totalRounds":20}}
+{"protocolVersion":1,"type":"PLAYER_DISCONNECTED","ts":1100,"playerId":"c3"}
+{"protocolVersion":1,"type":"PLAYER_RECONNECTED","ts":1200,"playerId":"c3"}
+{"protocolVersion":1,"type":"GAME_END","ts":1300,"mode":"lss","results":[{"playerId":"c1","score":3,"lives":2,"standing":1},{"playerId":"c2","score":1,"standing":2}],"winnerId":"c1"}
+{"protocolVersion":1,"type":"GAME_END","ts":1320,"mode":"battle","results":[{"playerId":"c2","score":250,"standing":1}]}
+{"protocolVersion":1,"type":"ROUND_START","ts":1400,"roundId":"r1","challengeId":"ch_tap_twice","seed":42,"startAt":5000,"durationMs":8000,"config":{"level":12}}
+{"protocolVersion":1,"type":"ROUND_COUNTDOWN","ts":1500,"roundId":"r1","atMs":5000,"state":"GO"}
+{"protocolVersion":1,"type":"PLAYER_ACTION","ts":1600,"playerId":"c1","roundId":"r1","action":{"kind":"tap","targetId":"t_1","index":2},"clientTimestampMs":5100}
+{"protocolVersion":1,"type":"PLAYER_ACTION","ts":1635,"playerId":"c2","roundId":"r1","action":{"kind":"count","count":3},"clientTimestampMs":0}
+{"protocolVersion":1,"type":"ROUND_RESULT","ts":1700,"roundId":"r1","correct":true,"reason":"nice","scoreDelta":100,"actionReceivedMs":5210}
+{"protocolVersion":1,"type":"ROUND_RESULT","ts":1710,"roundId":"r1","correct":false,"scoreDelta":0}
+{"protocolVersion":1,"type":"ROUND_RESULTS","ts":1900,"roundId":"r1","results":[{"playerId":"c1","correct":true,"reason":"nice","scoreDelta":100,"reactionMs":210},{"playerId":"c2","correct":false,"scoreDelta":0}]}
+{"protocolVersion":1,"type":"ROUND_END","ts":2000,"roundId":"r1"}
+{"protocolVersion":1,"type":"PLAYER_ELIMINATED","ts":2100,"roundId":"r1","playerId":"c4","livesLeft":0}
+{"protocolVersion":1,"type":"PLAYER_SCORE","ts":2200,"playerId":"c1","mode":"battle","score":250,"standing":1}
+{"protocolVersion":1,"type":"PLAYER_SCORE","ts":2210,"playerId":"c2","mode":"lss","score":1,"lives":2,"standing":2}
+{"protocolVersion":1,"type":"ERROR","ts":2300,"code":"ROOM_FULL","detail":"8/8 players"}

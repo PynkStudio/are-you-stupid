@@ -57,3 +57,7 @@ Thumbs.db
 
 # Coverage
 coverage/
+
+# SwiftPM (multiplayer host mirror) build artifacts
+tvos/.build/
+tvos/.swiftpm/

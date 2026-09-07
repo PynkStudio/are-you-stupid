@@ -8,6 +8,8 @@ updated: 2026-09-07
 ```bash
 flutter test          # everything
 flutter analyze       # must be clean, zero issues
+dart run tool/gen_protocol_fixtures.dart   # regenerate Swift golden fixtures (protocol change only)
+swift test            # from tvos/ — the AYSProtocol Swift mirror (23 cases)
 ```
 
 ## Fixed: intermittent overflow in `app_flow_test.dart`
@@ -58,6 +60,17 @@ which speaks the same [[Multiplayer Protocol]] the future Swift host will:
   `PLAYER_ACTION` → `DUPLICATE_ACTION` / `ROUND_CLOSED`.
 - `simulation_test.dart` — full 8-player roster and a complete 4-player LSS
   game run to a sole survivor, all in one test process.
+
+#### Protocol-echo: `tvos/` Swift mirror against Dart-emitted goldens
+The Swift mirror (`swift test` from `tvos/`, 23 cases) decodes every line of
+`tvos/Tests/AYSProtocolTests/Fixtures/messages.golden.jsonl` — bytes emitted by
+the Dart codec, by design the same object the Swift host will receive on its
+socket — asserts field values, and tests the same forward-tolerance rules
+(unknown `type` → `.unknownType`, garbage → `.malformed`, unknown fields
+ignored). Regenerate the fixture with `dart run
+tool/gen_protocol_fixtures.dart` whenever the protocol changes; the count
+assert (26 lines) forces a deliberate regeneration. Swift encode is semantic
+(parse-then-emit), so both sides stay lossless without being byte-identical.
 
 ### `test/challenge_determinism_test.dart` — the multiplayer seed contract
 For every registered template across 4 seeds × 3 level bands: same

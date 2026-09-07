@@ -1,18 +1,17 @@
 ---
 tags: [development, release]
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 # Release Checklist
 
 ## Code
 
-- [x] `flutter analyze` — zero issues (verified 2026-09-06)
-- [ ] `flutter test` — 63 tests across 7 suites, but **one is intermittently
-      flaky** (`app_flow_test.dart`, "the run is recorded in the stats
-      screen", ~1 in 5–8 runs) — a genuine `RenderFlex` overflow in
-      `StatsScreen`, not a test bug. See [[Testing]] before treating this as a
-      hard gate
+- [x] `flutter analyze` — zero issues (verified 2026-09-07)
+- [x] `flutter test` — 95 tests across 12 suites (7 single-player + 5
+      multiplayer, all green; the former `app_flow_test.dart` flake is fixed
+      — see [[Testing]]). `swift test` from `tvos/` also green (protocol
+      mirror, 23 cases)
 - [x] `docs/` updated ([[Documentation Rules]])
 - [ ] Version bumped in `pubspec.yaml` — still `0.1.0+1`; bump when the first
       store submission is actually ready

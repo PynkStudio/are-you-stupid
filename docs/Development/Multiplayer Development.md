@@ -1,6 +1,6 @@
 ---
 tags: [development, multiplayer, testing, roadmap]
-updated: 2026-09-06
+updated: 2026-09-07
 ---
 
 # Multiplayer Development
@@ -26,14 +26,48 @@ Log]].
 ### Phase 2 — Protocol + local host/client networking abstraction
 Port [[Multiplayer Protocol]] to a pure-Dart layer (`lib/multiplayer/`) and a
 Swift mirror. Host + client engines speak the same contract headless.
+**Status: ✅ landed (Dart).** `lib/multiplayer/` ships the codec + every wire
+message (`protocol/protocol.dart`), the in-memory transport
+(`networking/party_transport.dart`), the client session/state/controller
+(`engine/party_session.dart`, `engine/party_state.dart`,
+`engine/party_controller.dart`) and the authoritative **host reference**
+(`test/support/party_host_reference.dart` — the in-process stand-in for the
+future Swift host, so the rules are provable before real sockets exist). The
+Swift protocol mirror (`tvos/`) is a carve-out of this phase — see below.
+
+**Test suites landed** (`test/multiplayer/`, headless, no widgets):
+`protocol_codec_test.dart` (lossless round-trip incl. `PartyAction` tap/count,
+unknown `type`/fields tolerated, malformed → `DECODED_MALFORMED`),
+`room_lifecycle_test.dart` (version `REJECTED`, gatekeeper malformed/unknown-type tolerance, join/roster/self-id, `ROOM_FULL` at capacity, leave, ready propagation, <2-ready start guard), `round_sync_test.dart` (same seed → same `ChallengeView` across
+clients, countdown READY/GO, count-action judging, LSS lives/elimination/
+sole-survivor `GAME_END`, Battle base score + exact speed-bonus split
+150/125), `reconnect_test.dart` (grace-window hold + state restore, expiry
+prune, outside-window reject, stale/duplicate/closed-round action
+validation) and `simulation_test.dart` (full roster + a 4-player LSS game
+run to a sole survivor in one process). All driven by the `PartyHarness` /
+`SimClient` test double in `test/multiplayer/support/sim.dart`.
+
+The `tvos/` Swift mirror (a `swift package` — module `AYSProtocol`,
+`Sources/AYSProtocol/ProtocolModel.swift`) mirrors the Dart model + JSONL
+codec 1:1 and is cross-checked by **23 `swift test` cases** against golden
+fixtures emitted from the Dart codec
+(`tool/gen_protocol_fixtures.dart` → `tvos/Tests/AYSProtocolTests/Fixtures/
+messages.golden.jsonl`). Regenerate fixtures with
+`dart run tool/gen_protocol_fixtures.dart`, then `swift test` from `tvos/`
+(see "Protocol-echo" under tests below).
 
 ### Phase 3 — Multiplayer joining in the Flutter app
 MULTIPLAYER entry point, scan/join/roster screens ([[Multiplayer Product]]
 copy), host discovery.
 
-### Phase 4 — Native tvOS host/display app
+### Phase 4 — Native tvOS host/display app (+ macOS board host)
 SwiftUI host implementing the protocol, QR generation, Bonjour advertising,
-lobby + round + results UI ([[Multiplayer Host (tvOS)]]).
+lobby + round + results UI ([[Multiplayer Host (tvOS)]]). The **same host
+binary also ships as a macOS app**: on the Mac it is **board-only** (host +
+display; no local controller, no direct play on the Mac itself — the person
+running the Mac plays on their phone like everyone else), with an **AirPlay
+button** to mirror the board to another screen. The tvOS and macOS hosts
+share one host core; see [[Decision Log]].
 
 ### Phase 5 — Synchronized gameplay
 `ROUND_START` broadcast, countdown sync, input collection, host judging,
