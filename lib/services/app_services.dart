@@ -4,6 +4,7 @@ import 'ads/ad_manager.dart';
 import 'ads/ad_provider.dart';
 import 'ads/mock_ad_provider.dart';
 import 'haptic_manager.dart';
+import 'local_network_permission.dart';
 import 'multiplayer_profile.dart';
 import 'purchases/mock_purchase_provider.dart';
 import 'purchases/purchase_manager.dart';
@@ -22,6 +23,7 @@ class AppServices {
     required this.multiplayerProfile,
     AdProvider? adProvider,
     PurchaseProvider? purchaseProvider,
+    this.localNetwork = const LocalNetworkPermission(),
   })  : sound = SoundManager(settings),
         haptics = HapticManager(settings),
         share = const ShareManager(),
@@ -43,6 +45,7 @@ class AppServices {
   final ShareManager share;
   final AdManager ads;
   final PurchaseManager purchases;
+  final LocalNetworkPermission localNetwork;
 
   static Future<AppServices> boot({
     AdProvider? adProvider,

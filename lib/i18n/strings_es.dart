@@ -252,6 +252,18 @@ const Map<String, String> kStringsEs = {
   'ui.mp.enter_code.hint': 'EJ. 7F4K',
   'ui.mp.enter_code.join': 'UNIRSE',
 
+  'ui.mp.primer.title': 'UNA COSA ANTES',
+  'ui.mp.primer.body': 'PARA JUGAR EN LA TV, ESTE MÓVIL NECESITA:',
+  'ui.mp.primer.network_title': 'RED LOCAL',
+  'ui.mp.primer.network_body': 'PARA ENCONTRAR LA TV EN TU WI-FI. NADA SALE DE TU CASA.',
+  'ui.mp.primer.camera_title': 'CÁMARA (OPCIONAL)',
+  'ui.mp.primer.camera_body': 'SOLO PARA ESCANEAR EL QR. TAMBIÉN PUEDES ESCRIBIR EL CÓDIGO.',
+  'ui.mp.primer.footer': 'TU MÓVIL TE LO PREGUNTARÁ. TOCA PERMITIR. NO ES UNA PREGUNTA TRAMPA.',
+  'ui.mp.primer.continue': 'CONTINUAR',
+  'ui.mp.primer.not_now': 'AHORA NO',
+  'ui.mp.permission.network_denied': 'EL ACCESO A LA RED LOCAL ESTÁ DESACTIVADO. SIN ÉL, ESTE MÓVIL NO ENCUENTRA LA TV.',
+  'ui.mp.permission.open_settings': 'ABRIR AJUSTES',
+
   'ui.mp.scan.hint': 'APUNTA LA CÁMARA AL CÓDIGO QR DE LA TV.',
   'ui.mp.scan.permission_denied':
       'ACCESO A LA CÁMARA DENEGADO. USA INTRODUCIR CÓDIGO.',

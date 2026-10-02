@@ -55,6 +55,11 @@ post-frame callback once `HomeScreen` is on display. `AdMobAdProvider
 2. **ATT** (iOS only) — requested only after consent, with the app already
    active. iOS silently drops ATT requests made while the app is still
    launching, which App Review reports as "ATT prompt not found".
+   It waits 900 ms after the consent form closes (a request made while the
+   form is still animating away is dropped too) and is capped at 20 s: when
+   iOS drops the request, the plugin only retries on the next
+   `didBecomeActive`, and awaiting that unbounded once kept the SDK from
+   starting at all.
 3. **SDK start + preload** — only if `ConsentInformation.canRequestAds()`.
    Until then every `preload` is a no-op, so a player who declines simply
    sees no ads and no CONTINUE button (unless ads were removed).

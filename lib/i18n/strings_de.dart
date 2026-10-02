@@ -251,6 +251,18 @@ const Map<String, String> kStringsDe = {
   'ui.mp.enter_code.hint': 'Z. B. 7F4K',
   'ui.mp.enter_code.join': 'BEITRETEN',
 
+  'ui.mp.primer.title': 'ERST MAL KURZ',
+  'ui.mp.primer.body': 'UM AUF DEM TV ZU SPIELEN, BRAUCHT DIESES HANDY:',
+  'ui.mp.primer.network_title': 'LOKALES NETZWERK',
+  'ui.mp.primer.network_body': 'UM DEN TV IN DEINEM WLAN ZU FINDEN. NICHTS VERLÄSST DEIN ZUHAUSE.',
+  'ui.mp.primer.camera_title': 'KAMERA (OPTIONAL)',
+  'ui.mp.primer.camera_body': 'NUR ZUM SCANNEN DES QR-CODES. DU KANNST DEN CODE AUCH EINTIPPEN.',
+  'ui.mp.primer.footer': 'DEIN HANDY WIRD FRAGEN. TIPP AUF ERLAUBEN. ES IST KEINE FANGFRAGE.',
+  'ui.mp.primer.continue': 'WEITER',
+  'ui.mp.primer.not_now': 'NICHT JETZT',
+  'ui.mp.permission.network_denied': 'ZUGRIFF AUFS LOKALE NETZWERK IST AUS. OHNE IHN FINDET DIESES HANDY DEN TV NICHT.',
+  'ui.mp.permission.open_settings': 'EINSTELLUNGEN ÖFFNEN',
+
   'ui.mp.scan.hint': 'RICHTE DIE KAMERA AUF DEN QR-CODE AUF DEM TV.',
   'ui.mp.scan.permission_denied':
       'KAMERAZUGRIFF VERWEIGERT. NUTZE RAUMCODE EINGEBEN.',

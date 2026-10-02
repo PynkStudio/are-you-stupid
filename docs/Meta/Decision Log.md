@@ -2690,3 +2690,19 @@ the skip grace and the READY beat; they must be run before submission
 **Verification addendum (same day):** once the Xcode licence was accepted,
 `flutter test` ran 303/303 green and `swift test` green; both host apps
 build in Release with the new bundle id, sandbox and icons.
+
+### 2026-10-02 — ATT never blocks the ads SDK
+
+First real-device run after the consent work: the Google consent form
+appeared, the ATT prompt did not. `app_tracking_transparency` works around
+iOS dropping a request made while the app isn't fully active by waiting for
+the next `didBecomeActive` and retrying — so its future can stay pending
+indefinitely, and `AdMobAdProvider.initialize` awaited it before starting
+the SDK: no ads until the player backgrounded the app. Now the request
+waits 900 ms for the consent form to finish dismissing and is capped at
+20 s; the SDK starts either way (Google reads the IDFA per request, so a
+late "allow" still applies) and the plugin's own retry shows the prompt on
+the next resume. A device with *Settings → Privacy → Tracking → Allow Apps
+to Request to Track* off, or a status already answered by an earlier
+install of the same bundle id, legitimately shows no prompt.
+

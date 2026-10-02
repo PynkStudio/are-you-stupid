@@ -262,6 +262,18 @@ const Map<String, String> kStringsEn = {
   'ui.mp.enter_code.hint': 'E.G. 7F4K',
   'ui.mp.enter_code.join': 'JOIN',
 
+  'ui.mp.primer.title': 'QUICK THING FIRST',
+  'ui.mp.primer.body': 'TO PLAY ON THE TV, THIS PHONE NEEDS:',
+  'ui.mp.primer.network_title': 'LOCAL NETWORK',
+  'ui.mp.primer.network_body': 'TO FIND THE TV ON YOUR WI-FI. NOTHING LEAVES YOUR HOME.',
+  'ui.mp.primer.camera_title': 'CAMERA (OPTIONAL)',
+  'ui.mp.primer.camera_body': 'ONLY TO SCAN THE QR CODE. YOU CAN TYPE THE CODE INSTEAD.',
+  'ui.mp.primer.footer': 'YOUR PHONE WILL ASK. TAP ALLOW. IT IS NOT A TRICK QUESTION.',
+  'ui.mp.primer.continue': 'CONTINUE',
+  'ui.mp.primer.not_now': 'NOT NOW',
+  'ui.mp.permission.network_denied': "LOCAL NETWORK ACCESS IS OFF. WITHOUT IT THIS PHONE CAN'T FIND THE TV.",
+  'ui.mp.permission.open_settings': 'OPEN SETTINGS',
+
   'ui.mp.scan.hint': 'POINT THE CAMERA AT THE QR CODE ON THE TV.',
   'ui.mp.scan.permission_denied': 'CAMERA ACCESS DENIED. USE ENTER ROOM CODE INSTEAD.',
 

@@ -16,6 +16,7 @@ import '../../../multiplayer/engine/party_state.dart';
 import '../../../multiplayer/networking/lan_discovery.dart';
 import '../../../multiplayer/networking/session_socket.dart';
 import '../../../services/app_services.dart';
+import '../../../services/local_network_permission.dart';
 import '../../theme.dart';
 import '../../widgets/ays_button.dart';
 import 'mp_common.dart';
@@ -26,7 +27,7 @@ import 'mp_lobby_screen.dart';
 /// this isn't wired to `pubspec.yaml`'s version on purpose.
 const _kAppVersion = '0.1';
 
-enum _Stage { resolving, notFound, connecting, connectError, form, rejected }
+enum _Stage { resolving, notFound, networkDenied, connecting, connectError, form, rejected }
 
 class MpJoinScreen extends StatefulWidget {
   const MpJoinScreen({super.key, required this.roomCode});
@@ -37,7 +38,8 @@ class MpJoinScreen extends StatefulWidget {
   State<MpJoinScreen> createState() => _MpJoinScreenState();
 }
 
-class _MpJoinScreenState extends State<MpJoinScreen> {
+class _MpJoinScreenState extends State<MpJoinScreen>
+    with WidgetsBindingObserver {
   _Stage _stage = _Stage.resolving;
   PartySession? _session;
   PartyAiDirector? _aiDirector;
@@ -57,7 +59,17 @@ class _MpJoinScreenState extends State<MpJoinScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _connect();
+  }
+
+  /// Back from Settings with access switched on: retry on our own instead of
+  /// making the player find TRY AGAIN.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted && _stage == _Stage.networkDenied) {
+      _connect();
+    }
   }
 
   @override
@@ -71,6 +83,7 @@ class _MpJoinScreenState extends State<MpJoinScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _statesSub?.cancel();
     _eventsSub?.cancel();
     // Only dispose here if we never handed the session off to the lobby.
@@ -115,7 +128,16 @@ class _MpJoinScreenState extends State<MpJoinScreen> {
     }
     if (!mounted) return;
     if (candidate == null) {
-      setState(() => _stage = _Stage.notFound);
+      // "Not found" is often really "not allowed to look": tell the player
+      // the actual cause and how to fix it ([[Multiplayer Client (Mobile)]]
+      // "Permissions").
+      final network = devAddress == null
+          ? await AppServices.of(context).localNetwork.status()
+          : LocalNetworkStatus.unknown;
+      if (!mounted) return;
+      setState(() => _stage = network == LocalNetworkStatus.denied
+          ? _Stage.networkDenied
+          : _Stage.notFound);
       return;
     }
 
@@ -239,6 +261,37 @@ class _MpJoinScreenState extends State<MpJoinScreen> {
               t('ui.mp.join.resolving', {'code': widget.roomCode}),
               textAlign: TextAlign.center,
               style: Ays.label(16, color: Ays.inkDim),
+            ),
+          ],
+        );
+
+      case _Stage.networkDenied:
+        return _Centered(
+          children: [
+            MpPermissionNotice(
+              message: t('ui.mp.permission.network_denied'),
+              actionLabel: t('ui.mp.permission.open_settings'),
+              onAction: () {
+                final services = AppServices.of(context);
+                services.sound.button();
+                services.localNetwork.openAppSettings();
+              },
+            ),
+            const SizedBox(height: 16),
+            AysButton(
+              label: t('ui.mp.join.retry'),
+              height: 60,
+              fontSize: 20,
+              outlined: true,
+              onTap: () => _connect(),
+            ),
+            const SizedBox(height: 12),
+            AysButton(
+              label: t('ui.mp.home.back'),
+              height: 56,
+              fontSize: 17,
+              outlined: true,
+              onTap: () => Navigator.of(context).pop(),
             ),
           ],
         );

@@ -13,6 +13,7 @@ class MultiplayerProfileManager extends ChangeNotifier {
   static const _kMatchesPlayed = 'ays.mp.matchesPlayed';
   static const _kWins = 'ays.mp.wins';
   static const _kBestStanding = 'ays.mp.bestStanding';
+  static const _kPrimerSeen = 'ays.mp.permissionsPrimerSeen';
 
   final SharedPreferences _prefs;
 
@@ -33,6 +34,17 @@ class MultiplayerProfileManager extends ChangeNotifier {
   /// Best (lowest) final standing across every match played, 1 = winner.
   /// Null until the first match completes.
   int? get bestStanding => _prefs.getInt(_kBestStanding);
+
+  /// True once the player has read the multiplayer permissions primer and
+  /// tapped CONTINUE. Until then nothing may touch the local network, so the
+  /// iOS Local Network prompt never appears out of context
+  /// ([[Multiplayer Client (Mobile)]] "Permissions").
+  bool get permissionsPrimerSeen => _prefs.getBool(_kPrimerSeen) ?? false;
+
+  Future<void> markPermissionsPrimerSeen() async {
+    await _prefs.setBool(_kPrimerSeen, true);
+    notifyListeners();
+  }
 
   Future<void> setProfile({required String playerName, required String emoji}) async {
     await _prefs.setString(_kName, playerName.trim());

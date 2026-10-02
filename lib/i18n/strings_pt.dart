@@ -252,6 +252,18 @@ const Map<String, String> kStringsPt = {
   'ui.mp.enter_code.hint': 'EX. 7F4K',
   'ui.mp.enter_code.join': 'ENTRAR',
 
+  'ui.mp.primer.title': 'UMA COISA ANTES',
+  'ui.mp.primer.body': 'PARA JOGAR NA TV, ESTE CELULAR PRECISA DE:',
+  'ui.mp.primer.network_title': 'REDE LOCAL',
+  'ui.mp.primer.network_body': 'PARA ENCONTRAR A TV NO SEU WI-FI. NADA SAI DA SUA CASA.',
+  'ui.mp.primer.camera_title': 'CÂMERA (OPCIONAL)',
+  'ui.mp.primer.camera_body': 'SÓ PARA ESCANEAR O QR CODE. VOCÊ TAMBÉM PODE DIGITAR O CÓDIGO.',
+  'ui.mp.primer.footer': 'SEU CELULAR VAI PERGUNTAR. TOQUE EM PERMITIR. NÃO É PEGADINHA.',
+  'ui.mp.primer.continue': 'CONTINUAR',
+  'ui.mp.primer.not_now': 'AGORA NÃO',
+  'ui.mp.permission.network_denied': 'O ACESSO À REDE LOCAL ESTÁ DESLIGADO. SEM ELE, ESTE CELULAR NÃO ENCONTRA A TV.',
+  'ui.mp.permission.open_settings': 'ABRIR AJUSTES',
+
   'ui.mp.scan.hint': 'APONTE A CÂMERA PARA O QR CODE NA TV.',
   'ui.mp.scan.permission_denied':
       'ACESSO À CÂMERA NEGADO. USE INSERIR CÓDIGO DA SALA.',

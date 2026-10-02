@@ -252,6 +252,18 @@ const Map<String, String> kStringsIt = {
   'ui.mp.enter_code.hint': 'ES. 7F4K',
   'ui.mp.enter_code.join': 'ENTRA',
 
+  'ui.mp.primer.title': 'PRIMA UNA COSA',
+  'ui.mp.primer.body': 'PER GIOCARE SULLA TV, QUESTO TELEFONO HA BISOGNO DI:',
+  'ui.mp.primer.network_title': 'RETE LOCALE',
+  'ui.mp.primer.network_body': 'PER TROVARE LA TV SULLA TUA WI-FI. NIENTE ESCE DA CASA TUA.',
+  'ui.mp.primer.camera_title': 'FOTOCAMERA (FACOLTATIVA)',
+  'ui.mp.primer.camera_body': 'SOLO PER SCANSIONARE IL QR CODE. PUOI ANCHE SCRIVERE IL CODICE.',
+  'ui.mp.primer.footer': 'IL TELEFONO TE LO CHIEDERÀ. TOCCA CONSENTI. NON È UNA DOMANDA TRABOCCHETTO.',
+  'ui.mp.primer.continue': 'CONTINUA',
+  'ui.mp.primer.not_now': 'NON ORA',
+  'ui.mp.permission.network_denied': "L'ACCESSO ALLA RETE LOCALE È DISATTIVATO. SENZA, IL TELEFONO NON TROVA LA TV.",
+  'ui.mp.permission.open_settings': 'APRI IMPOSTAZIONI',
+
   'ui.mp.scan.hint': 'INQUADRA CON LA CAMERA IL QR CODE SULLA TV.',
   'ui.mp.scan.permission_denied':
       'ACCESSO ALLA CAMERA NEGATO. USA INSERISCI CODICE STANZA.',

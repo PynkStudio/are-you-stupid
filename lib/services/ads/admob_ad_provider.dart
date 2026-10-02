@@ -37,18 +37,31 @@ class AdMobAdProvider implements AdProvider {
   Future<void> initialize() async {
     await _updateConsentInfo();
     await _showConsentFormIfRequired();
-    if (Platform.isIOS) {
-      try {
-        final status =
-            await AppTrackingTransparency.trackingAuthorizationStatus;
-        if (status == TrackingStatus.notDetermined) {
-          await AppTrackingTransparency.requestTrackingAuthorization();
-        }
-      } catch (_) {
-        // A failed ATT call only means non-personalised ads.
-      }
-    }
+    if (Platform.isIOS) await _requestTracking();
     await _startSdkIfAllowed();
+  }
+
+  /// Asks for ATT once, never blocking the ads SDK on the answer.
+  ///
+  /// Requested while the consent form is still animating away, iOS drops the
+  /// prompt; `app_tracking_transparency` then waits for the *next*
+  /// `didBecomeActive` to retry, so awaiting it unbounded left the SDK
+  /// unstarted (no ads at all) until the player backgrounded the app. The
+  /// short pause lets the form finish dismissing; the timeout lets ads start
+  /// regardless, and the plugin still shows the prompt on the next resume.
+  /// See docs/Meta/Decision Log.md.
+  Future<void> _requestTracking() async {
+    try {
+      final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+      if (status != TrackingStatus.notDetermined) return;
+      await Future<void>.delayed(const Duration(milliseconds: 900));
+      await AppTrackingTransparency.requestTrackingAuthorization().timeout(
+        const Duration(seconds: 20),
+        onTimeout: () => TrackingStatus.notDetermined,
+      );
+    } catch (_) {
+      // A failed ATT call only means non-personalised ads.
+    }
   }
 
   @override
