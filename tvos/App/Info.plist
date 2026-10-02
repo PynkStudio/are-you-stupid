@@ -23,7 +23,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>Are You Stupid</string>
 	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.party-games</string>
+	<string>public.app-category.casual-games</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>CFBundlePackageType</key>

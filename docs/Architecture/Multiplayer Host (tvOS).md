@@ -278,7 +278,7 @@ Apple TV without searching. See [[Decision Log]].
   `app-sandbox`, `network.server` (the phones connect to the host's
   listener), `network.client`.
 - `App/Info.plist` adds `CFBundleDisplayName`,
-  `LSApplicationCategoryType = public.app-category.party-games` and
+  `LSApplicationCategoryType = public.app-category.casual-games` (there is no "party-games" UTI — the Mac App Store rejected it, error 90249) and
   `ITSAppUsesNonExemptEncryption = false`.
 
 Still ahead: the tvOS remote-focus pass and Phase 10's real-device pass.
