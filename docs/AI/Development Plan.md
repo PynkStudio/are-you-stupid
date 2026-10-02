@@ -1,6 +1,6 @@
 ---
 tags: [ai, development, roadmap]
-updated: 2026-09-07
+updated: 2026-09-15
 ---
 
 # Development Plan
@@ -62,34 +62,115 @@ own (`ai/dynamic-director` on `PynkStudio/are-you-stupid`).
 - See the 2026-09-07 [[Decision Log]] entries (proposal/envelope split,
   trick-contract interpretation, `@Generable` limitations).
 
-### Phase 3 — Telemetry + adaptive difficulty
+### Phase 3 — Telemetry + adaptive difficulty  ✅ code done, not wired into production
 - `TelemetryCollector` + `PlayerGameplayProfile` ([[Player Telemetry and Adaptive Difficulty]]), `ayu.profile` persistence, mistake classifier.
+- `AdaptiveChallengeProvider` is fully built and tested but never constructed
+  in `game_screen.dart` — wiring it into production is folded into Phase 5
+  below (it needs to land alongside the flags that gate it).
 
-### Phase 4 — Commentary
+### Phase A — Generated Challenge Runtime (not in the original numbering)  ✅ done
+- `lib/ai/generated_challenge_runtime.dart` — the piece the doc's shape
+  descriptions assumed but nothing built: turns a validated
+  `ChallengeProposal` into an actual playable `Challenge` (tap/hold/sequence
+  judging per `mechanic.action`). Required before Phase 4 or 5 can do
+  anything real with a generated proposal. See the 2026-09-11 [[Decision
+  Log]] entry for the per-mechanic interpretation calls.
+
+### Phase B — `AiFeatureFlags` data module (not in the original numbering; pulled forward from Phase 9)  ✅ done
+- `lib/ai/feature_flags.dart` — every flag from [[Feature Flags]] plus
+  `AiExperienceMode`, `SharedPreferences`-backed, live from today so Phases
+  4-8 read real gating instead of being retrofitted later. Only the
+  Settings UI screen stays in Phase 9's slot below. See the 2026-09-11
+  [[Decision Log]] entry.
+
+### Phase 4 — Commentary  ✅ done, not wired into live gameplay yet
 - Commentary kinds + per-kind contracts ([[AI Commentary]]); AI service
   `requestCommentary`; static-bank-first ladder.
+- `lib/ai/commentary.dart` (`CommentaryKind`, `isCommentaryLineValid`,
+  `CommentaryProvider`) + real Swift `AYSCommentaryService`
+  (`ios/Runner/AppleAIService/CommentaryProfile.swift`), verified against
+  the real iPhoneOS 26.5 SDK in this environment. `CommentaryProvider.line()`
+  is async, so it isn't called from `GameEngine.fail()`/`.pass()` yet —
+  that needs Phase 5's synchronous cache pop. See the 2026-09-11
+  [[Decision Log]] entry.
 
-### Phase 5 — Pre-generation cache
-- `PrefetchLoop`, buffer rings, cancellation (`cancelUnit`), SLA
-  ([[Pre-generation Cache]], [[Performance and Resource Budgets]]).
+### Phase 5 — Pre-generation cache  ✅ done (challenge ring; commentary ring deferred to Phase 8)
+- `PrefetchLoop` (generic, `lib/ai/prefetch_loop.dart`), the challenge ring
+  backing a real `AIChallengeProvider`, wired into `game_screen.dart`'s
+  `FallbackChallengeProvider.ai` slot for the first time — the game is no
+  longer unconditionally 100% scripted in production (though real
+  generation itself is still `notImplemented` on the Swift side, so it
+  stays scripted in practice until that lands too). `AdaptiveChallengeProvider`
+  also wired into production, behind its own default-off flag. The
+  commentary ring (`commentaryByKind`) isn't wired to a live consumer yet —
+  no `cancelUnit`/SLA-timer work landed either, since nothing is far enough
+  along yet to need real timeout enforcement beyond "the ring is empty."
+  See the 2026-09-11 [[Decision Log]] entry (including a real dedupe bug
+  found and fixed while testing this).
 
-### Phase 6 — Profiles + tool calling
-- Swift multi-profile sessions + tool bridge
-  ([[Dynamic Profiles and Tool Calling]]).
+### Phase 6 — Profiles + tool calling  ✅ done (`ChallengeGenerationProfile`; other profiles' tools not needed yet)
+- `@Guide` annotations across every `AYSChallengeProposal` field
+  (`ChallengeProposal.swift`); real `requestChallenge`
+  (`ChallengeGenerationProfile.swift`) with a hand-built wire dict (no
+  `Encodable` from `@Generable`) and a canonical English fail-line table;
+  three snapshot-backed `Tool` conformances (`GenerationTools.swift`) —
+  deliberately not a live Dart↔Swift tool bridge, since `requestChallenge`'s
+  existing `profile` argument already carries everything they need. Dart
+  side: `lib/ai/profile_for_prompts.dart` (the truncation facade),
+  `availableMechanicMoves()`, and `AIChallengeProvider` sending a real
+  payload instead of just `{unitId, locale}`. `CommentaryProfile`/
+  `FinalRoundProfile`/`MultiplayerHostProfile`'s own tool sets aren't built
+  yet — no caller needs them (final-round and multiplayer-director are
+  later work). See the 2026-09-11 [[Decision Log]] entry.
 
-### Phase 7 — Multiplayer messages
-- `aiCapabilities` / `aiDirectorAssignment` / `aiChallengeRound` /
-  `aiCommentary` wire kinds ([[Multiplayer AI Director]]); harness goldens.
+### Phase 7 — Multiplayer messages  ✅ done (plumbing only)
+- Six wire kinds, not four — `AI_CAPABILITIES`, `AI_DIRECTOR_ASSIGNMENT`,
+  `AI_ROUND_PROPOSAL`, `AI_CHALLENGE_ROUND`, `AI_COMMENTARY_PROPOSAL`,
+  `AI_COMMENTARY` ([[Multiplayer AI Director]] — the doc's four-row table
+  conflated "produce" and "relay" into one row); harness goldens
+  (26 → 34 lines) on both `protocol.dart` and `ProtocolModel.swift`.
+  `party_session.dart`/`RoomHost.swift` dispatch wiring only — no election,
+  no relay behavior, no round actually opened from `AI_CHALLENGE_ROUND` yet.
+  See the 2026-09-11 [[Decision Log]] entry.
 
-### Phase 8 — Host election + failover
-- Election + heartbeat failover, scripted during the gap.
+### Phase 8 — Host election + failover  ✅ done
+- Election (`RoomHost.electDirector`), a single-slot pending-proposal relay
+  (`startNextRound`/`startAiRound`), failover on the Director's seat being
+  removed, and the Dart-side `PartyAiDirector` runtime that actually
+  generates and sends rounds/commentary. Commentary display in the UI is
+  the one deliberate scope cut — captured (`HostViewModel.lastAiCommentary`)
+  but not yet shown anywhere, same reasoning as single-player's own Phase 5
+  deferral. See the 2026-09-11 [[Decision Log]] entry.
 
-### Phase 9 — Feature flags & modes
-- `AiFeatureFlags` tri-state + AI Experience Modes + Settings Ai section
-  ([[Feature Flags]], [[Error States and Failure Communication]]).
+### Phase 9 — Feature flags UI  ✅ done
+- The data module (`AiFeatureFlags` + `AiExperienceMode`) landed early as
+  Phase B above. This phase: the Settings Ai section (`_AiSection` in
+  `settings_screen.dart`) — the mode picker + per-device availability copy
+  ([[Error States and Failure Communication]]), translated into all six
+  locales. See the 2026-09-11 [[Decision Log]] entry (including a real
+  `testWidgets`-vs-`test()` MethodChannel gotcha found while testing it).
 
-### Phase 10 — AI test suites + evaluation gates
-- `test/ai/` suites + `MockAppleAIService` ([[Testing and Evaluation]]); blind playtest + never-blocks instrumentation gates.
+### Phase 10 — AI test suites + evaluation gates  ✅ done (the parts an Apple-Intelligence-free environment can exercise)
+- `test/ai/full_run_with_mock_bridge_test.dart`: the "full match with mock
+  bridge" case — the exact `AdaptiveChallengeProvider` →
+  `FallbackChallengeProvider` → `ScriptedChallengeProvider` +
+  `AIChallengeProvider` composition `game_screen.dart` builds, driven
+  through a real `GameEngine` run. Covers AI served mid-run, an invalid
+  proposal falling back to scripted silently, a mid-session
+  `aiChallengeGenerationEnabled` flip taking effect on the very next round,
+  and — across every round, starter or not — no `GameEvent.wrong` ever
+  firing and nothing throwing (there is no in-game "AI error" event to
+  surface in the first place, see [[Error States and Failure
+  Communication]]). Writing it caught a real gap: `AIChallengeProvider`
+  had no `Difficulty.isStarter` gate, so an AI proposal could have been
+  served as early as level 1, breaking CLAUDE.md's "levels 1-3 stay
+  trivial" pillar — fixed, with its own regression group in
+  `provider_test.dart`. See the 2026-09-15 [[Decision Log]] entry.
+- The blind-playtest and real-device evaluation gates ([[Testing and
+  Evaluation]], items 1 and 4) remain **unexercised** — no
+  Apple-Intelligence-capable hardware is available in this environment,
+  the same limitation every phase since Phase 2 has carried forward
+  honestly rather than glossed over.
 
 ## Dependencies
 
@@ -107,7 +188,14 @@ own (`ai/dynamic-director` on `PynkStudio/are-you-stupid`).
   AI challenge round served, a fallback round served, a mode switch, no
   blocking.
 - Docs current (every touched note updated in its commit).
-- Nothing is on by default ahead of the evaluation gates.
+- ~~Nothing is on by default ahead of the evaluation gates~~ — superseded by
+  [[Feature Flags]]'s actual shipped defaults (`dynamicAIEnabled` and most
+  sub-flags default **enabled**, `aiAdaptiveDifficultyEnabled` default
+  disabled): the rollout safety net is the validated/scripted-fallback-first
+  pipeline itself, not an off-by-default flag, so the model never touches a
+  round the fallback ladder wouldn't also produce a valid one for. The
+  evaluation gates below still gate a *store release*, independent of the
+  flag defaults.
 
 ## Related
 

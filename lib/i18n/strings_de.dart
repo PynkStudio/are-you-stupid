@@ -161,6 +161,7 @@ const Map<String, String> kStringsDe = {
   'ui.home.play': 'SPIELEN',
   'ui.home.best_score_button': 'BESTWERT',
   'ui.home.settings': 'EINSTELLUNGEN',
+  'ui.home.multiplayer': 'MULTIPLAYER',
   'ui.home.footer': 'KEIN KONTO. KEIN INTERNET. KEINE AUSREDEN.',
 
   'ui.game.level': 'LEVEL {n}',
@@ -210,6 +211,18 @@ const Map<String, String> kStringsDe = {
   'ui.settings.keep': 'BEHALTEN',
   'ui.settings.reset': 'ZURÜCKSETZEN',
 
+  'ui.settings.ai.label': 'KI-HERAUSFORDERUNGEN',
+  'ui.settings.ai.mode.genius': 'GENIE',
+  'ui.settings.ai.mode.focused': 'FOKUSSIERT',
+  'ui.settings.ai.mode.classic': 'KLASSISCH',
+  'ui.settings.ai.status.available':
+      'Die Herausforderungsvielfalt ist auf diesem Gerät aktiviert.',
+  'ui.settings.ai.status.supported_not_enabled':
+      'Dein Gerät kann das, aber Apple Intelligence ist in den Einstellungen deaktiviert.',
+  'ui.settings.ai.status.not_eligible': 'Auf diesem Gerät nicht unterstützt.',
+  'ui.settings.ai.status.model_not_ready':
+      'Modell wird heruntergeladen. Klassischer Modus aktiv, bis es bereit ist.',
+
   'ui.stats.title': 'BESTWERT',
   'ui.stats.level': 'LEVEL',
   'ui.stats.total_attempts': 'VERSUCHE GESAMT',
@@ -226,6 +239,58 @@ const Map<String, String> kStringsDe = {
   'ui.ad.close': 'SCHLIESSEN',
   'ui.ad.please_wait': 'BITTE WARTEN',
   'ui.ad.no_thanks': 'NEIN, DANKE',
+
+  'ui.mp.home.title': 'MULTIPLAYER',
+  'ui.mp.home.tagline': 'SCANNE DEN QR-CODE AUF DEM TV, UM BEIZUTRETEN.',
+  'ui.mp.home.scan': 'QR SCANNEN',
+  'ui.mp.home.enter_code': 'RAUMCODE EINGEBEN',
+  'ui.mp.home.back': 'ZURÜCK',
+
+  'ui.mp.enter_code.title': 'RAUMCODE',
+  'ui.mp.enter_code.hint': 'Z. B. 7F4K',
+  'ui.mp.enter_code.join': 'BEITRETEN',
+
+  'ui.mp.scan.hint': 'RICHTE DIE KAMERA AUF DEN QR-CODE AUF DEM TV.',
+  'ui.mp.scan.permission_denied':
+      'KAMERAZUGRIFF VERWEIGERT. NUTZE RAUMCODE EINGEBEN.',
+
+  'ui.mp.join.resolving': 'SUCHE RAUM {code}…',
+  'ui.mp.join.not_found': 'RAUM {code} IN DIESEM WLAN NICHT GEFUNDEN.',
+  'ui.mp.join.retry': 'NOCHMAL VERSUCHEN',
+  'ui.mp.join.dev_manual_address': 'DEV: HOST-ADRESSE',
+  'ui.mp.join.rejected': 'BEITRITT NICHT MÖGLICH: {reason}',
+  'ui.mp.join.playing_on': 'DU SPIELST AUF: {host}',
+  'ui.mp.join.name_label': 'SPIELERNAME',
+  'ui.mp.join.name_hint': 'DEIN NAME',
+  'ui.mp.join.waiting_host': 'WARTE AUF HOST…',
+  'ui.mp.join.join_button': 'BEITRETEN',
+
+  'ui.mp.lobby.title': 'LOBBY',
+  'ui.mp.lobby.players': '{n} SPIELER',
+  'ui.mp.lobby.ready': '✓ BEREIT',
+  'ui.mp.lobby.not_ready': 'BEREIT?',
+  'ui.mp.lobby.waiting_start': 'WARTE, BIS DER HOST STARTET…',
+  'ui.mp.lobby.leave': 'VERLASSEN',
+
+  'ui.mp.game.waiting_round': 'MACH DICH BEREIT…',
+  'ui.mp.game.correct': 'JA!',
+  'ui.mp.game.wrong': 'FALSCH',
+  'ui.mp.game.eliminated': 'DU BIST RAUS — DU SCHAUST ZU',
+
+  'ui.mp.result.title': 'SPIEL VORBEI',
+  'ui.mp.result.winner': '{name} GEWINNT',
+  'ui.mp.result.your_standing': 'DU HAST PLATZ #{n} ERREICHT',
+  'ui.mp.result.share': 'TEILEN',
+  'ui.mp.result.menu': 'ZURÜCK ZUM MENÜ',
+
+  'ui.mp.disconnect.title': 'SPIEL VORBEI',
+  'ui.mp.disconnect.connection_lost': 'VERBINDUNG VERLOREN.',
+  'ui.mp.disconnect.rejected': 'BEITRITT NICHT MÖGLICH: {reason}',
+  'ui.mp.disconnect.menu': 'ZURÜCK ZUM MENÜ',
+
+  'ui.mp.share.line1':
+      'Wir haben BIST DU DUMM? auf dem TV gespielt. {name} hat gewonnen.',
+  'ui.mp.share.line2': 'Denkst du, du schlägst uns?',
 
   'share.line1': 'Ich habe Level {level} in BIST DU DUMM? erreicht.',
   'share.line2': 'Schlägst du mich?',

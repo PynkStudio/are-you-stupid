@@ -1,4 +1,5 @@
 import 'package:are_you_stupid/multiplayer/engine/party_state.dart';
+import 'package:are_you_stupid/multiplayer/protocol/protocol.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/sim.dart';
@@ -93,7 +94,13 @@ void main() {
       a.tapBackground();
       final first = a.state.privateResult!;
       expect(first.correct, isFalse);
-      a.tapBackground(); // second submit -> duplicate
+      // A second *real* tap wouldn't even reach the wire — the client's own
+      // PartyChallengeRunner already settled and silently ignores further
+      // input (see PartyChallengeRunner.tap). This test is about the host's
+      // own protocol-level guard, not client-side suppression, so it drives
+      // `PartySession.sendAction` directly — simulating a buggy/malicious
+      // client that sends a duplicate PLAYER_ACTION anyway.
+      a.session.sendAction(const PartyAction.tap(), correct: false);
       expect(a.state.lastError?.code, 'DUPLICATE_ACTION');
     });
 

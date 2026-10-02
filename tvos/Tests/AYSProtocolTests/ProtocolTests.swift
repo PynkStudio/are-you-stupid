@@ -33,11 +33,11 @@ final class ProtocolTests: XCTestCase {
     // MARK: - Fixture integrity
 
     func test_goldenLineCount() throws {
-        XCTAssertEqual(try goldenLines().count, 26, "Dart codec emitted 26 representative messages")
+        XCTAssertEqual(try goldenLines().count, 34, "Dart codec emitted 34 representative messages")
     }
 
     func test_everyGoldenLineDecodes() throws {
-        XCTAssertEqual(try decodeGolden().count, 26)
+        XCTAssertEqual(try decodeGolden().count, 34)
     }
 
     // MARK: - Lifecycle messages match the Dart codec output
@@ -178,6 +178,57 @@ final class ProtocolTests: XCTestCase {
         XCTAssertEqual(error.type, "ERROR")
         XCTAssertEqual(error.code, "ROOM_FULL")
         XCTAssertEqual(error.detail, "8/8 players")
+    }
+
+    // MARK: - AI Director messages (Phase 7) match the Dart codec
+
+    func test_aiCapabilitiesMatchesGolden() throws {
+        let capabilities = try decodeGolden(AiCapabilities.self)
+        XCTAssertEqual(capabilities.count, 2)
+
+        let available = try XCTUnwrap(capabilities.first { $0.aiAvailable })
+        XCTAssertEqual(available.computeRank, 1)
+        XCTAssertEqual(available.batteryPercent, 87)
+
+        let unavailable = try XCTUnwrap(capabilities.first { !$0.aiAvailable })
+        XCTAssertEqual(unavailable.computeRank, 0)
+        XCTAssertEqual(unavailable.batteryPercent, 100) // default, field omitted upstream
+    }
+
+    func test_aiDirectorAssignmentPresentAndNil() throws {
+        let assignments = try decodeGolden(AiDirectorAssignment.self)
+        XCTAssertEqual(assignments.count, 2)
+        XCTAssertEqual(assignments[0].directorPeerId, "c1")
+        XCTAssertNil(assignments[1].directorPeerId)
+    }
+
+    func test_aiRoundProposalMatchesGolden() throws {
+        let proposal = try XCTUnwrap(try decodeGolden(AiRoundProposal.self).first)
+        XCTAssertEqual(proposal.roundId, "r2")
+        XCTAssertEqual(proposal.proposal["id"] as? String, "ai.abc12")
+        let mechanic = try XCTUnwrap(proposal.proposal["mechanic"] as? [String: Any])
+        XCTAssertEqual(mechanic["move"] as? String, "tap_true_color")
+    }
+
+    func test_aiChallengeRoundMatchesGolden() throws {
+        let round = try XCTUnwrap(try decodeGolden(AiChallengeRound.self).first)
+        XCTAssertEqual(round.roundId, "r2")
+        XCTAssertEqual(round.startAt, 6000)
+        XCTAssertEqual(round.durationMs, 4500)
+        XCTAssertEqual(round.proposal["source"] as? String, "ai")
+    }
+
+    func test_aiCommentaryProposalMatchesGolden() throws {
+        let commentary = try XCTUnwrap(try decodeGolden(AiCommentaryProposal.self).first)
+        XCTAssertEqual(commentary.kind, "wrong")
+        XCTAssertEqual(commentary.roundId, "r2")
+        XCTAssertEqual(commentary.text, "Barely made it.")
+    }
+
+    func test_aiCommentaryMatchesGolden() throws {
+        let commentary = try XCTUnwrap(try decodeGolden(AiCommentary.self).first)
+        XCTAssertEqual(commentary.kind, "elimination")
+        XCTAssertEqual(commentary.text, "Gone, but not forgotten.")
     }
 
     // MARK: - Forward tolerance (same rules as the Dart codec)

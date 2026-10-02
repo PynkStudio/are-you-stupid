@@ -12,9 +12,12 @@
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
+		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		91A5B0032EC5A00300CFAC11 /* ChallengeProposal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91A5B0012EC5A00100CFAC11 /* ChallengeProposal.swift */; };
 		91A5B0042EC5A00400CFAC11 /* AppleAIController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91A5B0022EC5A00200CFAC11 /* AppleAIController.swift */; };
-		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
+		91A5B0052EC5A00500CFAC11 /* CommentaryProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91A5B0062EC5A00600CFAC11 /* CommentaryProfile.swift */; };
+		91A5B0072EC5A00700CFAC11 /* GenerationTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91A5B0082EC5A00800CFAC11 /* GenerationTools.swift */; };
+		91A5B0092EC5A00900CFAC11 /* ChallengeGenerationProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91A5B00A2EC5A00A00CFAC11 /* ChallengeGenerationProfile.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
@@ -52,10 +55,13 @@
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		91A5B0012EC5A00100CFAC11 /* ChallengeProposal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChallengeProposal.swift; path = AppleAIService/ChallengeProposal.swift; sourceTree = "<group>"; };
-		91A5B0022EC5A00200CFAC11 /* AppleAIController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppleAIController.swift; path = AppleAIService/AppleAIController.swift; sourceTree = "<group>"; };
 		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		91A5B0012EC5A00100CFAC11 /* ChallengeProposal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChallengeProposal.swift; path = AppleAIService/ChallengeProposal.swift; sourceTree = "<group>"; };
+		91A5B0022EC5A00200CFAC11 /* AppleAIController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppleAIController.swift; path = AppleAIService/AppleAIController.swift; sourceTree = "<group>"; };
+		91A5B0062EC5A00600CFAC11 /* CommentaryProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentaryProfile.swift; path = AppleAIService/CommentaryProfile.swift; sourceTree = "<group>"; };
+		91A5B0082EC5A00800CFAC11 /* GenerationTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GenerationTools.swift; path = AppleAIService/GenerationTools.swift; sourceTree = "<group>"; };
+		91A5B00A2EC5A00A00CFAC11 /* ChallengeGenerationProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChallengeGenerationProfile.swift; path = AppleAIService/ChallengeGenerationProfile.swift; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		97C146EE1CF9000F007C117D /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -129,6 +135,9 @@
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				91A5B0012EC5A00100CFAC11 /* ChallengeProposal.swift */,
 				91A5B0022EC5A00200CFAC11 /* AppleAIController.swift */,
+				91A5B0062EC5A00600CFAC11 /* CommentaryProfile.swift */,
+				91A5B0082EC5A00800CFAC11 /* GenerationTools.swift */,
+				91A5B00A2EC5A00A00CFAC11 /* ChallengeGenerationProfile.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
@@ -292,6 +301,9 @@
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 				91A5B0032EC5A00300CFAC11 /* ChallengeProposal.swift in Sources */,
 				91A5B0042EC5A00400CFAC11 /* AppleAIController.swift in Sources */,
+				91A5B0052EC5A00500CFAC11 /* CommentaryProfile.swift in Sources */,
+				91A5B0072EC5A00700CFAC11 /* GenerationTools.swift in Sources */,
+				91A5B0092EC5A00900CFAC11 /* ChallengeGenerationProfile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -389,6 +401,7 @@
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.puzzle-games";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -452,7 +465,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = AppIcon;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -510,7 +523,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = AppIcon;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -572,6 +585,7 @@
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.puzzle-games";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -596,6 +610,7 @@
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.puzzle-games";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

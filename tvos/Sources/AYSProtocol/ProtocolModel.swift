@@ -616,30 +616,57 @@ public struct RoundCountdown: PartyMessage, Equatable {
 }
 
 /// client → host. Input only; host judges.
+/// client → host. Carries the raw input *and* the client's own verdict —
+/// see the design-change note on `PlayerAction` in
+/// `lib/multiplayer/protocol/protocol.dart` (the Dart original of this
+/// mirror) for why the host trusts `correct`/`reason`/`note` instead of
+/// rebuilding the challenge to re-judge it itself.
 public struct PlayerAction: PartyMessage, Equatable {
     public let ts: Int
     public let playerId: String
     public let roundId: String
     public let action: PartyAction
+
+    /// The client's own verdict, computed by replaying the same challenge
+    /// engine single-player uses. Authoritative — the host no longer
+    /// rebuilds the challenge to check this.
+    public let correct: Bool
+
+    /// One-line wrong-answer explanation, shown on the board/other phones.
+    public let reason: String?
+
+    /// Optional correct-answer flourish (e.g. a reaction-time note).
+    public let note: String?
+
     /// Used only for the reaction-time bonus/tie-break. Never authoritative.
     public let clientTimestampMs: Int
     public var type: String { "PLAYER_ACTION" }
 
-    public init(playerId: String, roundId: String, action: PartyAction, clientTimestampMs: Int = 0, ts: Int = 0) {
+    public init(
+        playerId: String, roundId: String, action: PartyAction, correct: Bool,
+        reason: String? = nil, note: String? = nil, clientTimestampMs: Int = 0, ts: Int = 0
+    ) {
         self.playerId = playerId
         self.roundId = roundId
         self.action = action
+        self.correct = correct
+        self.reason = reason
+        self.note = note
         self.clientTimestampMs = clientTimestampMs
         self.ts = ts
     }
 
     public func toWire() -> [String: Any] {
-        envelope(type, ts, [
+        var wire: [String: Any] = [
             "playerId": playerId,
             "roundId": roundId,
             "action": action.toWire(),
+            "correct": correct,
             "clientTimestampMs": clientTimestampMs,
-        ])
+        ]
+        if let reason { wire["reason"] = reason }
+        if let note { wire["note"] = note }
+        return envelope(type, ts, wire)
     }
 
     public static func fromWire(_ w: [String: Any], ts: Int) -> PlayerAction {
@@ -647,6 +674,9 @@ public struct PlayerAction: PartyMessage, Equatable {
             playerId: _str(w, "playerId", ""),
             roundId: _str(w, "roundId", ""),
             action: PartyAction.fromWire(_dict(w, "action")),
+            correct: _bool(w, "correct", false),
+            reason: w["reason"] as? String,
+            note: w["note"] as? String,
             clientTimestampMs: _int(w, "clientTimestampMs", 0),
             ts: ts
         )
@@ -820,6 +850,196 @@ public struct PartyError: PartyMessage, Equatable {
     }
 }
 
+// MARK: - AI Director (Phase 7)
+//
+// Additive kinds for the multiplayer AI Director. Naming follows this
+// protocol's own convention (flat Upper-`SNAKE_CASE`, no direction prefix)
+// rather than the design doc's `client/aiCapabilities`-style sketch — see
+// the 2026-09-11 Phase 7 Decision Log entry. `proposal` stays an opaque
+// `[String: Any]` here — this package has no dependency on the Dart
+// `ChallengeProposal` shape, matching `RoundStart.config`'s own opaque dict.
+
+/// client → host, once after connecting: whether this phone can run the
+/// on-device model, for the host's Director election.
+public struct AiCapabilities: PartyMessage, Equatable {
+    public let ts: Int
+    public let aiAvailable: Bool
+    public let computeRank: Int
+    public let batteryPercent: Int
+    public var type: String { "AI_CAPABILITIES" }
+
+    public init(aiAvailable: Bool, computeRank: Int = 0, batteryPercent: Int = 100, ts: Int = 0) {
+        self.aiAvailable = aiAvailable
+        self.computeRank = computeRank
+        self.batteryPercent = batteryPercent
+        self.ts = ts
+    }
+
+    public func toWire() -> [String: Any] {
+        envelope(type, ts, [
+            "aiAvailable": aiAvailable,
+            "computeRank": computeRank,
+            "batteryPercent": batteryPercent,
+        ])
+    }
+
+    public static func fromWire(_ w: [String: Any], ts: Int) -> AiCapabilities {
+        AiCapabilities(
+            aiAvailable: _bool(w, "aiAvailable", false),
+            computeRank: _int(w, "computeRank", 0),
+            batteryPercent: _int(w, "batteryPercent", 100),
+            ts: ts
+        )
+    }
+}
+
+/// host → all: who won the Director election, or `nil` when no capable
+/// phone is connected (the match plays 100% scripted).
+public struct AiDirectorAssignment: PartyMessage, Equatable {
+    public let ts: Int
+    public let directorPeerId: String?
+    public var type: String { "AI_DIRECTOR_ASSIGNMENT" }
+
+    public init(directorPeerId: String?, ts: Int = 0) {
+        self.directorPeerId = directorPeerId
+        self.ts = ts
+    }
+
+    public func toWire() -> [String: Any] {
+        var wire: [String: Any] = [:]
+        if let directorPeerId { wire["directorPeerId"] = directorPeerId }
+        return envelope(type, ts, wire)
+    }
+
+    public static func fromWire(_ w: [String: Any], ts: Int) -> AiDirectorAssignment {
+        AiDirectorAssignment(directorPeerId: w["directorPeerId"] as? String, ts: ts)
+    }
+}
+
+/// client → host, Director only: a validated `ChallengeProposal` the host
+/// should relay as this round's content instead of a scripted
+/// `{challengeId, seed}` pick.
+public struct AiRoundProposal: PartyMessage {
+    public let ts: Int
+    public let roundId: String
+    public let proposal: [String: Any]
+    public var type: String { "AI_ROUND_PROPOSAL" }
+
+    public init(roundId: String, proposal: [String: Any], ts: Int = 0) {
+        self.roundId = roundId
+        self.proposal = proposal
+        self.ts = ts
+    }
+
+    public func toWire() -> [String: Any] {
+        envelope(type, ts, ["roundId": roundId, "proposal": proposal])
+    }
+
+    public static func fromWire(_ w: [String: Any], ts: Int) -> AiRoundProposal {
+        AiRoundProposal(roundId: _str(w, "roundId", ""), proposal: _dict(w, "proposal"), ts: ts)
+    }
+}
+
+/// host → all: the AI-authored round, relayed as-is from the Director's
+/// `AiRoundProposal` (the host trusts it the same way it trusts every
+/// player's self-reported `PlayerAction.correct` — see the Decision Log).
+/// Opens a round exactly like `ROUND_START`, but the full proposal travels
+/// on the wire since there's no shared generator to replay from a seed.
+public struct AiChallengeRound: PartyMessage {
+    public let ts: Int
+    public let roundId: String
+    public let proposal: [String: Any]
+    public let startAt: Int
+    public let durationMs: Int
+    public var type: String { "AI_CHALLENGE_ROUND" }
+
+    public init(roundId: String, proposal: [String: Any], startAt: Int, durationMs: Int, ts: Int = 0) {
+        self.roundId = roundId
+        self.proposal = proposal
+        self.startAt = startAt
+        self.durationMs = durationMs
+        self.ts = ts
+    }
+
+    public func toWire() -> [String: Any] {
+        envelope(type, ts, [
+            "roundId": roundId,
+            "proposal": proposal,
+            "startAt": startAt,
+            "durationMs": durationMs,
+        ])
+    }
+
+    public static func fromWire(_ w: [String: Any], ts: Int) -> AiChallengeRound {
+        AiChallengeRound(
+            roundId: _str(w, "roundId", ""),
+            proposal: _dict(w, "proposal"),
+            startAt: _int(w, "startAt", 0),
+            durationMs: _int(w, "durationMs", 0),
+            ts: ts
+        )
+    }
+}
+
+/// client → host, Director only: a validated commentary line for `kind`/
+/// `roundId`.
+public struct AiCommentaryProposal: PartyMessage, Equatable {
+    public let ts: Int
+    public let kind: String
+    public let roundId: String
+    public let text: String
+    public var type: String { "AI_COMMENTARY_PROPOSAL" }
+
+    public init(kind: String, roundId: String, text: String, ts: Int = 0) {
+        self.kind = kind
+        self.roundId = roundId
+        self.text = text
+        self.ts = ts
+    }
+
+    public func toWire() -> [String: Any] {
+        envelope(type, ts, ["kind": kind, "roundId": roundId, "text": text])
+    }
+
+    public static func fromWire(_ w: [String: Any], ts: Int) -> AiCommentaryProposal {
+        AiCommentaryProposal(
+            kind: _str(w, "kind", ""),
+            roundId: _str(w, "roundId", ""),
+            text: _str(w, "text", ""),
+            ts: ts
+        )
+    }
+}
+
+/// host → all: the commentary line relayed from the Director, as-is.
+public struct AiCommentary: PartyMessage, Equatable {
+    public let ts: Int
+    public let kind: String
+    public let roundId: String
+    public let text: String
+    public var type: String { "AI_COMMENTARY" }
+
+    public init(kind: String, roundId: String, text: String, ts: Int = 0) {
+        self.kind = kind
+        self.roundId = roundId
+        self.text = text
+        self.ts = ts
+    }
+
+    public func toWire() -> [String: Any] {
+        envelope(type, ts, ["kind": kind, "roundId": roundId, "text": text])
+    }
+
+    public static func fromWire(_ w: [String: Any], ts: Int) -> AiCommentary {
+        AiCommentary(
+            kind: _str(w, "kind", ""),
+            roundId: _str(w, "roundId", ""),
+            text: _str(w, "text", ""),
+            ts: ts
+        )
+    }
+}
+
 // MARK: - Codec
 
 /// The JSONL codec shared by host, client, mirrors and tests.
@@ -868,6 +1088,12 @@ public enum PartyProtocol {
         case "PLAYER_ELIMINATED": return .ok(PlayerEliminated.fromWire(wire, ts: ts))
         case "PLAYER_SCORE": return .ok(PlayerScore.fromWire(wire, ts: ts))
         case "ERROR": return .ok(PartyError.fromWire(wire, ts: ts))
+        case "AI_CAPABILITIES": return .ok(AiCapabilities.fromWire(wire, ts: ts))
+        case "AI_DIRECTOR_ASSIGNMENT": return .ok(AiDirectorAssignment.fromWire(wire, ts: ts))
+        case "AI_ROUND_PROPOSAL": return .ok(AiRoundProposal.fromWire(wire, ts: ts))
+        case "AI_CHALLENGE_ROUND": return .ok(AiChallengeRound.fromWire(wire, ts: ts))
+        case "AI_COMMENTARY_PROPOSAL": return .ok(AiCommentaryProposal.fromWire(wire, ts: ts))
+        case "AI_COMMENTARY": return .ok(AiCommentary.fromWire(wire, ts: ts))
         default: return .unknownType(type)
         }
     }

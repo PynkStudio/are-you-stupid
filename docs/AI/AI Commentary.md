@@ -1,6 +1,6 @@
 ---
 tags: [ai, gameplay, humor]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # AI Commentary
@@ -8,6 +8,17 @@ updated: 2026-09-07
 The second model use-case: one-sentence reactions between rounds. **Static
 first, AI on top** — a player on the scripted path hears the same
 [[Humor and Roasts]] pools they hear today, verbatim.
+
+**Implementation status:** `lib/ai/commentary.dart` + the real Swift
+`AYSCommentaryService` landed ([[Development Plan]] Phase 4) — the ladder
+below is real, not just spec. Not yet reachable from a live match: it's
+`async`, and the synchronous cache that lets an already-fetched line pop
+into the flash slot without the game loop ever awaiting is
+[[Pre-generation Cache]]'s job (Phase 5, next). Five kinds
+(`elimination`/`finalRound`/`winner`/`loser`/`closeMatch`) fall back onto
+the tonally-closest existing pool rather than dedicated copy, since they
+have no `roast.*`-style pool of their own yet — see the 2026-09-11
+[[Decision Log]] entry.
 
 ## The ladder
 

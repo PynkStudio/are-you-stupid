@@ -1,6 +1,6 @@
 ---
 tags: [ai, architecture, performance]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # Pre-generation Cache
@@ -8,6 +8,17 @@ updated: 2026-09-07
 The machinery that makes "AI never blocks gameplay" a **provable** property
 instead of a hope. Lives in `lib/ai/` (pure Dart); only
 [[Foundation Models Integration]] touches the model.
+
+**Implementation status:** `lib/ai/prefetch_loop.dart`'s `PrefetchLoop<T>`
+is the generic ring+single-in-flight-fetch primitive described below, and
+`AIChallengeProvider` (`lib/ai/providers.dart`) is a real, production-wired
+challenge ring — see [[Development Plan]] Phase 5 and the 2026-09-11
+[[Decision Log]] entry. The `commentaryByKind` ring this note describes
+below isn't wired to a live consumer yet (deferred to Phase 8, where
+multiplayer's commentary kinds give it a real caller); no `cancelUnit` or
+SLA-timer enforcement has landed either — today "the ring is empty" is the
+only underflow signal, which the challenge ring already treats correctly
+(a miss is `null`, never a wait).
 
 ## Invariants (contracts, not intentions)
 

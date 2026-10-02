@@ -2,16 +2,22 @@
 ///
 /// This is the authority of the harness: it speaks the exact wire of
 /// [[Multiplayer Protocol]] over [PartyTransport]s — the same contract the
-/// future Swift tvOS host will use — but lives in `test/support` because
-/// shipping the authority in the Flutter app would defeat the design (the real
-/// host is the Swift app on the TV, [[Multiplayer Host (tvOS)]]).
+/// Swift tvOS/macOS host (`tvos/Sources/AYSHostCore/RoomHost.swift`) uses —
+/// but lives in `test/support` because shipping the authority in the Flutter
+/// app would defeat the design (the real host is the native app on the TV
+/// or Mac, [[Multiplayer Host (tvOS)]]).
 ///
-/// It judges rounds headlessly:
-///  1. rebuilds the canonical challenge per player from `{challengeId, seed}`
-///     via `buildFromSeed` (the same deterministic tuple every phone builds);
-///  2. replays the clock to the action's elapsed, applies the player's input,
-///     flushes the settle window (exact-taps grace) and finally `onTimeout`;
-///  3. reports `correct` / `reason` exactly like the solo engine would.
+/// **Does not judge content.** It used to rebuild the canonical challenge
+/// and replay input against it to decide `correct`/`reason` itself; it no
+/// longer does. The client now judges — via `PartyChallengeRunner`, the same
+/// `Challenge` engine single-player uses — and reports its own verdict in
+/// every `PLAYER_ACTION` (`correct`/`reason`/`note`), which this host simply
+/// trusts. See the design-change note on `PlayerAction` in
+/// `lib/multiplayer/protocol/protocol.dart` for why, and [[Decision Log]].
+/// This host still owns everything *else*: round lifecycle, duplicate/
+/// stale/late-action rejection, scoring, lives, elimination, `GAME_END` —
+/// and still falls back to a fixed "wrong" verdict for a seat that goes
+/// fully silent (disconnected/crashed) rather than self-reporting a timeout.
 ///
 /// Everything is clocked by a [FakePartyClock] so tests advance time
 /// deterministically — no sleeps ([[Multiplayer Development]]). Rounds are
@@ -23,13 +29,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:are_you_stupid/challenges/registry.dart';
-import 'package:are_you_stupid/core/challenge.dart';
 import 'package:are_you_stupid/core/challenge_generator.dart';
 import 'package:are_you_stupid/i18n/app_locale.dart';
 import 'package:are_you_stupid/multiplayer/networking/party_transport.dart';
 import 'package:are_you_stupid/multiplayer/protocol/protocol.dart';
-
-import 'fake_host.dart' as judge_support;
 
 /// One connected end, before (or without) a seat.
 class _Conn {
@@ -94,7 +97,6 @@ class _Judged {
 
 const _defaultLives = 3;
 const _defaultBattleRounds = 20;
-const _tapStep = Duration(milliseconds: 16);
 
 /// The in-process reference host.
 ///
@@ -412,7 +414,15 @@ class PartyHostReference {
       if (!seat.alive) continue;
       final existing = round.judged[seat.playerId];
       if (existing != null) continue;
-      final judged = _judgeTimeout(round);
+      // A functioning client self-reports its own timeout verdict before
+      // going silent (`PartyChallengeRunner`'s `tick` fires `onTimeout`
+      // locally and sends the result, same as a tap) — see the
+      // design-change note on `PlayerAction` in protocol.dart. This
+      // fallback only ever fires for a seat that's genuinely gone quiet
+      // (disconnected, crashed), for which "wrong" is the only reasonable
+      // default: the host has no way left to know what the real outcome
+      // would have been.
+      final judged = _Judged(correct: false, reason: 'too slow');
       final result = _result(seat, judged, actionElapsedMs: null);
       round.judged[seat.playerId] = result;
       final conn = seat.conn;
@@ -471,7 +481,11 @@ class PartyHostReference {
       return;
     }
 
-    final judged = _judgeInput(round, action, elapsed);
+    final judged = _Judged(
+      correct: action.correct,
+      reason: action.reason,
+      note: action.note,
+    );
     seat.pendingAction = action.action;
     seat.actionElapsedMs = elapsed;
     final result = _result(seat, judged, actionElapsedMs: elapsed);
@@ -487,70 +501,19 @@ class PartyHostReference {
         ts: nowMs,
       ),
     );
-  }
 
-  // ---------------------------------------------------------------- judging
-
-  Challenge _build(_Round round) => buildFromSeed(
-        challengeId: round.challengeId,
-        seed: round.seed,
-        level: round.level,
-        locale: AppLocale.en,
-      );
-
-  /// Runs `onTick` from [from] to [to] against a fresh judge; fires
-  /// `onTimeout` when the round expires without a decision.
-  void _drive(Challenge ch, judge_support.FakeHost host, Duration from,
-      Duration to) {
-    var t = from;
-    while (t < to && !host.settled) {
-      t += _tapStep;
-      ch.onTick(t, host);
+    // "No downtime" (docs/Gameplay/Game Design Pillars.md): don't make
+    // everyone wait out the full timer once the last alive player has
+    // answered. Every key in `round.judged` at this point came from a real
+    // PLAYER_ACTION (only alive seats reach this far — see the `seat.alive`
+    // guard above) and Dart's `Map` preserves insertion order, so its
+    // length is exactly "how many alive seats have submitted so far."
+    // `completeRound()` is safe to call here even though the round hasn't
+    // timed out: every alive seat is already judged, so its own
+    // timeout-judging loop finds nothing left to do.
+    if (round.judged.length >= aliveCount) {
+      completeRound();
     }
-    if (!host.settled && to >= ch.duration) {
-      ch.onTimeout(host);
-    }
-  }
-
-  _Judged _judgeInput(_Round round, PlayerAction message, int elapsedMs) {
-    final ch = _build(round);
-    final host = judge_support.FakeHost();
-    ch.onStart(host);
-    final elapsed = Duration(milliseconds: elapsedMs);
-    _drive(ch, host, Duration.zero, elapsed);
-    if (host.settled) return _pack(host);
-    if (message.action.kind == 'count') {
-      for (var i = 0; i < (message.action.count ?? 0); i++) {
-        if (host.settled) break;
-        ch.onTap(judge_support.tapOn('pad', at: elapsed), host);
-      }
-    } else if (message.action.targetId == null) {
-      ch.onTap(judge_support.tapBackground(at: elapsed), host);
-    } else {
-      ch.onTap(
-        judge_support.tapOn(
-          message.action.targetId!,
-          index: message.action.index ?? 0,
-          at: elapsed,
-        ),
-        host,
-      );
-    }
-    _drive(ch, host, elapsed, ch.duration);
-    return _pack(host);
-  }
-
-  _Judged _judgeTimeout(_Round round) {
-    final ch = _build(round);
-    final host = judge_support.FakeHost();
-    ch.onStart(host);
-    _drive(ch, host, Duration.zero, ch.duration);
-    return _pack(host);
-  }
-
-  _Judged _pack(judge_support.FakeHost host) {
-    if (host.passed) return _Judged(correct: true, note: host.note);
-    return _Judged(correct: false, reason: host.reason ?? 'wrong');
   }
 
   PlayerRoundResult _result(_Seat seat, _Judged judged,

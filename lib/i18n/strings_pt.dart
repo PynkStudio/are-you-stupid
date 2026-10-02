@@ -161,6 +161,7 @@ const Map<String, String> kStringsPt = {
   'ui.home.play': 'JOGAR',
   'ui.home.best_score_button': 'MELHOR PONTUAÇÃO',
   'ui.home.settings': 'AJUSTES',
+  'ui.home.multiplayer': 'MULTIJOGADOR',
   'ui.home.footer': 'SEM CONTA. SEM INTERNET. SEM DESCULPAS.',
 
   'ui.game.level': 'NÍVEL {n}',
@@ -211,6 +212,18 @@ const Map<String, String> kStringsPt = {
   'ui.settings.keep': 'MANTER',
   'ui.settings.reset': 'REDEFINIR',
 
+  'ui.settings.ai.label': 'DESAFIOS IA',
+  'ui.settings.ai.mode.genius': 'GÊNIO',
+  'ui.settings.ai.mode.focused': 'FOCADO',
+  'ui.settings.ai.mode.classic': 'CLÁSSICO',
+  'ui.settings.ai.status.available':
+      'A variedade de desafios está ativada neste dispositivo.',
+  'ui.settings.ai.status.supported_not_enabled':
+      'Seu dispositivo é compatível, mas a Apple Intelligence está desativada nos Ajustes.',
+  'ui.settings.ai.status.not_eligible': 'Não é compatível com este dispositivo.',
+  'ui.settings.ai.status.model_not_ready':
+      'Baixando o modelo. O modo Clássico fica ativo até estar pronto.',
+
   'ui.stats.title': 'MELHOR PONTUAÇÃO',
   'ui.stats.level': 'NÍVEL',
   'ui.stats.total_attempts': 'TENTATIVAS TOTAIS',
@@ -227,6 +240,58 @@ const Map<String, String> kStringsPt = {
   'ui.ad.close': 'FECHAR',
   'ui.ad.please_wait': 'AGUARDE',
   'ui.ad.no_thanks': 'NÃO, OBRIGADO',
+
+  'ui.mp.home.title': 'MULTIJOGADOR',
+  'ui.mp.home.tagline': 'ESCANEIE O QR CODE NA TV PARA ENTRAR NUM JOGO.',
+  'ui.mp.home.scan': 'ESCANEAR QR',
+  'ui.mp.home.enter_code': 'INSERIR CÓDIGO DA SALA',
+  'ui.mp.home.back': 'VOLTAR',
+
+  'ui.mp.enter_code.title': 'CÓDIGO DA SALA',
+  'ui.mp.enter_code.hint': 'EX. 7F4K',
+  'ui.mp.enter_code.join': 'ENTRAR',
+
+  'ui.mp.scan.hint': 'APONTE A CÂMERA PARA O QR CODE NA TV.',
+  'ui.mp.scan.permission_denied':
+      'ACESSO À CÂMERA NEGADO. USE INSERIR CÓDIGO DA SALA.',
+
+  'ui.mp.join.resolving': 'PROCURANDO A SALA {code}…',
+  'ui.mp.join.not_found': 'SALA {code} NÃO ENCONTRADA NESTE WI-FI.',
+  'ui.mp.join.retry': 'TENTAR DE NOVO',
+  'ui.mp.join.dev_manual_address': 'DEV: ENDEREÇO DO HOST',
+  'ui.mp.join.rejected': 'NÃO FOI POSSÍVEL ENTRAR: {reason}',
+  'ui.mp.join.playing_on': 'VOCÊ ESTÁ JOGANDO EM: {host}',
+  'ui.mp.join.name_label': 'NOME DO JOGADOR',
+  'ui.mp.join.name_hint': 'SEU NOME',
+  'ui.mp.join.waiting_host': 'AGUARDANDO O HOST…',
+  'ui.mp.join.join_button': 'ENTRAR',
+
+  'ui.mp.lobby.title': 'SALA DE ESPERA',
+  'ui.mp.lobby.players': '{n} JOGADORES',
+  'ui.mp.lobby.ready': '✓ PRONTO',
+  'ui.mp.lobby.not_ready': 'PRONTO?',
+  'ui.mp.lobby.waiting_start': 'AGUARDANDO O HOST COMEÇAR…',
+  'ui.mp.lobby.leave': 'SAIR',
+
+  'ui.mp.game.waiting_round': 'PREPARE-SE…',
+  'ui.mp.game.correct': 'SIM!',
+  'ui.mp.game.wrong': 'ERRADO',
+  'ui.mp.game.eliminated': 'VOCÊ FOI ELIMINADO — ASSISTINDO',
+
+  'ui.mp.result.title': 'FIM DE JOGO',
+  'ui.mp.result.winner': '{name} VENCEU',
+  'ui.mp.result.your_standing': 'VOCÊ FICOU EM #{n}',
+  'ui.mp.result.share': 'COMPARTILHAR',
+  'ui.mp.result.menu': 'VOLTAR AO MENU',
+
+  'ui.mp.disconnect.title': 'FIM DE JOGO',
+  'ui.mp.disconnect.connection_lost': 'CONEXÃO PERDIDA.',
+  'ui.mp.disconnect.rejected': 'NÃO FOI POSSÍVEL ENTRAR: {reason}',
+  'ui.mp.disconnect.menu': 'VOLTAR AO MENU',
+
+  'ui.mp.share.line1':
+      'Jogamos VOCÊ É BURRO? na TV. {name} venceu.',
+  'ui.mp.share.line2': 'Acha que consegue nos vencer?',
 
   'share.line1': 'Cheguei ao Nível {level} em VOCÊ É BURRO?',
   'share.line2': 'Consegue me vencer?',

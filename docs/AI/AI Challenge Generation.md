@@ -1,6 +1,6 @@
 ---
 tags: [ai, gameplay, challenges]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # AI Challenge Generation
@@ -90,6 +90,13 @@ Rules that hold regardless of the mechanic:
   `ChallengeView`/`TargetSpec` language ([[Challenge System]]); `elements`
   map 1:1 to `TargetSpec`s. No new renderer is shipped for AI content — an
   unplayable mechanic is one the vocabulary doesn't contain.
+  `lib/ai/generated_challenge_runtime.dart`'s `GeneratedChallengeRuntime` is
+  the one generic `Challenge` that interprets a validated proposal into
+  real tap/hold/sequence judging, dispatching on `mechanic.action` — see the
+  2026-09-11 [[Decision Log]] entry for how each of the nine mechanics below
+  maps onto that judging (a few needed real interpretation calls, since the
+  proposal schema is thinner than some of the scripted templates it stands
+  in for).
 - **`instruction` is under 8 words and in the player's locale.** Hard rule,
   validated ([[AI Challenge Validator]]). V1 ships English-only model output;
   everything else falls back ([[Localization and Language]]).
@@ -147,7 +154,13 @@ knobs**, matching what the Difficulty Curve already encodes
 ([[Difficulty Curve]]):
 
 1. **Level** — the round number; gating (which mechanics are allowed) follows
-   `minLevel`/`allowTricks` exactly like the scripted registry.
+   `allowTricks` exactly like the scripted registry. **Correction (Phase 6,
+   [[Decision Log]] 2026-09-11):** unlike the scripted `ChallengeTemplate`
+   registry, `ChallengeMechanic` has no `minLevel` field at all — the v1 AI
+   vocabulary only gates on tricks. `availableMechanicMoves()`
+   (`lib/ai/challenge_vocabulary.dart`, backing `GetAvailableMechanicsTool`)
+   filters on `requiresTrick`/`allowTricks` only; a level-based mechanic
+   gate would need a new field with no source of truth behind it yet.
 2. **Territory** — the *pool* of mechanics to draw from. The profile's
    [[Player Telemetry and Adaptive Difficulty]] weighting biases territory
    (struggling with color conflicts → more `tap_true_color`, fewer fresh

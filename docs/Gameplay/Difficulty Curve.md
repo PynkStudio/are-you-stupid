@@ -1,6 +1,6 @@
 ---
 tags: [gameplay, balance]
-updated: 2026-09-06
+updated: 2026-09-08
 ---
 
 # Difficulty Curve
@@ -9,21 +9,51 @@ updated: 2026-09-06
 
 ## Speed
 
+A **stepped** multiplier, not a continuous formula — the whole point is that
+a level never feels faster than the one before it just because the level
+number ticked up by one. Every challenge computes `params.pace(base,
+floorMs: min)` = `base / speed`, clamped to `min`. That makes `base` the
+*most* time a given challenge template ever grants (reached at level 1-2)
+and `floorMs` the *least* (approached only at the highest levels) — every
+template already carries both numbers, one per call site in
+`lib/challenges/*.dart`.
+
 ```dart
-level 1         → 0.60
-level 2         → 0.73
-level 3         → 0.85   // deliberately generous, the game must feel free
-level > 3       → 1.0 + (level - 3) * 0.042, capped at 2.35
+level 1-2   → 0.49   // the most generous the game ever is
+level 3-4   → 0.52
+level 5-6   → 0.56
+level 7-9   → 0.65   // tutorial's over, still calm
+level 10-19 → 0.82   // "alive" starts here
+level 20-29 → 1.05
+level 30-39 → 1.29
+level 40-49 → 1.52
+level 50+   → 1.76   // asymptote — well under the old formula's 2.35 cap
 ```
 
-Levels 1–2 ramp *up into* the level-3 value instead of starting there. A
-brand-new player's very first round used to run at the same pace as their
-third — plenty of time to know the game, not enough to have learned it yet.
-Level 3 onward is unchanged from before.
+**Levels 1-9 are the tutorial.** Nine levels, five gentle steps, each one a
+small nudge rather than a jump — a new player should never feel the game
+"snap" faster from one round to the next while they're still learning it.
+**Level 10 is where the game starts feeling alive**, and from there it steps
+every ten levels, same shape as the tutorial steps but bigger, until it
+settles at 1.76 — deliberately short of the old formula's 2.35 ceiling, so
+even the endgame stays a little more generous than it used to be.
 
-Every challenge computes its round length with `params.pace(base)` =
-`base / speed`, with a per-challenge floor (`floorMs`) so nothing becomes
-physically impossible. Floors are why level 60 is hard but not a coin flip.
+**Why steps and not a formula.** A continuous curve (the old
+`1.0 + (level - 3) * 0.042`) makes *every single level* a little different
+from the last, which is exactly the "feels like it's constantly speeding up"
+sensation that prompted this rewrite. Flat steps mean a run of levels feels
+consistent, then visibly changes gear — a much easier thing for a player to
+notice and adapt to than a slope.
+
+**Heavier challenges get their own boost on top.** `math`, `spell_count`,
+`count_shapes`, `tap_exactly_n` and `opposite` need actual thought (an
+arithmetic problem, counting a soup of shapes, counting letters, recalling
+an antonym) rather than a glance-and-tap — their `base`/`floorMs` were bumped
+independently of the table above, so they carry more time than a
+same-difficulty color tap at every level, not just at the start. This didn't
+need a new mechanic: `pace()` already took a per-challenge base and floor,
+it's just that most of them had never been tuned to reflect "this one takes
+longer to *think*."
 
 ## Timer visibility
 
@@ -37,10 +67,11 @@ not knowing how much time is left becomes difficulty too — the last item on
 introduced only after the easier sources (misleading wording, fake buttons,
 memory) are already active.
 
-`TimerBar`'s fill is a childless `DecoratedBox` inside a `Row` — it needs
-`crossAxisAlignment: CrossAxisAlignment.stretch` or it lays out at zero
-height and the bar is invisible on a real device even though `visible` is
-`true`. Caught after a real-device report; see [[Decision Log]].
+`TimerBar` renders its fill with an explicit pixel width/height (via
+`LayoutBuilder` + `Container`), not a `Row`/`Expanded` flex ratio — a
+flex-sized childless `DecoratedBox` turned out to lay out at zero height on
+a real device despite `visible` being `true`. Caught (and re-caught, in a
+different shape) from real-device reports; see [[Decision Log]].
 
 ## Pace milestones
 
@@ -50,8 +81,8 @@ as the viral-prompt line below it):
 
 | Level | Key | Why |
 |---|---|---|
-| 4 | `ui.game.milestone.faster` | speed leaves the flat 0.85 warm-up and starts climbing |
 | 6 | `ui.game.milestone.no_timer` | the timer bar above disappears (see previous section) |
+| 10 | `ui.game.milestone.faster` | the tutorial ends and speed starts stepping up every ten levels |
 
 Both are translated in all six `strings_*.dart` files like any other UI
 string — see [[Localization]].

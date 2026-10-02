@@ -161,6 +161,7 @@ const Map<String, String> kStringsIt = {
   'ui.home.play': 'GIOCA',
   'ui.home.best_score_button': 'PUNTEGGIO MIGLIORE',
   'ui.home.settings': 'IMPOSTAZIONI',
+  'ui.home.multiplayer': 'MULTIPLAYER',
   'ui.home.footer': 'NESSUN ACCOUNT. NESSUNA RETE. NESSUNA SCUSA.',
 
   'ui.game.level': 'LIVELLO {n}',
@@ -211,6 +212,18 @@ const Map<String, String> kStringsIt = {
   'ui.settings.keep': 'MANTIENI',
   'ui.settings.reset': 'AZZERA',
 
+  'ui.settings.ai.label': 'SFIDE IA',
+  'ui.settings.ai.mode.genius': 'GENIO',
+  'ui.settings.ai.mode.focused': 'FOCALIZZATA',
+  'ui.settings.ai.mode.classic': 'CLASSICA',
+  'ui.settings.ai.status.available':
+      'La varietà delle sfide è attiva su questo dispositivo.',
+  'ui.settings.ai.status.supported_not_enabled':
+      'Il tuo dispositivo può farlo, ma Apple Intelligence è disattivata nelle Impostazioni.',
+  'ui.settings.ai.status.not_eligible': 'Non supportato su questo dispositivo.',
+  'ui.settings.ai.status.model_not_ready':
+      'Download del modello in corso. Modalità Classica attiva finché non è pronto.',
+
   'ui.stats.title': 'PUNTEGGIO MIGLIORE',
   'ui.stats.level': 'LIVELLO',
   'ui.stats.total_attempts': 'TENTATIVI TOTALI',
@@ -227,6 +240,57 @@ const Map<String, String> kStringsIt = {
   'ui.ad.close': 'CHIUDI',
   'ui.ad.please_wait': 'ATTENDI',
   'ui.ad.no_thanks': 'NO GRAZIE',
+
+  'ui.mp.home.title': 'MULTIPLAYER',
+  'ui.mp.home.tagline': 'INQUADRA IL QR CODE SULLA TV PER UNIRTI A UNA PARTITA.',
+  'ui.mp.home.scan': 'SCANSIONA QR',
+  'ui.mp.home.enter_code': 'INSERISCI CODICE STANZA',
+  'ui.mp.home.back': 'INDIETRO',
+
+  'ui.mp.enter_code.title': 'CODICE STANZA',
+  'ui.mp.enter_code.hint': 'ES. 7F4K',
+  'ui.mp.enter_code.join': 'ENTRA',
+
+  'ui.mp.scan.hint': 'INQUADRA CON LA CAMERA IL QR CODE SULLA TV.',
+  'ui.mp.scan.permission_denied':
+      'ACCESSO ALLA CAMERA NEGATO. USA INSERISCI CODICE STANZA.',
+
+  'ui.mp.join.resolving': 'STO CERCANDO LA STANZA {code}…',
+  'ui.mp.join.not_found': 'STANZA {code} NON TROVATA SU QUESTA WI-FI.',
+  'ui.mp.join.retry': 'RIPROVA',
+  'ui.mp.join.dev_manual_address': 'DEV: INDIRIZZO HOST',
+  'ui.mp.join.rejected': 'IMPOSSIBILE ENTRARE: {reason}',
+  'ui.mp.join.playing_on': 'STAI GIOCANDO SU: {host}',
+  'ui.mp.join.name_label': 'NOME GIOCATORE',
+  'ui.mp.join.name_hint': 'IL TUO NOME',
+  'ui.mp.join.waiting_host': "IN ATTESA DELL'HOST…",
+  'ui.mp.join.join_button': 'ENTRA',
+
+  'ui.mp.lobby.title': 'LOBBY',
+  'ui.mp.lobby.players': '{n} GIOCATORI',
+  'ui.mp.lobby.ready': '✓ PRONTO',
+  'ui.mp.lobby.not_ready': 'PRONTO?',
+  'ui.mp.lobby.waiting_start': "IN ATTESA CHE L'HOST INIZI…",
+  'ui.mp.lobby.leave': 'ESCI',
+
+  'ui.mp.game.waiting_round': 'PREPARATI…',
+  'ui.mp.game.correct': 'SÌ!',
+  'ui.mp.game.wrong': 'SBAGLIATO',
+  'ui.mp.game.eliminated': 'SEI FUORI — STAI GUARDANDO',
+
+  'ui.mp.result.title': 'PARTITA FINITA',
+  'ui.mp.result.winner': '{name} VINCE',
+  'ui.mp.result.your_standing': 'TI SEI CLASSIFICATO #{n}',
+  'ui.mp.result.share': 'CONDIVIDI',
+  'ui.mp.result.menu': 'TORNA AL MENU',
+
+  'ui.mp.disconnect.title': 'PARTITA FINITA',
+  'ui.mp.disconnect.connection_lost': 'CONNESSIONE PERSA.',
+  'ui.mp.disconnect.rejected': 'IMPOSSIBILE ENTRARE: {reason}',
+  'ui.mp.disconnect.menu': 'TORNA AL MENU',
+
+  'ui.mp.share.line1': 'Abbiamo giocato a MA SEI SCEMO? in TV. Ha vinto {name}.',
+  'ui.mp.share.line2': 'Pensi di poterci battere?',
 
   'share.line1': 'Ho raggiunto il Livello {level} in MA SEI SCEMO?',
   'share.line2': 'Riesci a battermi?',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../challenges/registry.dart';
 import '../../core/challenge.dart';
@@ -10,7 +11,10 @@ import '../../core/game_state.dart';
 import '../../i18n/app_locale.dart';
 import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
+import '../../ai/apple_ai_service.dart';
+import '../../ai/feature_flags.dart';
 import '../../ai/providers.dart';
+import '../../ai/telemetry.dart';
 import '../theme.dart';
 import '../widgets/challenge_renderer.dart';
 import '../widgets/flash_overlay.dart';
@@ -33,6 +37,9 @@ class _GameScreenState extends State<GameScreen>
   final TapClaim _claim = TapClaim();
 
   AppServices? _services;
+  TelemetryCollector? _telemetry;
+  AdaptiveChallengeProvider? _adaptive;
+  AiFeatureFlags? _aiFlags;
   Duration _lastTick = Duration.zero;
   bool _recorded = false;
   bool _isRecord = false;
@@ -41,15 +48,61 @@ class _GameScreenState extends State<GameScreen>
   @override
   void initState() {
     super.initState();
-    _engine = GameEngine(
-      provider: FallbackChallengeProvider(
+    // Loaded once, shared by [AIChallengeProvider]'s internal async init and
+    // this screen's own adaptive-difficulty gating below — a single
+    // `SharedPreferences` round trip, not two ([[Development Plan]] Phase 5).
+    final flagsFuture = AiFeatureFlags.load();
+    flagsFuture.then((flags) {
+      if (mounted) _aiFlags = flags;
+    });
+
+    final adaptive = AdaptiveChallengeProvider(
+      inner: FallbackChallengeProvider(
         scripted: ScriptedChallengeProvider(
           generator: ChallengeGenerator(templates: kChallengeTemplates),
         ),
+        ai: AIChallengeProvider(
+          service: AppleAiMethodChannel(),
+          loadFlags: () => flagsFuture,
+          profileSnapshot: () => _telemetry?.profile,
+        ),
       ),
     );
+    _adaptive = adaptive;
+    _engine = GameEngine(provider: adaptive);
     _engine.addEventListener(_onGameEvent);
     _ticker = createTicker(_onTick)..start();
+  }
+
+  Future<void> _setupTelemetry() async {
+    // Phase 3: observe the run and derive the player's adaptive profile
+    // ([[Player Telemetry and Adaptive Difficulty]]). Never blocks gameplay:
+    // the collector attaches after startRun only when prefs are available.
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted || _telemetry != null) return;
+    final collector = TelemetryCollector(prefs: prefs, engine: _engine);
+    await collector.load();
+    if (!mounted) {
+      collector.detach();
+      return;
+    }
+    _telemetry = collector;
+  }
+
+  /// Feeds the latest telemetry profile into [_adaptive] — but only when
+  /// `aiAdaptiveDifficultyEnabled` is on (default **off**,
+  /// [[Feature Flags]]). Leaving the profile at its cold-start `null`
+  /// keeps [AdaptiveChallengeProvider] a neutral passthrough, so this is a
+  /// true opt-in: nothing about served challenges changes until a player
+  /// (or QA) turns the flag on, even though telemetry itself is always
+  /// collected ([[Player Telemetry and Adaptive Difficulty]]).
+  void _syncAdaptiveProfile() {
+    final adaptive = _adaptive;
+    final telemetry = _telemetry;
+    if (adaptive == null || telemetry == null) return;
+    adaptive.setProfile(
+      _aiFlags?.aiAdaptiveDifficultyEnabled ?? false ? telemetry.profile : null,
+    );
   }
 
   @override
@@ -62,6 +115,7 @@ class _GameScreenState extends State<GameScreen>
       _engine.locale = services.settings.locale;
       services.settings.addListener(_syncSettings);
       _engine.startRun();
+      _setupTelemetry();
     }
   }
 
@@ -73,6 +127,8 @@ class _GameScreenState extends State<GameScreen>
   @override
   void dispose() {
     _services?.settings.removeListener(_syncSettings);
+    _telemetry?.detach();
+    _telemetry = null;
     _ticker.dispose();
     _engine.removeEventListener(_onGameEvent);
     _engine.dispose();
@@ -96,11 +152,16 @@ class _GameScreenState extends State<GameScreen>
       case GameEvent.correct:
         services.sound.correct();
         services.haptics.correct();
+        // One event behind telemetry's own listener (registered later, in
+        // `_setupTelemetry`) — negligible against a 50-round rolling window.
+        _syncAdaptiveProfile();
       case GameEvent.wrong:
         services.sound.wrong();
         services.haptics.wrong();
+        _syncAdaptiveProfile();
       case GameEvent.gameOver:
         _recordRun(state);
+        _telemetry?.persist();
       case GameEvent.runStarted:
         _recorded = false;
         _isRecord = false;

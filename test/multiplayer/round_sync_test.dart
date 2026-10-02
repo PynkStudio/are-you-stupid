@@ -42,6 +42,64 @@ void main() {
     });
   });
 
+  group('round auto-closes once every alive seat has answered (no downtime)', () {
+    test('closes as soon as the last alive seat answers, no completeRound() call', () {
+      final h = PartyHarness();
+      final a = h.addClient(name: 'Ana');
+      final b = h.addClient(name: 'Bob');
+      final c = h.addClient(name: 'Cid');
+      a.join(name: 'Ana');
+      b.join(name: 'Bob');
+      c.join(name: 'Cid');
+      a.ready();
+      b.ready();
+      c.ready();
+      h.host.startGame();
+      h.host.startRound(challengeId: 'tap_exactly_n', seed: 7, level: 2);
+      final n = a.correctTapCount()!;
+
+      a.commitCount(n);
+      expect(a.state.phase, PartyPhase.round, reason: 'still waiting on Bob and Cid');
+
+      b.commitCount(n);
+      expect(a.state.phase, PartyPhase.round, reason: 'still waiting on Cid');
+
+      c.commitCount(n);
+      // No explicit h.host.completeRound() anywhere above.
+      expect(a.state.phase, PartyPhase.playing, reason: 'the last answer should have closed the round on its own');
+    });
+
+    test('ignores an eliminated seat — only alive seats are waited on', () {
+      final h = PartyHarness(lives: 1);
+      final a = h.addClient(name: 'Ana');
+      final b = h.addClient(name: 'Bob');
+      final c = h.addClient(name: 'Cid');
+      a.join(name: 'Ana');
+      b.join(name: 'Bob');
+      c.join(name: 'Cid');
+      a.ready();
+      b.ready();
+      c.ready();
+      h.host.startGame(mode: GameMode.lastStupidStanding);
+
+      // Eliminate Cid on round 1 with a deliberately wrong count (also
+      // closes round 1 on its own once all three have answered).
+      h.host.startRound(challengeId: 'tap_exactly_n', seed: 1, level: 2);
+      final n1 = a.correctTapCount()!;
+      a.commitCount(n1);
+      b.commitCount(n1);
+      c.commitCount(n1 + 3); // definitely wrong
+      expect(c.state.standings[c.state.selfClientId]!.eliminated, isTrue);
+
+      h.host.startRound(challengeId: 'tap_exactly_n', seed: 2, level: 2);
+      final n2 = a.correctTapCount()!;
+      a.commitCount(n2);
+      expect(a.state.phase, PartyPhase.round, reason: 'still waiting on Bob; Cid is eliminated and never expected to answer');
+      b.commitCount(n2);
+      expect(a.state.phase, PartyPhase.playing, reason: 'Bob was the only other alive seat');
+    });
+  });
+
   group('counting (count action) judging', () {
     test('correct exact count passes; the host replies ROundResult correct', () {
       final h = PartyHarness();
@@ -115,9 +173,10 @@ void main() {
 
       h.host.startRound(challengeId: 'dont_tap', seed: 55, level: 2);
       a.tapBackground(); // wrong: tapped the bait / background
-      b.ready(); // no-op during a round, but harmless
-      h.host.completeRound();
-      // a submitted wrong; b untouched -> b times out -> correct on dont_tap.
+      b.letRoundTimeOut(); // dont_tap: doing nothing is correct
+      // a submitted wrong; b's own runner timed out locally and
+      // self-reported correct — the round auto-closes once both have
+      // answered, no explicit completeRound() needed.
       expect(a.state.privateResult!.correct, isFalse);
       expect(b.state.privateResult!.correct, isTrue);
     });
@@ -134,8 +193,8 @@ void main() {
 
       // Kill Bob on the first round; Ana survives => Bob eliminated, Ana wins.
       h.host.startRound(challengeId: 'dont_tap', seed: 3, level: 2);
-      b.tapBackground();
-      h.host.completeRound();
+      b.tapBackground(); // wrong: dont_tap
+      a.letRoundTimeOut(); // correct: dont_tap rewards doing nothing
 
       expect(a.state.phase, PartyPhase.gameEnded);
       expect(a.state.gameEnd!.winnerId, a.state.selfClientId);

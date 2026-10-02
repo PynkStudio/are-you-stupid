@@ -404,6 +404,18 @@ const List<ChallengeMechanic> kMechanicVocabulary = [
 final Map<String, ChallengeMechanic> kMechanicByMove =
     {for (final m in kMechanicVocabulary) m.move: m};
 
+/// The move ids eligible right now — backs `GetAvailableMechanicsTool`
+/// ([[Dynamic Profiles and Tool Calling]]). The doc describes this as
+/// "mechanics whose `minLevel <= level`", but unlike the scripted
+/// `ChallengeTemplate` registry, [ChallengeMechanic] has no `minLevel`
+/// field of its own yet — the v1 vocabulary only gates on tricks, so that's
+/// the one real filter applied here: a `requiresTrick` mechanic is only
+/// eligible when [allowTricks] is true.
+List<String> availableMechanicMoves({required bool allowTricks}) => [
+      for (final m in kMechanicVocabulary)
+        if (!m.requiresTrick || allowTricks) m.move,
+    ];
+
 /// Whether the player rounding on this context is even in a locale the model
 /// may output for. V1 ships English-only model output; every other locale
 /// falls back to scripted ([[Localization and Language]]).

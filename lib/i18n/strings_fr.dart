@@ -161,6 +161,7 @@ const Map<String, String> kStringsFr = {
   'ui.home.play': 'JOUER',
   'ui.home.best_score_button': 'MEILLEUR SCORE',
   'ui.home.settings': 'RÉGLAGES',
+  'ui.home.multiplayer': 'MULTIJOUEUR',
   'ui.home.footer': 'AUCUN COMPTE. AUCUN RÉSEAU. AUCUNE EXCUSE.',
 
   'ui.game.level': 'NIVEAU {n}',
@@ -211,6 +212,18 @@ const Map<String, String> kStringsFr = {
   'ui.settings.keep': 'GARDER',
   'ui.settings.reset': 'RÉINITIALISER',
 
+  'ui.settings.ai.label': 'DÉFIS IA',
+  'ui.settings.ai.mode.genius': 'GÉNIE',
+  'ui.settings.ai.mode.focused': 'CIBLÉ',
+  'ui.settings.ai.mode.classic': 'CLASSIQUE',
+  'ui.settings.ai.status.available':
+      'La variété des défis est activée sur cet appareil.',
+  'ui.settings.ai.status.supported_not_enabled':
+      'Votre appareil le permet, mais Apple Intelligence est désactivée dans les Réglages.',
+  'ui.settings.ai.status.not_eligible': 'Non pris en charge sur cet appareil.',
+  'ui.settings.ai.status.model_not_ready':
+      'Téléchargement du modèle en cours. Le mode Classique reste actif en attendant.',
+
   'ui.stats.title': 'MEILLEUR SCORE',
   'ui.stats.level': 'NIVEAU',
   'ui.stats.total_attempts': 'TENTATIVES TOTALES',
@@ -227,6 +240,58 @@ const Map<String, String> kStringsFr = {
   'ui.ad.close': 'FERMER',
   'ui.ad.please_wait': 'PATIENTE',
   'ui.ad.no_thanks': 'NON MERCI',
+
+  'ui.mp.home.title': 'MULTIJOUEUR',
+  'ui.mp.home.tagline': 'SCANNE LE QR CODE SUR LA TV POUR REJOINDRE UNE PARTIE.',
+  'ui.mp.home.scan': 'SCANNER LE QR',
+  'ui.mp.home.enter_code': 'ENTRER LE CODE',
+  'ui.mp.home.back': 'RETOUR',
+
+  'ui.mp.enter_code.title': 'CODE DE SALON',
+  'ui.mp.enter_code.hint': 'EX. 7F4K',
+  'ui.mp.enter_code.join': 'REJOINDRE',
+
+  'ui.mp.scan.hint': 'POINTE LA CAMÉRA VERS LE QR CODE SUR LA TV.',
+  'ui.mp.scan.permission_denied':
+      "ACCÈS CAMÉRA REFUSÉ. UTILISE ENTRER LE CODE.",
+
+  'ui.mp.join.resolving': 'RECHERCHE DU SALON {code}…',
+  'ui.mp.join.not_found': "SALON {code} INTROUVABLE SUR CE WI-FI.",
+  'ui.mp.join.retry': 'RÉESSAYER',
+  'ui.mp.join.dev_manual_address': 'DEV : ADRESSE DE L\'HÔTE',
+  'ui.mp.join.rejected': "IMPOSSIBLE DE REJOINDRE : {reason}",
+  'ui.mp.join.playing_on': 'TU JOUES SUR : {host}',
+  'ui.mp.join.name_label': 'NOM DU JOUEUR',
+  'ui.mp.join.name_hint': 'TON NOM',
+  'ui.mp.join.waiting_host': "EN ATTENTE DE L'HÔTE…",
+  'ui.mp.join.join_button': 'REJOINDRE',
+
+  'ui.mp.lobby.title': 'SALON',
+  'ui.mp.lobby.players': '{n} JOUEURS',
+  'ui.mp.lobby.ready': '✓ PRÊT',
+  'ui.mp.lobby.not_ready': 'PRÊT ?',
+  'ui.mp.lobby.waiting_start': "EN ATTENTE QUE L'HÔTE LANCE LA PARTIE…",
+  'ui.mp.lobby.leave': 'QUITTER',
+
+  'ui.mp.game.waiting_round': 'PRÊT…',
+  'ui.mp.game.correct': 'OUI !',
+  'ui.mp.game.wrong': 'RATÉ',
+  'ui.mp.game.eliminated': 'TU ES ÉLIMINÉ — TU REGARDES',
+
+  'ui.mp.result.title': 'PARTIE TERMINÉE',
+  'ui.mp.result.winner': '{name} GAGNE',
+  'ui.mp.result.your_standing': 'TU AS FINI #{n}',
+  'ui.mp.result.share': 'PARTAGER',
+  'ui.mp.result.menu': 'RETOUR AU MENU',
+
+  'ui.mp.disconnect.title': 'PARTIE TERMINÉE',
+  'ui.mp.disconnect.connection_lost': 'CONNEXION PERDUE.',
+  'ui.mp.disconnect.rejected': 'IMPOSSIBLE DE REJOINDRE : {reason}',
+  'ui.mp.disconnect.menu': 'RETOUR AU MENU',
+
+  'ui.mp.share.line1':
+      'On a joué à ES-TU STUPIDE ? sur la TV. {name} a gagné.',
+  'ui.mp.share.line2': 'Tu penses pouvoir nous battre ?',
 
   'share.line1': 'J\'ai atteint le Niveau {level} dans ES-TU STUPIDE ?',
   'share.line2': 'Peux-tu me battre ?',

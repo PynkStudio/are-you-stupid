@@ -1,0 +1,523 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0117285B5F1DE99420FB612C /* RoomCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E62B697C82864B8D27724446 /* RoomCode.swift */; };
+		0275780D07D9BABC6B7BFFC7 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C5D0EFA0B35AF3156346C /* Theme.swift */; };
+		05216C40A2A92AE5A482EA48 /* GameEndView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028CFEEAA243F97286D8C2E1 /* GameEndView.swift */; };
+		0F7638905501C0AA65CCB14C /* HostViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F49C59B5DE406A1997CD55 /* HostViewModel.swift */; };
+		15AC360C6702FDF9B020A876 /* GameEndView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028CFEEAA243F97286D8C2E1 /* GameEndView.swift */; };
+		18943F96A442C0667A7174E9 /* LobbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E063DEA0265C1B604CE7826 /* LobbyView.swift */; };
+		1E19BB228813E24E65CFBB24 /* RoundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AB5D18626E1DE939DBBD66D /* RoundView.swift */; };
+		1F22213A6402FD60E57037EF /* AYSProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = 17EB1E6FA16A580E384E62FD /* AYSProtocol */; };
+		30D3E114377BFF21055FB21A /* AYSHostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71DF5E0910424EFB8B0809F6 /* AYSHostApp.swift */; };
+		3929A12C2A521BDC6E90669A /* ScoreboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8A2F8BFF37D7D9A2BD0304 /* ScoreboardView.swift */; };
+		3F116937A3CF8D2419CF7863 /* RoundDurationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC81D53D4CF83224C2AF872B /* RoundDurationProvider.swift */; };
+		4CF737EFC9329EAEC7F74C9B /* RoundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AB5D18626E1DE939DBBD66D /* RoundView.swift */; };
+		5D4FC8AE69E951405CA4D925 /* RoundDurationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC81D53D4CF83224C2AF872B /* RoundDurationProvider.swift */; };
+		62C34E02984649DB392BFA5D /* ScoreboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8A2F8BFF37D7D9A2BD0304 /* ScoreboardView.swift */; };
+		8227119F196AEF6267F2749C /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7091CCD915A6A1EA798D8FE0 /* ResultsView.swift */; };
+		85B47340DC698236D6988E5F /* AirPlayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A473875B419EDFF81262CD76 /* AirPlayButton.swift */; };
+		9100226136ABE3FB6AE694D5 /* AYSHostCore in Frameworks */ = {isa = PBXBuildFile; productRef = B515FC2FC2D51E1F7896F1E8 /* AYSHostCore */; };
+		9366BAA17BA98064A8E3FEF4 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C5D0EFA0B35AF3156346C /* Theme.swift */; };
+		9A0248F44B2F352C4839693E /* AYSProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = 881C43304DD76602E4B356B4 /* AYSProtocol */; };
+		A534B67767761DE7825C8C42 /* AYSHostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71DF5E0910424EFB8B0809F6 /* AYSHostApp.swift */; };
+		BF2651DAB9AB913E7554365B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A982E2CCBD3B6577896E26EE /* Assets.xcassets */; };
+		CB10E207ED2577CFA593F30E /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7091CCD915A6A1EA798D8FE0 /* ResultsView.swift */; };
+		CCDB7590BCA1CAC7A77E0A46 /* AirPlayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A473875B419EDFF81262CD76 /* AirPlayButton.swift */; };
+		CE81C143423B1480E2504231 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4ABEC9F190566FB8763417 /* RootView.swift */; };
+		E7047E13EFD00CEBD0A1A4D1 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4ABEC9F190566FB8763417 /* RootView.swift */; };
+		EA1F6698587F00031B4EE5DF /* AYSHostCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5ACCC349FFB063058B7ABD24 /* AYSHostCore */; };
+		F6DFD645290D446365B04AB2 /* HostViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F49C59B5DE406A1997CD55 /* HostViewModel.swift */; };
+		F70F3CC5516FA70EE5AB8AA7 /* LobbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E063DEA0265C1B604CE7826 /* LobbyView.swift */; };
+		FD5D32DA33BC350E5A34661D /* RoomCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E62B697C82864B8D27724446 /* RoomCode.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		028CFEEAA243F97286D8C2E1 /* GameEndView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEndView.swift; sourceTree = "<group>"; };
+		1AB5D18626E1DE939DBBD66D /* RoundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundView.swift; sourceTree = "<group>"; };
+		1E8A2F8BFF37D7D9A2BD0304 /* ScoreboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreboardView.swift; sourceTree = "<group>"; };
+		2D1E1F8AE03B7C44DD0C77CF /* tvos */ = {isa = PBXFileReference; lastKnownFileType = folder; name = tvos; path = .; sourceTree = SOURCE_ROOT; };
+		558C5D0EFA0B35AF3156346C /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		5E063DEA0265C1B604CE7826 /* LobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LobbyView.swift; sourceTree = "<group>"; };
+		5F8C21347CD179CF10C1C1F3 /* AYSHost-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AYSHost-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7091CCD915A6A1EA798D8FE0 /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
+		71DF5E0910424EFB8B0809F6 /* AYSHostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AYSHostApp.swift; sourceTree = "<group>"; };
+		75D43362E01BD1611832026D /* AYSHost-tvOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "AYSHost-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A473875B419EDFF81262CD76 /* AirPlayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirPlayButton.swift; sourceTree = "<group>"; };
+		A982E2CCBD3B6577896E26EE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DC81D53D4CF83224C2AF872B /* RoundDurationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundDurationProvider.swift; sourceTree = "<group>"; };
+		E3F49C59B5DE406A1997CD55 /* HostViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostViewModel.swift; sourceTree = "<group>"; };
+		E62B697C82864B8D27724446 /* RoomCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomCode.swift; sourceTree = "<group>"; };
+		FD4ABEC9F190566FB8763417 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5AD91A717F3E9D62EF66D4CC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EA1F6698587F00031B4EE5DF /* AYSHostCore in Frameworks */,
+				9A0248F44B2F352C4839693E /* AYSProtocol in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		620C09D9720E2B1B9F468D10 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9100226136ABE3FB6AE694D5 /* AYSHostCore in Frameworks */,
+				1F22213A6402FD60E57037EF /* AYSProtocol in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		492080BC084B37CC5502C3FA /* TVResources */ = {
+			isa = PBXGroup;
+			children = (
+				A982E2CCBD3B6577896E26EE /* Assets.xcassets */,
+			);
+			path = TVResources;
+			sourceTree = "<group>";
+		};
+		5107638EA1A38FAF993EA433 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				2D1E1F8AE03B7C44DD0C77CF /* tvos */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		B8BC95802983D81683102043 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				71DF5E0910424EFB8B0809F6 /* AYSHostApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		C7DBB7B564C1EED99E8E1EC9 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				A473875B419EDFF81262CD76 /* AirPlayButton.swift */,
+				028CFEEAA243F97286D8C2E1 /* GameEndView.swift */,
+				E3F49C59B5DE406A1997CD55 /* HostViewModel.swift */,
+				5E063DEA0265C1B604CE7826 /* LobbyView.swift */,
+				7091CCD915A6A1EA798D8FE0 /* ResultsView.swift */,
+				E62B697C82864B8D27724446 /* RoomCode.swift */,
+				FD4ABEC9F190566FB8763417 /* RootView.swift */,
+				DC81D53D4CF83224C2AF872B /* RoundDurationProvider.swift */,
+				1AB5D18626E1DE939DBBD66D /* RoundView.swift */,
+				1E8A2F8BFF37D7D9A2BD0304 /* ScoreboardView.swift */,
+				558C5D0EFA0B35AF3156346C /* Theme.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		EA2B298E2417FECE1DC9F208 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5F8C21347CD179CF10C1C1F3 /* AYSHost-macOS.app */,
+				75D43362E01BD1611832026D /* AYSHost-tvOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F69CA04709B1D41A1042D1D5 = {
+			isa = PBXGroup;
+			children = (
+				B8BC95802983D81683102043 /* App */,
+				5107638EA1A38FAF993EA433 /* Packages */,
+				492080BC084B37CC5502C3FA /* TVResources */,
+				C7DBB7B564C1EED99E8E1EC9 /* UI */,
+				EA2B298E2417FECE1DC9F208 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6E819DA71D2F57F7100F9724 /* AYSHost-macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A13533A647E971F946691A01 /* Build configuration list for PBXNativeTarget "AYSHost-macOS" */;
+			buildPhases = (
+				4681C4DEDE59564B304371AF /* Sources */,
+				620C09D9720E2B1B9F468D10 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "AYSHost-macOS";
+			packageProductDependencies = (
+				B515FC2FC2D51E1F7896F1E8 /* AYSHostCore */,
+				17EB1E6FA16A580E384E62FD /* AYSProtocol */,
+			);
+			productName = "AYSHost-macOS";
+			productReference = 5F8C21347CD179CF10C1C1F3 /* AYSHost-macOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		FEC023433F2A0F201E0CCC1B /* AYSHost-tvOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4EF4867BBFCE658651A48795 /* Build configuration list for PBXNativeTarget "AYSHost-tvOS" */;
+			buildPhases = (
+				B2E031CDF0AAE313D3DED583 /* Sources */,
+				DA71251F9E3EF16C170D0B02 /* Resources */,
+				5AD91A717F3E9D62EF66D4CC /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "AYSHost-tvOS";
+			packageProductDependencies = (
+				5ACCC349FFB063058B7ABD24 /* AYSHostCore */,
+				881C43304DD76602E4B356B4 /* AYSProtocol */,
+			);
+			productName = "AYSHost-tvOS";
+			productReference = 75D43362E01BD1611832026D /* AYSHost-tvOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FE8C66EF5B4EBFBE78BED352 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 931453F0111244A2AEC005EE /* Build configuration list for PBXProject "AYSHost" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = F69CA04709B1D41A1042D1D5;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				463654AF114753734A45DBDC /* XCLocalSwiftPackageReference "." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = EA2B298E2417FECE1DC9F208 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6E819DA71D2F57F7100F9724 /* AYSHost-macOS */,
+				FEC023433F2A0F201E0CCC1B /* AYSHost-tvOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		DA71251F9E3EF16C170D0B02 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF2651DAB9AB913E7554365B /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4681C4DEDE59564B304371AF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A534B67767761DE7825C8C42 /* AYSHostApp.swift in Sources */,
+				85B47340DC698236D6988E5F /* AirPlayButton.swift in Sources */,
+				05216C40A2A92AE5A482EA48 /* GameEndView.swift in Sources */,
+				F6DFD645290D446365B04AB2 /* HostViewModel.swift in Sources */,
+				18943F96A442C0667A7174E9 /* LobbyView.swift in Sources */,
+				8227119F196AEF6267F2749C /* ResultsView.swift in Sources */,
+				0117285B5F1DE99420FB612C /* RoomCode.swift in Sources */,
+				E7047E13EFD00CEBD0A1A4D1 /* RootView.swift in Sources */,
+				3F116937A3CF8D2419CF7863 /* RoundDurationProvider.swift in Sources */,
+				1E19BB228813E24E65CFBB24 /* RoundView.swift in Sources */,
+				62C34E02984649DB392BFA5D /* ScoreboardView.swift in Sources */,
+				0275780D07D9BABC6B7BFFC7 /* Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B2E031CDF0AAE313D3DED583 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				30D3E114377BFF21055FB21A /* AYSHostApp.swift in Sources */,
+				CCDB7590BCA1CAC7A77E0A46 /* AirPlayButton.swift in Sources */,
+				15AC360C6702FDF9B020A876 /* GameEndView.swift in Sources */,
+				0F7638905501C0AA65CCB14C /* HostViewModel.swift in Sources */,
+				F70F3CC5516FA70EE5AB8AA7 /* LobbyView.swift in Sources */,
+				CB10E207ED2577CFA593F30E /* ResultsView.swift in Sources */,
+				FD5D32DA33BC350E5A34661D /* RoomCode.swift in Sources */,
+				CE81C143423B1480E2504231 /* RootView.swift in Sources */,
+				5D4FC8AE69E951405CA4D925 /* RoundDurationProvider.swift in Sources */,
+				4CF737EFC9329EAEC7F74C9B /* RoundView.swift in Sources */,
+				3929A12C2A521BDC6E90669A /* ScoreboardView.swift in Sources */,
+				9366BAA17BA98064A8E3FEF4 /* Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2272C341A07A0BB1F4D4B921 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.pynkstudio.areyoustupid.host.AYSHost-tvOS";
+				SDKROOT = appletvos;
+				TARGETED_DEVICE_FAMILY = 3;
+			};
+			name = Release;
+		};
+		567C0D2C87B94EB10291D075 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = App/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				TVOS_DEPLOYMENT_TARGET = 16.0;
+			};
+			name = Release;
+		};
+		7821844217FD3CDEF526ABF4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = App/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TVOS_DEPLOYMENT_TARGET = 16.0;
+			};
+			name = Debug;
+		};
+		AADD441AA7EAD5A96339C863 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.pynkstudio.areyoustupid.host.AYSHost-tvOS";
+				SDKROOT = appletvos;
+				TARGETED_DEVICE_FAMILY = 3;
+			};
+			name = Debug;
+		};
+		C046F79B11B55B4985D6F7DF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.pynkstudio.areyoustupid.host.AYSHost-macOS";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		E0EA5F0E8AF16C7FF38B329E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.pynkstudio.areyoustupid.host.AYSHost-macOS";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4EF4867BBFCE658651A48795 /* Build configuration list for PBXNativeTarget "AYSHost-tvOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AADD441AA7EAD5A96339C863 /* Debug */,
+				2272C341A07A0BB1F4D4B921 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		931453F0111244A2AEC005EE /* Build configuration list for PBXProject "AYSHost" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7821844217FD3CDEF526ABF4 /* Debug */,
+				567C0D2C87B94EB10291D075 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A13533A647E971F946691A01 /* Build configuration list for PBXNativeTarget "AYSHost-macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E0EA5F0E8AF16C7FF38B329E /* Debug */,
+				C046F79B11B55B4985D6F7DF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		463654AF114753734A45DBDC /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		17EB1E6FA16A580E384E62FD /* AYSProtocol */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AYSProtocol;
+		};
+		5ACCC349FFB063058B7ABD24 /* AYSHostCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AYSHostCore;
+		};
+		881C43304DD76602E4B356B4 /* AYSProtocol */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AYSProtocol;
+		};
+		B515FC2FC2D51E1F7896F1E8 /* AYSHostCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AYSHostCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = FE8C66EF5B4EBFBE78BED352 /* Project object */;
+}

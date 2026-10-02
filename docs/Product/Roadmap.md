@@ -1,6 +1,6 @@
 ---
 tags: [product, roadmap]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # Roadmap
@@ -17,14 +17,21 @@ updated: 2026-09-07
 1. **Apple TV party mode (multiplayer) — macOS board host included.** A 2–8
    player game hosted on tvOS **or a macOS board-only host (no direct play,
    AirPlay mirror button)** with iPhone/iPad controllers over the local
-   network. Phase 2 (wire protocol + client core + in-process host reference)
-   is **landed**; full spec in the [[Multiplayer Product]] /
+   network. Phases 1–3 (wire protocol + client core + in-process host
+   reference + the mobile controller app: screens, real socket transport,
+   Bonjour/mDNS discovery browsing) are **landed**. Phase 4 (the native
+   tvOS/macOS host) is **partial**: its room/round/scoring authority is
+   built and tested in Swift, but real networking (Bonjour advertising, the
+   socket server), QR generation, and the SwiftUI app itself — which needs
+   an actual Xcode project — are not, so nothing is end-to-end playable on
+   a real LAN yet. Full spec in the [[Multiplayer Product]] /
    [[Multiplayer Architecture]] / [[Multiplayer Protocol]] notes; build order in
    [[Multiplayer Development]]. This supersedes the daily-challenge idea below
    as the biggest virality lever.
 2. **Real ad SDK** behind the existing `AdProvider` ([[Monetization and Ads]]).
-3. **Store polish** — app icon, launch screen, screenshots, store copy.
-   The game generates its own visuals, but the store listing needs assets.
+3. **Store polish** — screenshots, store copy. App icon and launch screen are
+   done ([[Release Checklist]]); the game generates its own in-app visuals,
+   but the store listing still needs screenshots/copy.
 4. **More templates.** The cheapest way to add depth: see [[Adding a Challenge]].
 5. **Daily challenge** — a seeded run everyone gets the same day. Pure virality,
    still offline (seed = date).

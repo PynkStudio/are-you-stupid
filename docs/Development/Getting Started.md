@@ -1,6 +1,6 @@
 ---
 tags: [development, setup, troubleshooting]
-updated: 2026-09-07
+updated: 2026-09-08
 ---
 
 # Getting Started
@@ -21,7 +21,9 @@ the whole feature is off and scripted by default until Phase 2+
 Dependencies: `shared_preferences` (persistence), `share_plus` (share sheet),
 `google_mobile_ads` + `app_tracking_transparency` (ads, see [[Monetization and
 Ads]]), `in_app_purchase` (the "remove ads" purchase, same doc), `url_launcher`
-(the PynkStudio links in Settings, see [[Services]]). Every one earns its
+(the PynkStudio links in Settings, see [[Services]]), `multicast_dns` (LAN room
+discovery, pure Dart — no native plugin code) and `mobile_scanner` (in-app QR
+join, both [[Multiplayer Client (Mobile)]]). Every one earns its
 place — no dependency added speculatively ([[Game Design Pillars]]).
 
 ## Run
@@ -36,9 +38,14 @@ flutter run -d <device-id>  # flutter devices to list them
 
 ```bash
 flutter analyze   # must report zero issues
-flutter test      # 95 tests across 12 suites — see [[Testing]]
-swift test        # from tvos/ — AYSProtocol mirror against Dart-emitted goldens (see [[Multiplayer Development]])
+flutter test      # 199 tests across 21 suites — see [[Testing]]
+swift test        # from tvos/ — AYSProtocol (protocol mirror) + AYSHostCore (the Swift RoomHost authority), 45 cases (see [[Multiplayer Development]])
 ```
+
+As of 2026-09-07, `flutter test` has 3 pre-existing failures in
+`test/ai/telemetry_test.dart` (in-progress AI-phase work, unrelated to
+multiplayer) — not fixed here, flagged so they aren't mistaken for a
+regression from this change.
 
 ## Build
 
@@ -46,6 +53,46 @@ swift test        # from tvos/ — AYSProtocol mirror against Dart-emitted golde
 flutter build apk --release        # verified working
 flutter build ios --release        # then archive in Xcode to ship
 ```
+
+### Build number bumps itself
+
+`scripts/bump_build_number.sh` increments the `+N` in `pubspec.yaml`'s
+`version:` line. Both platforms read the build number from that single line —
+iOS via `Generated.xcconfig`, Android via `flutter.versionCode`/`versionName`
+in Gradle — so one bump covers both. It runs automatically, no manual step:
+
+- **iOS:** wired as the `Runner` scheme's Archive pre-action
+  (`ios/Runner.xcodeproj/.../Runner.xcscheme`), so it fires on
+  `Product > Archive` in Xcode and on `flutter build ipa` alike, before the
+  build reads `pubspec.yaml`.
+- **Android:** wired into `android/app/build.gradle.kts` at configuration
+  time, gated on the requested task being `assembleRelease` or
+  `bundleRelease` — covers `flutter build apk/appbundle --release` and
+  Android Studio's "Generate Signed Bundle". Must run before the `android {
+  defaultConfig { versionCode = flutter.versionCode } }` block evaluates,
+  since Gradle reads that at configuration time, not execution time — see
+  [[Decision Log]].
+
+Run it by hand (`scripts/bump_build_number.sh`) if you need a bump outside
+either build path. It exits non-zero if `pubspec.yaml`'s version has no `+N`.
+
+### Trying multiplayer locally (no TV host yet)
+
+The native tvOS/macOS host doesn't exist yet ([[Multiplayer Development]]
+Phase 4), so there's nothing on the LAN for the app's real Bonjour discovery
+to find. To exercise the mobile client (screens, real socket, game loop)
+anyway:
+
+```bash
+dart run tool/dev_multiplayer_host.dart        # prints its LAN address:port
+```
+
+Run the app on a device/simulator on the same network, go to MULTIPLAYER →
+ENTER ROOM CODE → any 4 characters → on the "room not found" screen (debug
+builds only) tap **DEV: HOST ADDRESS** and enter what the tool printed. Once
+≥2 phones have joined and readied up, type `start` in the tool's terminal.
+This is a throwaway dev CLI, not a preview of the real host — see
+[[Multiplayer Development]] and [[Decision Log]].
 
 ### Android release signing
 
@@ -126,6 +173,15 @@ SDK Command-line Tools), then:
 ```bash
 flutter doctor --android-licenses
 ```
+
+### Android: multiplayer LAN discovery may not receive anything on a real device
+
+`multicast_dns` is pure Dart — it never acquires Android's
+`WifiManager.MulticastLock`, which the OS otherwise requires before an app
+actually *receives* multicast traffic (the `CHANGE_WIFI_MULTICAST_STATE`
+manifest permission alone is not enough). This is a known real-device risk,
+not yet verified either way — flagged here rather than claimed to work; see
+[[Decision Log]] and confirm in the Phase 10 real-device pass.
 
 ### Tests hang on `pumpAndSettle()`
 

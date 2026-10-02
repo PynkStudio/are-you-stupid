@@ -5,6 +5,16 @@
     <!-- Required for HapticManager's HapticFeedback.* calls to actually
          vibrate on Android — see docs/Architecture/Services.md. -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Multiplayer: QR join (mobile_scanner) and LAN room discovery via
+         `package:nsd` (NsdManager, native Android service discovery) — see
+         docs/Architecture/Multiplayer Protocol.md. INTERNET and
+         CHANGE_WIFI_MULTICAST_STATE are the two permissions `nsd`'s own
+         README documents as required; see docs/Meta/Decision Log.md for
+         why the plugin changed from a raw-socket mDNS package to this one. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="Are You Stupid"
         android:name="${applicationName}"

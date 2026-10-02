@@ -1,6 +1,6 @@
 ---
 tags: [gameplay, multiplayer, challenges, design]
-updated: 2026-09-06
+updated: 2026-09-11
 ---
 
 # Multiplayer Challenges
@@ -83,12 +83,27 @@ in-process simulation harness) calls `buildFromSeed(challengeId:, seed:,
 level:)`, producing the same `ChallengeView`. No new challenge code is needed
 — the host's `ROUND_START` is all that is required.
 
-**Phase 4 open question:** the native tvOS host ([[Multiplayer Host (tvOS)]])
-is a separate Swift process and — unlike the all-Dart ends — is **not**
-guaranteed to reproduce the seeded stream yet (see the [[Decision Log]] entry
-*"Multiplayer Phase 1 landed: `buildFromSeed` …"*). Two options, neither
-chosen: replicate Dart's PRNG in Swift so the host can rebuild locally, or keep
-the host from needing a local rebuild at all.
+**Phase 4 open question — resolved.** The native tvOS/macOS host
+([[Multiplayer Host (tvOS)]]) is a separate Swift process and, unlike the
+all-Dart ends, was never going to reproduce the seeded stream (or all 39
+templates' often time-dependent judging logic — moving buttons, color
+shifts, memory recall) without porting a second implementation of the same
+rules and keeping the two in permanent lockstep. **The chosen answer: the
+host never rebuilds the challenge at all.** The *client* judges its own
+input — `PartyChallengeRunner`
+(`lib/multiplayer/engine/party_challenge_runner.dart`) drives the exact same
+`Challenge` engine single-player uses (`onStart`/`onTick`/`onTap`/
+`onTimeout`) and reports the verdict (`correct`/`reason`/`note`) in every
+`PLAYER_ACTION`, which the host simply trusts (`RoomHost.onAction` in
+Swift, `PartyHostReference._onAction` in the Dart test harness — both
+identical in spirit). The host's only remaining challenge-shaped
+responsibility is resolving `{ challengeId, seed, level }` to a round
+*duration* (`ChallengeJudge.spec`, now genuinely small — no PRNG, no
+templates) and rejecting an unknown id. See the design-change note on
+`PlayerAction` in [[Multiplayer Protocol]] and [[Decision Log]] for the
+full reasoning, including the deliberate trade-off this makes (a modified
+client could self-report "always correct" — accepted for a local,
+in-person party game).
 
 ## Multiplayer-specific challenge families
 

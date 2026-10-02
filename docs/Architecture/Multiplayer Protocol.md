@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, protocol, contract]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # Multiplayer Protocol
@@ -101,7 +101,7 @@ Message := { "protocolVersion": int,
 |---|---|---|---|
 | `ROUND_START` | host → clients | `{ roundId, challengeId, seed, startAt, durationMs, config }` | the **same** challenge for every player, from one seed; `config` carries e.g. `{ "level": N }` |
 | `ROUND_COUNTDOWN` | host → clients | `{ roundId, atMs, state }` | `state`: `READY` / `GO`; `atMs` = host monotonic when it fires |
-| `PLAYER_ACTION` | client → host | `{ playerId, roundId, action, clientTimestampMs }` | input only; host judges. `action` is `{ kind: "tap", targetId?, index? }` (null `targetId` = background) or `{ kind: "count", count }` for counting families (see below) |
+| `PLAYER_ACTION` | client → host | `{ playerId, roundId, action, correct, reason?, note?, clientTimestampMs }` | raw input **and** the client's own verdict — the host trusts `correct`/`reason`/`note` rather than re-judging (design change, see [[Decision Log]] and the note on `PlayerAction` in `lib/multiplayer/protocol/protocol.dart`). `action` is `{ kind: "tap", targetId?, index? }` (null `targetId` = background) or `{ kind: "count", count }` for counting families (see below) — informational on the wire now, not judged |
 | `ROUND_RESULT` | host → each client | `{ roundId, correct, reason, scoreDelta, actionReceivedMs }` | per-player private result; also drives lives/elimination |
 | `ROUND_RESULTS` | host → clients | `{ roundId, results[] }` | aggregated reveal for the TV + cross-phone standings |
 | `ROUND_END` | host → clients | `{ roundId, ... }` | bookend; clients lock accuracy/points, TV shows NEXT ROUND |
@@ -113,6 +113,17 @@ Message := { "protocolVersion": int,
 | type | sender → | payload |
 |---|---|---|
 | `ERROR` | either → | `{ code, detail }` (e.g. `ROOM_FULL`, `ROUND_CLOSED`, `DUPLICATE_ACTION`, `BAD_MESSAGE`) |
+
+### AI Director (additive, [[Multiplayer AI Director]] — real end-to-end since Phase 8)
+
+| type | sender → | payload | notes |
+|---|---|---|---|
+| `AI_CAPABILITIES` | client → host | `{ aiAvailable, computeRank, batteryPercent }` | once, after connecting; host remembers it per seat |
+| `AI_DIRECTOR_ASSIGNMENT` | host → clients | `{ directorPeerId }` or omitted (`null`) | the Director election result |
+| `AI_ROUND_PROPOSAL` | client → host | `{ roundId, proposal }` | Director only; `proposal` is the Director's own validated `ChallengeProposal` wire JSON, opaque to the protocol layer |
+| `AI_CHALLENGE_ROUND` | host → clients | `{ roundId, proposal, startAt, durationMs }` | relayed as-is, trusted the same way `PLAYER_ACTION.correct` is — opens an AI-authored round instead of `ROUND_START`'s `{challengeId, seed}` pick, since there's no shared generator to replay from a seed |
+| `AI_COMMENTARY_PROPOSAL` | client → host | `{ kind, roundId, text }` | Director only |
+| `AI_COMMENTARY` | host → clients | `{ kind, roundId, text }` | relayed as-is |
 
 ## Round synchronization contract
 
@@ -127,12 +138,18 @@ Message := { "protocolVersion": int,
 - The host never trusts the client's `clientTimestampMs` for correctness — it
    is used only for the reaction-time tie-break / bonus, cross-checked against
    the host's `actionReceivedMs`.
-- **Counting challenges commit a count, not repeated taps.** One
-   `PLAYER_ACTION` per player per round is the rule (a duplicate is answered
-   `DUPLICATE_ACTION`), so families like `tap_twice` / `tap_exactly_n` are
-   answered with `{ kind: "count", count }` and the host replays that count
-   against its canonical challenge — it never re-derives input from timestamps.
-   Correct answer = the exact count required for that seed.
+- **The client judges, the host trusts it.** `PartyChallengeRunner`
+   (`lib/multiplayer/engine/party_challenge_runner.dart`) drives the real
+   `Challenge` for the round — the same engine single-player uses — through
+   individual taps exactly like the on-screen renderer shows them (counting
+   families like `tap_twice` / `tap_exactly_n` are driven tap-by-tap too, not
+   pre-committed as a final count; the `Challenge` itself tracks the running
+   total and its own settle grace window). Whatever it decides (`pass`/`fail`)
+   becomes the `PLAYER_ACTION`'s `correct`/`reason`/`note` — one message per
+   player per round still holds (a duplicate is answered `DUPLICATE_ACTION`),
+   it just now carries a verdict instead of raw input the host re-derives.
+   A round also closes the moment every alive seat has answered, without
+   waiting out the full timer ("no downtime," [[Game Design Pillars]]).
 - Clients keep rendering the same `ChallengeView` as the host's canonical
    view for the round id; they do not regenerate it ([[Multiplayer
    Challenges]]).

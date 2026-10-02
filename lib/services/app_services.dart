@@ -4,6 +4,7 @@ import 'ads/ad_manager.dart';
 import 'ads/ad_provider.dart';
 import 'ads/mock_ad_provider.dart';
 import 'haptic_manager.dart';
+import 'multiplayer_profile.dart';
 import 'purchases/mock_purchase_provider.dart';
 import 'purchases/purchase_manager.dart';
 import 'purchases/purchase_provider.dart';
@@ -18,6 +19,7 @@ class AppServices {
   AppServices({
     required this.settings,
     required this.scores,
+    required this.multiplayerProfile,
     AdProvider? adProvider,
     PurchaseProvider? purchaseProvider,
   })  : sound = SoundManager(settings),
@@ -35,6 +37,7 @@ class AppServices {
 
   final SettingsManager settings;
   final ScoreManager scores;
+  final MultiplayerProfileManager multiplayerProfile;
   final SoundManager sound;
   final HapticManager haptics;
   final ShareManager share;
@@ -47,9 +50,11 @@ class AppServices {
   }) async {
     final settings = await SettingsManager.load();
     final scores = await ScoreManager.load();
+    final multiplayerProfile = await MultiplayerProfileManager.load();
     final services = AppServices(
       settings: settings,
       scores: scores,
+      multiplayerProfile: multiplayerProfile,
       adProvider: adProvider,
       purchaseProvider: purchaseProvider,
     );

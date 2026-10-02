@@ -1,7 +1,9 @@
+import 'package:are_you_stupid/ai/apple_ai_service.dart';
 import 'package:are_you_stupid/main.dart';
 import 'package:are_you_stupid/services/app_services.dart';
 import 'package:are_you_stupid/ui/widgets/timer_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher_platform_interface/link.dart';
@@ -85,6 +87,16 @@ void main() {
 
     expect(find.text('LEVEL 1'), findsOneWidget);
     expect(find.text('TRY AGAIN'), findsNothing);
+
+    // Regression guard: the timer bar must come back after a retry, not
+    // stay hidden from wherever the previous run left it (e.g. level 6+).
+    expect(tester.widget<TimerBar>(find.byType(TimerBar)).visible, isTrue);
+    final fill = find.descendant(
+      of: find.byType(TimerBar),
+      matching: find.byType(DecoratedBox),
+    );
+    expect(tester.getSize(fill).height, 8);
+    expect(tester.getSize(fill).width, greaterThan(0));
   });
 
   testWidgets('level 1 shows the timer bar and no pace note yet',
@@ -101,15 +113,16 @@ void main() {
     expect(find.text('FASTER NOW.'), findsNothing);
     expect(find.text('NO MORE TIMER.'), findsNothing);
 
-    // Regression guard: the colored fill is a childless DecoratedBox inside
-    // a Row, which lays out at zero height without crossAxisAlignment.stretch
-    // — that bug made the bar invisible on a real device despite `visible`
-    // being true.
+    // Regression guard: an earlier Row/Expanded-based fill laid out at zero
+    // height on a real device despite `visible` being true — see
+    // docs/Meta/Decision Log.md. The current Container-based fill is sized
+    // in real pixels, so this pins both dimensions directly.
     final fill = find.descendant(
       of: find.byType(TimerBar),
       matching: find.byType(DecoratedBox),
     );
     expect(tester.getSize(fill).height, 8);
+    expect(tester.getSize(fill).width, greaterThan(0));
   });
 
   testWidgets('tapping the wrong flash skips it early', (tester) async {
@@ -174,6 +187,48 @@ void main() {
     await tester.tap(find.byType(Switch).last);
     await tester.pumpAndSettle();
     expect(services.settings.roastsEnabled, isFalse);
+  });
+
+  testWidgets('the Ai section shows a mode picker defaulting to Genius', (tester) async {
+    final services = await boot();
+    await tester.pumpWidget(AreYouStupidApp(services: services));
+    await tester.pumpAndSettle();
+
+    // `_AiSection` calls the real `ays/apple_intelligence` MethodChannel
+    // (`AppleAiMethodChannel().available()`). With no mock handler
+    // installed at all, `invokeMethod` never resolves in this widget-test
+    // binding (unlike a bare `test()`, where an unregistered channel
+    // rejects with `MissingPluginException` right away — see
+    // apple_ai_service_test.dart) — it just hangs, so `_AiSection` never
+    // reaches its `setState()` and the whole test would time out. A real
+    // app never has this problem (there either is a native handler, iOS,
+    // or the plugin registration itself throws `MissingPluginException`
+    // cleanly, Android/other platforms); this mock only stands in for the
+    // "device can't run the model" response a real environment would give.
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel(kAppleIntelligenceChannel),
+      (call) async => call.method == 'available'
+          ? {'state': 'unavailable', 'reason': 'bridgeUnavailable'}
+          : null,
+    );
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel(kAppleIntelligenceChannel),
+        null,
+      );
+    });
+
+    await tester.tap(find.text('SETTINGS'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('AI CHALLENGES'), findsOneWidget);
+    expect(find.text('GENIUS'), findsOneWidget);
+    // No native bridge in a widget test (MissingPluginException, handled
+    // gracefully — see apple_ai_service.dart) — the device genuinely can't
+    // run the model here, so the picker is disabled and the copy says so.
+    expect(find.text('Not supported on this device.'), findsOneWidget);
   });
 
   testWidgets('buying remove-ads flips the row to owned and persists',

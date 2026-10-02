@@ -184,18 +184,18 @@ void main() {
     expect(events.last, GameEvent.gameOver);
   });
 
-  test('pace note fires once, at level 4 (faster) and level 6 (no timer)',
+  test('pace note fires once, at level 6 (no timer) and level 10 (faster)',
       () {
     final engine = buildEngine();
     engine.startRun();
     tick(engine, 600); // level 1
 
-    for (var level = 1; level <= 6; level++) {
+    for (var level = 1; level <= 10; level++) {
       switch (level) {
-        case 4:
-          expect(engine.state.paceNote, 'FASTER NOW.');
         case 6:
           expect(engine.state.paceNote, 'NO MORE TIMER.');
+        case 10:
+          expect(engine.state.paceNote, 'FASTER NOW.');
         default:
           expect(engine.state.paceNote, isNull, reason: 'level $level');
       }
@@ -206,12 +206,37 @@ void main() {
   });
 
   group('difficulty', () {
-    test('early levels ramp speed up instead of starting flat', () {
-      expect(Difficulty.speedForLevel(1), 0.60);
-      expect(Difficulty.speedForLevel(2), 0.73);
-      expect(Difficulty.speedForLevel(3), 0.85);
-      expect(Difficulty.speedForLevel(1), lessThan(Difficulty.speedForLevel(2)));
-      expect(Difficulty.speedForLevel(2), lessThan(Difficulty.speedForLevel(3)));
+    test('the first nine levels are a slow, stepped tutorial ramp', () {
+      // Level 1-2 is the most generous the game ever is; each later step
+      // through the tutorial only nudges the pace, never jumps it.
+      expect(Difficulty.speedForLevel(1), 0.49);
+      expect(Difficulty.speedForLevel(2), 0.49);
+      expect(Difficulty.speedForLevel(3), 0.52);
+      expect(Difficulty.speedForLevel(4), 0.52);
+      expect(Difficulty.speedForLevel(5), 0.56);
+      expect(Difficulty.speedForLevel(6), 0.56);
+      expect(Difficulty.speedForLevel(9), 0.65);
+      // Monotonically non-decreasing across every level 1-60, in steps: a
+      // level never shares a step with a level more than 10 apart once
+      // past the tutorial band.
+      var previous = Difficulty.speedForLevel(1);
+      for (var level = 2; level <= 60; level++) {
+        final speed = Difficulty.speedForLevel(level);
+        expect(speed, greaterThanOrEqualTo(previous), reason: 'level $level');
+        previous = speed;
+      }
+    });
+
+    test('speed steps every ten levels from level 10, capped below the old '
+        'asymptote', () {
+      expect(Difficulty.speedForLevel(10), Difficulty.speedForLevel(19));
+      expect(Difficulty.speedForLevel(20), Difficulty.speedForLevel(29));
+      expect(Difficulty.speedForLevel(19),
+          lessThan(Difficulty.speedForLevel(20)));
+      // The old formula capped at 2.35; the new tail stays gentler than that
+      // forever, matching the "leave a bit more time" request.
+      expect(Difficulty.speedForLevel(1000), lessThan(2.35));
+      expect(Difficulty.speedForLevel(50), Difficulty.speedForLevel(1000));
     });
 
     test('timer bar disappears exactly when trick templates unlock', () {
@@ -220,12 +245,14 @@ void main() {
       expect(Difficulty.allowsTricks(6), isTrue);
     });
 
-    test('milestone key fires only at level 4 and level 6', () {
-      expect(Difficulty.milestoneKey(3), isNull);
-      expect(Difficulty.milestoneKey(4), 'ui.game.milestone.faster');
+    test('milestone key fires at level 6 (no timer) and level 10 (faster)',
+        () {
       expect(Difficulty.milestoneKey(5), isNull);
       expect(Difficulty.milestoneKey(6), 'ui.game.milestone.no_timer');
       expect(Difficulty.milestoneKey(7), isNull);
+      expect(Difficulty.milestoneKey(9), isNull);
+      expect(Difficulty.milestoneKey(10), 'ui.game.milestone.faster');
+      expect(Difficulty.milestoneKey(11), isNull);
     });
   });
 

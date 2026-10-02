@@ -12,6 +12,28 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(keystorePropertiesFile.inputStream())
 }
 
+// Bumps pubspec.yaml's build number before a release build reads it into
+// versionCode/versionName below — the Xcode-archive equivalent for Android.
+// Must run before `android { defaultConfig { ... } }` is evaluated, since
+// `flutter.versionCode`/`versionName` are read at configuration time.
+val releaseBuildTasks = setOf("assembleRelease", "bundleRelease")
+val isReleaseBuild = gradle.startParameter.taskNames.any { taskName ->
+    releaseBuildTasks.any { taskName == it || taskName.endsWith(":$it") }
+}
+if (isReleaseBuild) {
+    // Plain `ProcessBuilder` instead of Gradle's `Project.exec {}` — the
+    // latter was removed in Gradle 9 (this project runs 9.3.1/AGP 9.1.0),
+    // which broke every Android build, debug included, since a Kotlin
+    // build script fails to *compile* on an unresolved `exec` reference
+    // regardless of whether `isReleaseBuild` is true at run time. A plain
+    // JVM API has no Gradle-version surface to break against. See
+    // docs/Meta/Decision Log.md.
+    ProcessBuilder("bash", "${rootProject.projectDir}/../scripts/bump_build_number.sh")
+        .inheritIO()
+        .start()
+        .waitFor()
+}
+
 android {
     namespace = "com.ays.are_you_stupid"
     compileSdk = flutter.compileSdkVersion

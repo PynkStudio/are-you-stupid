@@ -1,6 +1,6 @@
 ---
 tags: [product, ads, monetization]
-updated: 2026-09-06
+updated: 2026-09-11
 ---
 
 # Monetization and Ads
@@ -11,8 +11,11 @@ updated: 2026-09-06
 wraps the Google Mobile Ads SDK and is wired in `main.dart`, **only on
 Android/iOS** — `google_mobile_ads` ships no macOS/Windows/Linux
 implementation, and calling it there hangs `AppServices.boot` forever (the
-platform channel has no native side to answer), leaving the app stuck on a
-black window. `main.dart` picks the provider with
+platform channel has no native side to answer), leaving the app stuck on
+the animated `SplashScreen` forever instead of reaching `HomeScreen` (see
+[[Decision Log]] for why boot no longer blocks the first frame at all — it
+just never resolves in this specific misconfiguration). `main.dart` picks
+the provider with
 `Platform.isAndroid || Platform.isIOS`; every other desktop target falls back
 to `MockAdProvider`. `MockAdProvider` is also the default inside `AppServices`
 itself — used by every test and by anyone running the app without touching

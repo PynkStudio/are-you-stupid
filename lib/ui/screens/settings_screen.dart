@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../ai/apple_ai_service.dart';
+import '../../ai/feature_flags.dart';
 import '../../i18n/app_locale.dart';
 import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
@@ -87,6 +89,7 @@ class SettingsScreen extends StatelessWidget {
                                   : locale.nativeName,
                               onTap: () => _pickLanguage(context, services),
                             ),
+                            _AiSection(t: t),
                             _RemoveAdsSection(services: services, t: t),
                             _LinkRow(
                               label: t('ui.settings.about'),
@@ -335,6 +338,124 @@ class _LinkRow extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The AI Experience Mode picker + per-device availability copy
+/// ([[Feature Flags]] Phase 9, [[Error States and Failure Communication]]).
+/// Self-contained on purpose: [AiFeatureFlags] isn't a `ChangeNotifier` (no
+/// other `lib/ai/` consumer needs to be *notified* of a flag change, they
+/// just read it fresh next time — see [[Decision Log]]), so this widget
+/// loads its own copy and manages its own local reactivity with `setState`,
+/// the same way [_RemoveAdsSection] owns its own listener separately from
+/// the screen's main `AnimatedBuilder`.
+class _AiSection extends StatefulWidget {
+  const _AiSection({required this.t});
+
+  final String Function(String) t;
+
+  @override
+  State<_AiSection> createState() => _AiSectionState();
+}
+
+class _AiSectionState extends State<_AiSection> {
+  AiFeatureFlags? _flags;
+  AppleAiAvailability? _availability;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final flags = await AiFeatureFlags.load();
+    final availability = await AppleAiMethodChannel().available();
+    if (!mounted) return;
+    setState(() {
+      _flags = flags;
+      _availability = availability;
+    });
+  }
+
+  String get _statusKey {
+    final availability = _availability;
+    if (availability == null || availability.isAvailable) {
+      return 'ui.settings.ai.status.available';
+    }
+    return switch (availability.reason) {
+      'appleIntelligenceNotEnabled' => 'ui.settings.ai.status.supported_not_enabled',
+      'modelNotReady' => 'ui.settings.ai.status.model_not_ready',
+      _ => 'ui.settings.ai.status.not_eligible', // deviceNotEligible, unsupportedOS, bridgeUnavailable
+    };
+  }
+
+  /// Disabled only when the device/OS genuinely can't run the model at all
+  /// — `appleIntelligenceNotEnabled`/`modelNotReady` still let the player
+  /// pick a mode ahead of time ([[Error States and Failure Communication]]:
+  /// "Picker stays visible/interactable" for the not-yet-enabled case).
+  bool get _pickerEnabled => _statusKey != 'ui.settings.ai.status.not_eligible';
+
+  Future<void> _pickMode() async {
+    final flags = _flags;
+    if (flags == null) return;
+    final t = widget.t;
+    final result = await showDialog<AiExperienceMode>(
+      context: context,
+      useRootNavigator: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: Ays.surface,
+        title: Text(t('ui.settings.ai.label'), style: Ays.label(20)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final mode in AiExperienceMode.values)
+              _LanguageOption(
+                label: t('ui.settings.ai.mode.${mode.name}'),
+                selected: flags.mode == mode,
+                onTap: () => Navigator.of(context).pop(mode),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (result == null) return;
+    await flags.setMode(result);
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final flags = _flags;
+    if (flags == null) return const SizedBox.shrink();
+    final t = widget.t;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Opacity(
+            opacity: _pickerEnabled ? 1 : 0.4,
+            child: IgnorePointer(
+              ignoring: !_pickerEnabled,
+              child: _LanguageRow(
+                label: t('ui.settings.ai.label'),
+                currentName: t('ui.settings.ai.mode.${flags.mode.name}'),
+                onTap: _pickMode,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 4),
+            child: Text(
+              t(_statusKey),
+              style: Ays.label(12, color: Ays.inkDim, weight: FontWeight.w600),
+            ),
+          ),
+        ],
       ),
     );
   }

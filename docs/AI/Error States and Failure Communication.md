@@ -1,9 +1,15 @@
 ---
 tags: [ai, errors, ux]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # Error States and Failure Communication
+
+**Implementation status:** the Settings copy table below is real
+(`_AiSection` in `lib/ui/screens/settings_screen.dart`, [[Development
+Plan]] Phase 9) and translated into all six locales — this is UI chrome,
+not AI-generated content, so it doesn't inherit the AI content's own
+English-only rule ([[Decision Log]]).
 
 How availability, failure, and "the model just isn't there" are shown — or
 deliberately hidden. The rule: **gameplay never errors** (silent scripted

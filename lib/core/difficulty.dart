@@ -6,18 +6,28 @@ import 'dart:math';
 class Difficulty {
   const Difficulty._();
 
-  /// Time-limit multiplier. Everything gets faster, but never absurd.
+  /// Time-limit multiplier. `params.pace(base, floorMs: min)` computes
+  /// `base / speed`, clamped to `min` — so every challenge's own `base`
+  /// constant is the *most* time it ever gets (reached at level 1-2) and
+  /// its `floorMs` is the *least* (approached at the highest levels), with
+  /// this stepped table deciding how much of that range level [level] gets.
   ///
-  /// Levels 1-2 ramp up *into* the old flat 0.85 instead of starting there:
-  /// a brand-new player's very first challenge used to run at the same pace
-  /// as their third, which was plenty of time to know the game but not
-  /// enough to have learned it yet. Level 3 onward is untouched.
+  /// Levels 1-9 are the tutorial: nine gentle steps that only nudge the
+  /// pace, so a new player never feels the game "snap" faster round to
+  /// round. From level 10 the game is meant to feel alive, stepping up
+  /// every ten levels — still capped well below the old asymptote (2.35),
+  /// so even the highest levels stay a little more generous than before.
+  /// See [[Difficulty Curve]] for the full table and the reasoning.
   static double speedForLevel(int level) {
-    if (level <= 1) return 0.60;
-    if (level == 2) return 0.73;
-    if (level <= 3) return 0.85; // still deliberately generous
-    final s = 1.0 + (level - 3) * 0.042;
-    return min(s, 2.35);
+    if (level <= 2) return 0.49;
+    if (level <= 4) return 0.52;
+    if (level <= 6) return 0.56;
+    if (level <= 9) return 0.65;
+    if (level <= 19) return 0.82;
+    if (level <= 29) return 1.05;
+    if (level <= 39) return 1.29;
+    if (level <= 49) return 1.52;
+    return 1.76;
   }
 
   /// Minimum level before "mean" templates unlock.
@@ -32,8 +42,8 @@ class Difficulty {
   /// A one-line "the game just changed" callout, shown once the first time
   /// [level] is reached. Returns an `ui.game.milestone.*` key, or null.
   static String? milestoneKey(int level) {
-    if (level == 4) return 'ui.game.milestone.faster';
     if (level == 6) return 'ui.game.milestone.no_timer';
+    if (level == 10) return 'ui.game.milestone.faster';
     return null;
   }
 

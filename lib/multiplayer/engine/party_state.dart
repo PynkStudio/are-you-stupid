@@ -10,8 +10,11 @@
 /// ([[Multiplayer Client (Mobile)]], [[Multiplayer Development]]).
 library;
 
+import '../../ai/generated_challenge.dart';
+import '../../ai/generated_challenge_runtime.dart';
 import '../../challenges/registry.dart';
 import '../../core/challenge.dart';
+import '../../i18n/app_locale.dart';
 import '../protocol/protocol.dart';
 
 /// Where the flow stands, mirrored from the messages received.
@@ -151,6 +154,15 @@ class PartyState {
   Rejected? rejected;
   PartyError? lastError;
 
+  /// The elected AI Director's peer id, or `null` when no capable phone is
+  /// connected ([[Multiplayer AI Director]], Phase 8). Phase 7 only tracks
+  /// and emits this — nothing consumes it yet.
+  String? aiDirectorPeerId;
+
+  /// The most recent AI commentary line relayed by the host, if any.
+  /// Phase 7 only tracks and emits this — no UI consumes it yet.
+  AiCommentary? lastAiCommentary;
+
   bool get inGame => phase == PartyPhase.playing || phase == PartyPhase.round;
 
   PlayerInfo? get self => _firstById(selfClientId);
@@ -263,6 +275,27 @@ class PartyRoundEndEvent extends PartyEvent {
   final RoundEnd end;
 }
 
+/// The AI Director election result changed ([[Multiplayer AI Director]]).
+class PartyDirectorAssignedEvent extends PartyEvent {
+  const PartyDirectorAssignedEvent(this.assignment);
+  final AiDirectorAssignment assignment;
+}
+
+/// An AI-authored round arrived and opened `state.round` (Phase 8 —
+/// [[Multiplayer AI Director]]), or failed to parse (see
+/// `buildPartyChallengeFromAiRound`), in which case a `PartyErrorEvent`
+/// fires alongside this one and `state.round` stays whatever it was.
+class PartyAiChallengeRoundEvent extends PartyEvent {
+  const PartyAiChallengeRoundEvent(this.round);
+  final AiChallengeRound round;
+}
+
+/// An AI commentary line arrived ([[AI Commentary]]).
+class PartyAiCommentaryEvent extends PartyEvent {
+  const PartyAiCommentaryEvent(this.commentary);
+  final AiCommentary commentary;
+}
+
 /// Builds the canonical local challenge for a round, exactly as every other
 /// clip does, from the host's `ROUND_START` tuple.
 Challenge buildPartyChallenge(RoundStart start) {
@@ -272,4 +305,29 @@ Challenge buildPartyChallenge(RoundStart start) {
     seed: start.seed,
     level: level,
   );
+}
+
+/// Builds the canonical local challenge for an **AI-authored** round
+/// ([[Multiplayer AI Director]] Phase 8) — every phone interprets the same
+/// relayed `ChallengeProposal` via [buildFromProposal]
+/// (`generated_challenge_runtime.dart`) instead of replaying a seed,
+/// since an AI proposal has no shared generator to rebuild from.
+///
+/// `null` on a malformed proposal — the host doesn't re-validate what the
+/// Director sends it ([[Decision Log]]), so a genuinely broken payload,
+/// while not expected from a well-behaved Director, is a real possibility
+/// this client must survive rather than crash on.
+Challenge? buildPartyChallengeFromAiRound(AiChallengeRound round) {
+  try {
+    final proposal = ChallengeProposal.fromJson(round.proposal);
+    return buildFromProposal(proposal, locale: AppLocale.en).challenge;
+  } catch (_) {
+    // Deliberately broad: `ChallengeProposal.fromJson`'s nested
+    // `MechanicRef`/`CorrectAnswer`/`DifficultySpec` parsers throw a plain
+    // `TypeError` (not `FormatException`) on a missing required field —
+    // e.g. `json['move'] as String` on a null value — and this path must
+    // survive any shape of malformed content from an untrusted relay, not
+    // just the cases `fromJson`'s own explicit checks anticipated.
+    return null;
+  }
 }

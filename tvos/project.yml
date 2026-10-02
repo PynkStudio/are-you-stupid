@@ -1,0 +1,68 @@
+name: AYSHost
+options:
+  bundleIdPrefix: com.pynkstudio.areyoustupid.host
+  deploymentTarget:
+    tvOS: "16.0"
+    macOS: "13.0"
+
+packages:
+  AYSProtocol:
+    path: .
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "0.1"
+    CURRENT_PROJECT_VERSION: "1"
+    INFOPLIST_FILE: App/Info.plist
+
+targets:
+  AYSHost-tvOS:
+    type: application
+    platform: tvOS
+    sources:
+      - path: App
+        excludes:
+          - Info.plist
+      - UI
+      - TVResources
+    dependencies:
+      - package: AYSProtocol
+        product: AYSHostCore
+      - package: AYSProtocol
+        product: AYSProtocol
+    settings:
+      base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: "App Icon & Top Shelf Image"
+
+  AYSHost-macOS:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+        excludes:
+          - Info.plist
+      - UI
+    dependencies:
+      - package: AYSProtocol
+        product: AYSHostCore
+      - package: AYSProtocol
+        product: AYSProtocol
+    settings:
+      base:
+        ENABLE_HARDENED_RUNTIME: YES
+        COMBINE_HIDPI_IMAGES: YES
+
+schemes:
+  AYSHost-tvOS:
+    build:
+      targets:
+        AYSHost-tvOS: all
+    run:
+      config: Debug
+  AYSHost-macOS:
+    build:
+      targets:
+        AYSHost-macOS: all
+    run:
+      config: Debug

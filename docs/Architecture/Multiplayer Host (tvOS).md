@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, tvos, macos, host]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # Multiplayer Host (tvOS)
@@ -63,35 +63,204 @@ Dart one). That single contract is the only coupling between the two ends.
 It deliberately does **not** do: ad serving, account/profile, any persistence
 beyond trivial local settings/match stats ([[Multiplayer Product]]).
 
-## Suggested structure (Swift)
+## Structure (Swift)
 
-One shared target for tvOS + macOS; app shells differ, `Host/` + `Net/` + `UI/`
-are shared.
+Two Swift Package targets inside `tvos/` (`AYSProtocol`, `AYSHostCore`) plus,
+now, an actual generated Xcode project (`AYSHost.xcodeproj`, via
+`xcodegen generate` from `tvos/project.yml`) with two app targets —
+`AYSHost-tvOS` and `AYSHost-macOS` — that both build the same `App/` + `UI/`
+SwiftUI sources against the package as a local dependency. `project.yml` is
+checked in; `AYSHost.xcodeproj` is generated output (regenerate with
+`xcodegen generate` from `tvos/` after touching `project.yml`).
 
 ```
-AreYouStupidTV/
-├── App/                       per-platform entry points
-│   ├── AreYouStupidTVApp.swift      tvOS entry
-│   └── AreYouStupidMacApp.swift     macOS entry (board-only, AirPlay button)
-├── Game/Host/
-│   ├── RoomHost.swift           room lifecycle, ownership, gatekeeper
-│   ├── ChallengeMaster.swift    seed generation + canonical challenge state
-│   │                            (whether it rebuilds the challenge locally is
-│   │                            the Phase 4 [[Decision Log]] determinism call)
-│   ├── RoundOrchestrator.swift  countdown, timing, judging, result assembly
-│   └── ScoreKeeper.swift        mode scoring (lives vs points), standing
-├── Net/
-│   ├── NWListenerServer.swift   TCP accept + per-connection read/write
-│   ├── BonjourAdvertiser.swift  _ays-party._tcp advertising
-│   └── ProtocolModel.swift      mirrors [[Multiplayer Protocol]] models
-├── QR/
-│   └── QRGenerator.swift        CoreImage CIQRCodeGenerator (zero assets)
-└── UI/                          SwiftUI screens per [[Multiplayer Gameplay]]
-    ├── LobbyView, JoinQRView, RosterView
-    ├── RoundView, ResultView, ScoreboardView
-    ├── EliminationCard, WinnerView, ShareCardView
-    └── Theme.swift              mirrors the Flutter palette ([[Rendering Pipeline]])
+tvos/
+├── Package.swift                  AYSProtocol + AYSHostCore targets, platforms: macOS 13 / iOS 16 / tvOS 16
+│                                  (needed for `#isolation`/checked continuations — see [[Decision Log]])
+├── project.yml                    xcodegen spec — two app targets, one local package dependency
+├── TVResources/
+│   └── Assets.xcassets            "App Icon & Top Shelf Image.brandassets" (App Icon small/large
+│                                  layered imagestacks, Top Shelf Image + Wide); wired into
+│                                  `AYSHost-tvOS` only via `ASSETCATALOG_COMPILER_APPICON_NAME` in
+│                                  `project.yml` — see [[Decision Log]]
+├── App/
+│   └── AYSHostApp.swift           @main SwiftUI App/Scene, shared by both targets
+├── UI/                            shared SwiftUI board UI (tvOS + macOS, `#if os()` only where they
+│                                  genuinely differ — the AirPlay button, window sizing)
+│   ├── HostViewModel.swift        wires RoomHost + NWListenerServer + QRGenerator to SwiftUI via
+│                                  RoomHost.onBroadcast; owns the room code and BoardScreen state
+│   ├── RootView.swift             LOBBY -> ROUND -> RESULTS -> GAME_END, off HostViewModel.screen
+│   ├── LobbyView.swift            room code, join QR, roster, START GAME (>=2 ready)
+│   ├── RoundView.swift            GET READY / GO countdown display (round auto-closes on deadline)
+│   ├── ResultsView.swift          per-player ✓/✕ + score delta, NEXT ROUND
+│   ├── GameEndView.swift          standings + winner + REMATCH (same room, per docs/Gameplay/
+│                                  Multiplayer Gameplay.md "instant rematch back into the lobby")
+│   ├── AirPlayButton.swift        macOS-only `AVRoutePickerView` wrapper (board-only Mac host)
+│   ├── RoundDurationProvider.swift  the App target's `ChallengeJudge` — resolves a duration
+│                                  only, now that content judging moved to the client entirely
+│                                  (see "Challenge judging" below); looks up each template's real
+│                                  `maxDurationMs` from `AYSChallengeCatalog` (see [[Decision Log]])
+│   ├── RoomCode.swift             random 4-char room code, ambiguous characters excluded
+│   └── Theme.swift                dark ground, bold uppercase type — no bundled assets
+├── Sources/
+│   ├── AYSProtocol/                mirrors [[Multiplayer Protocol]] models — landed (Phase 2)
+│   └── AYSHostCore/                 room/round/scoring authority — landed (Phase 4, partial)
+│       ├── HostClock.swift          monotonic ms seam (manual for tests, wall-clock for real use)
+│       ├── HostTransport.swift      line-based duplex seam (in-memory for tests, NWConnection for real)
+│       ├── NWConnectionTransport.swift  the real HostTransport — Network.framework, JSONL framing
+│       ├── NWListenerServer.swift   TCP accept loop + Bonjour advertising (`Net/`, landed)
+│       ├── QRGenerator.swift        CIQRCodeGenerator join-link QR, no assets (`QR/`, landed)
+│       ├── ChallengeJudge.swift     duration-only now — see "Challenge judging" below
+│       ├── ChallengeCatalog.swift   id/minLevel/weight/starter, mirrors [[Challenge Catalog]] (data only)
+│       ├── ChallengePicker.swift    weighted picker on that data — doesn't need to match Dart's sequence
+│       └── RoomHost.swift           room lifecycle, gatekeeper, rounds, scoring, elimination, GAME_END,
+│                                    the AI Director election/relay/failover (`electDirector`,
+│                                    `startNextRound`/`startAiRound`, `pendingAiProposal` — see
+│                                    [[Multiplayer AI Director]] Phase 8) — a faithful port of
+│                                    test/support/party_host_reference.dart plus the AI additions, plus
+│                                    an `onBroadcast` hook so a local UI observes the same events a
+│                                    connected phone gets, without a fake loopback client
+└── Tests/
+    ├── AYSProtocolTests/            golden-fixture cross-check against the Dart codec
+    └── AYSHostCoreTests/            AIDirectorTests.swift (election, relay, failover — [[Decision
+                                     Log]]) plus the pre-AI suites below and NetworkTests.swift
+                                     (Bonjour naming unconditionally, real-socket cases opt-in only)
+                                     and QRGeneratorTests.swift
 ```
+
+**Verified live, this session:** `AYSHost-macOS` builds (`xcodebuild ...
+-scheme AYSHost-macOS`) and runs — screenshotted with a real room code, a
+real scannable QR, `NWListenerServer` actually bound and listening
+("LISTENING ON PORT ...") and the AirPlay picker button, all with zero
+manual intervention (no permission dialog blocked the local bind — unlike
+the bare `swift test` CLI binary, a real signed `.app` with
+`NSLocalNetworkUsageDescription` declared gets the normal one-time-if-ever
+OS prompt instead of the synchronous XPC hang documented below and in
+[[Decision Log]]). **Correction:** that first pass's "real Bonjour
+advertising" claim was wrong — the port being open only proves the TCP
+listener bound, not that anything was actually discoverable. A real-device
+test (Mac host + iPhone/iPad client) right after confirmed the room never
+showed up: `NSBonjourServices` had silently never made it into the built
+Info.plist at all (an `INFOPLIST_KEY_*` scalar setting can't express the
+array Bonjour needs — see [[Decision Log]] for the full bisect, including a
+second xcodegen bug in the array-valued `info.properties` fix attempt).
+Now fixed via a real static `tvos/App/Info.plist` (`INFOPLIST_FILE:
+App/Info.plist`), confirmed with `PlistBuddy` that the built app carries
+`NSBonjourServices` as a real array — but **actual cross-device discovery
+still hasn't been re-verified against a real phone** as of this note; only
+the Info.plist content is confirmed correct.
+
+`AYSHost-tvOS` is the same sources compiled for tvOS — confirmed building
+(`xcodebuild -destination 'generic/platform=tvOS Simulator'`) and running
+live on a booted `Apple TV` simulator (`xcrun simctl install`/`launch`/`io
+screenshot`), same room code + QR + listening-port pattern as macOS, after
+downloading the tvOS platform (`xcodebuild -downloadPlatform tvOS`, done
+with the user's explicit go-ahead — see [[Decision Log]]). This
+confirmation predates the `NSBonjourServices` fix above, so it proves the
+shared SwiftUI code and TCP bind work on tvOS too, not that tvOS discovery
+specifically works — the same open item applies here.
+
+**What the App/UI shell does not yet have:** EliminationCard, a real winner
+animation beyond a name in text, a share card, and the humor lines
+([[Multiplayer Gameplay]] "Humor lines", [[Multiplayer Development]] Phase
+9) — the live standings overlay landed this session (`ScoreboardView.swift`,
+fed by `PLAYER_SCORE` broadcasts via `HostViewModel.standings`). It also has
+no XCTest target of its own — `RoomCode`/`RoundDurationProvider` are
+exercised only by building successfully and the one live screenshot above,
+not by an automated suite the way `AYSHostCoreTests` covers the package
+(that package-level suite does now cover the `AYSChallengeCatalog` data
+`RoundDurationProvider` looks up — `ChallengeCatalogTests.swift` — just
+not the App-target lookup wrapper itself).
+
+### Net/ and QR/: landed, but real-socket tests are opt-in only
+
+`NWListenerServer` (accepts `NWConnection`s, optionally advertises
+`_ays-party._tcp` via `NWListener.service`) and `NWConnectionTransport` (the
+production `HostTransport`: JSONL framing over a real socket, mirroring
+`lib/multiplayer/networking/session_socket.dart`'s `SocketPartyTransport`
+exactly) are both written and build cleanly. `QRGenerator` renders the join
+deep link (`areyoustupid://join?room=XXXX`, matching
+`mp_home_screen.dart`'s `_deepLinkRoomCode` contract exactly) to a `CGImage`
+via `CIQRCodeGenerator` — no SwiftUI/UIKit/AppKit dependency, so it's usable
+from tvOS, iOS and macOS alike.
+
+**What's actually verified headless:** `BonjourServiceTests` (the instance
+name / service type rule) and all of `QRGeneratorTests` (deep-link string,
+deterministic output, different input → different pixels, scaling) run
+every time, no network involved.
+
+**What isn't:** the four cases in `NWConnectionTransportTests` that open a
+real `NWListener`/`NWConnection` over loopback. On macOS, a plain
+(unsigned/ad-hoc) command-line binary asking to *accept* inbound
+connections needs the user to grant the one-time "Local Network" TCC
+permission — inside an unattended shell with nobody to click Allow, the
+underlying XPC call blocks *synchronously* and can wedge Swift
+concurrency's entire cooperative thread pool, including unrelated
+`Task.sleep` timeouts in sibling tasks. Confirmed directly this session:
+`swift test` hung indefinitely (had to `kill -9` the process) the moment it
+reached that code, with or without a `readyTimeout` guard on
+`NWListenerServer.start` — the timeout task itself never got to run. So
+these four tests check `ProcessInfo.processInfo.environment` for
+`AYS_RUN_NETWORK_TESTS=1` *before* touching `Network.framework` at all, and
+skip otherwise — `swift test` stays fast and green by default. Run
+`AYS_RUN_NETWORK_TESTS=1 swift test` from an interactive Terminal, click
+Allow on the prompt the first time, to actually exercise the real `Net/`
+layer end-to-end (two `SimClient`s over real sockets through a real
+`RoomHost`, to `GAME_END` — the Swift mirror of
+`socket_integration_test.dart`). See [[Decision Log]] for the full story;
+this is the same category of gap [[Multiplayer Development]] already flags
+for `LanPartyDiscovery` and Phase 10's real-device pass — a real, properly
+signed app only ever sees that dialog once.
+
+### Challenge judging: resolved — the host never rebuilds content at all
+
+`RoomHost` never touches challenge content directly, and now never needs
+to: [[Multiplayer Challenges]]'s "Phase 4 open question" (reimplement Dart's
+seeded PRNG *and* all 39 templates' judging logic in Swift, or decide the
+host doesn't need to) is answered in favor of the second option. The
+*client* judges its own input — `PartyChallengeRunner`
+(`lib/multiplayer/engine/party_challenge_runner.dart`, Dart) drives the same
+`Challenge` engine single-player uses and reports the verdict in every
+`PLAYER_ACTION`. `RoomHost.onAction` builds its `JudgeVerdict` straight from
+that trusted `correct`/`reason`/`note` instead of calling into a judge at
+all — `ChallengeJudge` now only has one method, `spec(...)`, used to resolve
+a round's *duration* (and reject an unknown `challengeId`). See the
+design-change note on `PlayerAction` in [[Multiplayer Protocol]] and
+[[Decision Log]] for the full reasoning and the accepted trade-off (a
+modified client could self-report "always correct" — out of scope to defend
+against for a local, in-person party game).
+
+`AYSHostCoreTests` still injects `FakeChallengeJudge` for `spec(...)` (fixed
+duration, optionally an unknown-id set) — real test doubles like
+`SimClient.tap`/`commitCount` now take an explicit `correct:` parameter
+directly, mirroring how a real phone's `PartyChallengeRunner` would have
+computed it, rather than deriving it through a judge.
+
+Picking which `challengeId` to play next is a *different*, already-settled
+question: since only the host picks (clients just render whatever
+`ROUND_START` says), `ChallengePicker` doesn't need to match Dart's sequence
+at all — ordinary Swift randomness over the ported catalog metadata is
+enough.
+
+### Where the app shell itself stands
+
+**Landed.** `tvos/project.yml` (`xcodegen`) generates `AYSHost.xcodeproj`
+with `AYSHost-tvOS` and `AYSHost-macOS` app targets, both building the
+shared `App/` + `UI/` SwiftUI sources against the `AYSProtocol`/`AYSHostCore`
+package as a local dependency — `RoomHost` and the rest of the package no
+longer need to stay Xcode-project-free to be buildable, and the app shell
+is real, not aspirational. `AYSHost-macOS` is confirmed building and
+running (see the "Structure (Swift)" section above for the live-verified
+details); `AYSHost-tvOS` compiles the identical sources for tvOS and is
+blocked only on whether this machine has the tvOS platform installed, not
+on any missing capability — see [[Decision Log]] for what changed (this
+session found `xcodegen`/`tuist` already installed alongside Xcode 26,
+which is what made this possible; a prior pass had incorrectly concluded
+no Xcode project could be produced at all).
+
+The remote-focus model, real device signing, and App Store distribution
+concerns are all still ahead — this only closes "there's no path to a real
+app," not Phase 10's real-device pass.
 
 ## Timing precision on TV
 
@@ -117,11 +286,25 @@ Product]]).
 
 ## Testability story
 
-The pure `Host/` graph (`RoomHost`, `ChallengeMaster`, `RoundOrchestrator`,
-`ScoreKeeper` + `ProtocolModel`) is unit-testable in Swift without a UI or a
-real network (inject an `NWListenerServer`-interface abstraction). The
-authoritative host rules are also cross-checked by the Flutter-side simulation
-harness that speaks the same protocol ([[Multiplayer Development]]).
+**Landed.** `RoomHost` is unit-tested in Swift without a UI or a real network
+— `HostTransport`/`HostClock` are injectable seams (`InMemoryHostTransport`,
+`ManualHostClock`), exactly the abstraction this note used to describe as a
+plan. 42 `AYSHostCoreTests` cases cover the room lifecycle, round sync,
+scoring (both modes, exact speed-bonus split), elimination/sole-survivor,
+reconnect grace window, and the AI Director election/relay/failover
+([[Multiplayer AI Director]] Phase 8), plus (unconditionally) Bonjour
+instance-name rules and QR generation — see [[Testing]] for the
+real-socket cases' opt-in gate.
+The authoritative host rules are also cross-checked by the Flutter-side
+simulation harness that speaks the same protocol ([[Multiplayer
+Development]]).
+
+A real bug turned up building this: `RoomHost.attachClient`'s connection
+closures must weak-capture `self` (so a connection can never keep the whole
+host alive) but strongly capture the per-connection `Connection` object
+(so one connection's lifetime doesn't depend on bookkeeping elsewhere) —
+getting this backwards made messages silently vanish with no error the
+moment nothing else happened to hold the host. See [[Decision Log]].
 
 ## Related
 

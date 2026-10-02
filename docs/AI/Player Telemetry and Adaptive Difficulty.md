@@ -1,6 +1,6 @@
 ---
 tags: [ai, gameplay, telemetry, difficulty]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # Player Telemetry and Adaptive Difficulty
@@ -8,6 +8,13 @@ updated: 2026-09-07
 The Director's eyes and its adaptation muscle. Lives in `lib/ai/`; core stays
 ignorant of it ([[Dynamic AI Director]]). **All telemetry is local, bounded,
 and belongs to the player's device** — see [[Privacy and Offline]].
+
+**Implementation status:** telemetry collection has run in production since
+Phase 3. `AdaptiveChallengeProvider` itself is wired into production as of
+[[Development Plan]] Phase 5, behind `aiAdaptiveDifficultyEnabled`
+(default **off** — see [[Feature Flags]]): telemetry keeps observing every
+run regardless, but nothing about which challenge gets served changes
+unless that flag is explicitly turned on.
 
 ## What gets observed
 
@@ -94,7 +101,12 @@ Three knobs, from [[AI Challenge Generation]]:
    model proposes it* — but the *variety guard* keeps ≤ 3 rounds with the same
    mechanic in any 8, so repetition never turns into a grind. Territory is a
    **preference, not a ceiling**: `minLevel > level` mechanics still never
-   appear.
+   appear. "Struggling" is self-relative, not a fixed cutoff: a mechanic
+   qualifies when its success rate is below the player's own average across
+   every mechanic they have data for
+   (`AdaptiveChallengeProvider._targetMechanics()` in `lib/ai/providers.dart`)
+   — so there is always *some* mechanic outside the target set, even for a
+   player who is struggling everywhere.
 3. **Tension** — the read-outs the model fills (`timeLimitMs`, `scale`,
    decoys). Every proposed tension value is clamped by
    [[AI Challenge Validator]] bounds before play. `trickType` unlocks follow

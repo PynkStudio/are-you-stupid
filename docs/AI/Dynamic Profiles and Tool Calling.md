@@ -1,6 +1,6 @@
 ---
 tags: [ai, architecture, foundationmodels]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # Dynamic Profiles and Tool Calling
@@ -8,6 +8,21 @@ updated: 2026-09-07
 How the model is configured per job and what real data it may read. Both
 concepts are **bounded by the same vocabulary discipline** as challenges:
 closed categories, validated output, never the raw player history.
+
+**Implementation status:** `ChallengeGenerationProfile` is real
+(`ios/Runner/AppleAIService/ChallengeGenerationProfile.swift`), with its
+three tools (`GetPlayerProfileTool`, `GetRecentChallengesTool`,
+`GetAvailableMechanicsTool`) implemented in `GenerationTools.swift` — but
+**backed by a Dart-computed snapshot sent up front with the request, not a
+live bidirectional bridge** as this note's "call back into Dart" framing
+implies. For a single one-shot `requestChallenge` call, everything these
+tools return was already available before the model session even starts,
+so building a genuine reverse-channel callback (novel, and unverifiable
+without a real device) wasn't worth it — see the 2026-09-11
+[[Decision Log]] entry. `CommentaryProfile`/`FinalRoundProfile`/
+`MultiplayerHostProfile` and their own tool sets (`GetCurrentScoresTool`,
+`GetRoundHistoryTool`, `ValidateChallengeTool`) aren't built — no caller
+needs them yet.
 
 ## Profiles
 

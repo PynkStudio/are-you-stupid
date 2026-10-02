@@ -1,6 +1,6 @@
 ---
 tags: [ai, architecture, configuration]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # Feature Flags
@@ -8,6 +8,17 @@ updated: 2026-09-07
 How the AI experience is switched on/off and why the *mode*, not the flag,
 is what the player is shown. See [[Foundation Models Integration]] →
 Availability ladder for the states that feed this.
+
+**Implementation status:** the data module (`lib/ai/feature_flags.dart`)
+landed — every flag below is real, live, and actually read by name
+(`aiMultiplayerDirectorEnabled` gates `PartyAiDirector.announceCapabilities`
+so an opted-out phone can never be elected — added slightly after the rest
+in Phase 8, see the 2026-09-11 [[Decision Log]] entry on how that gap was
+caught). It persists a plain `enabled`/`disabled` bool per flag, not the
+tri-state described below — `unavailable` is computed by whoever combines
+a flag with live `AppleAiAvailability`, not persisted here. The Settings
+Ai section (`_AiSection` in `settings_screen.dart`) is real too —
+[[Development Plan]] Phase 9.
 
 ## The flags (all local)
 

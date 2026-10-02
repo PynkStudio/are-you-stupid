@@ -38,4 +38,31 @@ class ShareManager {
       ),
     );
   }
+
+  /// Result text for a finished multiplayer match ([[Multiplayer Product]]
+  /// "Sharing").
+  static String multiplayerResultText(
+    String winnerName, {
+    AppLocale locale = AppLocale.en,
+  }) {
+    final buffer = StringBuffer()
+      ..writeln(Strings.t(locale, 'ui.mp.share.line1', {'name': winnerName}))
+      ..writeln(Strings.t(locale, 'ui.mp.share.line2'));
+    if (storeUrl.isNotEmpty) buffer.writeln(storeUrl);
+    return buffer.toString().trim();
+  }
+
+  Future<void> shareMultiplayerResult(
+    String winnerName, {
+    Rect? origin,
+    AppLocale locale = AppLocale.en,
+  }) async {
+    await SharePlus.instance.share(
+      ShareParams(
+        text: multiplayerResultText(winnerName, locale: locale),
+        subject: Strings.t(locale, 'app.title'),
+        sharePositionOrigin: origin,
+      ),
+    );
+  }
 }

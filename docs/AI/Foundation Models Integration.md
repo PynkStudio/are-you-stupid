@@ -1,6 +1,6 @@
 ---
 tags: [ai, architecture, ios, swift]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # Foundation Models Integration
@@ -167,12 +167,25 @@ Dart never sees the session.
 | `cancelUnit` | `{ unitId }` | `true` (best-effort; generation is a single await that completes or is discarded) |
 | `feedback` | `{ sentiment, issue, excerpt }` | `true` (best-effort; nothing depends on it) |
 
-**Phase 2 status:** `available` is fully implemented (reads
-`SystemLanguageModel.default.availability` through
-`AYSAppleAIAvailabilityRail`). The four generation methods return the error
-envelope `{ ok: false, error: { code: "notImplemented", retryable: false } }`
-until Phases 4–5; `cancelUnit` returns `true` and `feedback` returns `false`
-(no-op stubs). Unknown methods answer `FlutterMethodNotImplemented`.
+**Status (updated Phase 6):** `available`, `requestCommentary` and
+`requestChallenge` are fully implemented. `requestCommentary` calls a real
+`LanguageModelSession` for plain text through `AYSCommentaryService`
+(`ios/Runner/AppleAIService/CommentaryProfile.swift`). `requestChallenge`
+calls a real, `@Guide`-constrained `AYSChallengeProposal` generation with
+three snapshot-backed tools through `AYSChallengeGenerationService`
+(`ChallengeGenerationProfile.swift`/`GenerationTools.swift`); its wire dict
+is hand-built (confirmed `@Generable` gives no `Encodable` conformance) and
+`failLine` comes from a canonical per-mechanic table. Both are verified
+against the real iPhoneOS 26.5 SDK (`tool/swiftc_ai_gate.sh`) and a real
+`flutter build ios --simulator` linking them into the app target, though
+not against a real device (none available in this environment) —
+`ChallengeValidator` on the Dart side stays the actual authority
+regardless of what the `@Guide`s already constrained. `requestFinalRound` /
+`requestMultiplayerHost` still return the error envelope
+`{ ok: false, error: { code: "notImplemented", retryable: false } }` — no
+caller needs them yet; `cancelUnit` returns `true` and `feedback` returns
+`false` (no-op stubs). Unknown methods answer `FlutterMethodNotImplemented`.
+See the 2026-09-11 [[Decision Log]] entries.
 
 Shared rules:
 

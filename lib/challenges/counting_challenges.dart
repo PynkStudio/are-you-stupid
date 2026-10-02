@@ -86,7 +86,8 @@ class ExactTapsChallenge extends BaseChallenge {
       p,
       required_: n,
       id: 'tap_exactly_n',
-      duration: p.pace(const Duration(milliseconds: 3400), floorMs: 1800),
+      // Counting-under-pressure: a bit more room than a plain reaction tap.
+      duration: p.pace(const Duration(milliseconds: 4000), floorMs: 2100),
       instruction: p.tr(
         'challenge.tap_exactly_n.instruction',
         {'n': '$n'},
@@ -175,7 +176,8 @@ TapTargetChallenge buildMath(ChallengeParams p) {
     p,
     id: 'math',
     tag: ChallengeTag.counting,
-    duration: p.pace(const Duration(milliseconds: 3000), floorMs: 1400),
+    // Actual arithmetic needs a beat longer than reading a color off a button.
+    duration: p.pace(const Duration(milliseconds: 3600), floorMs: 1700),
     instruction: p.tr(
       plus ? 'challenge.math.instruction_plus' : 'challenge.math.instruction_minus',
       {'a': '$a', 'b': '$b'},
@@ -205,7 +207,9 @@ TapTargetChallenge buildCountShapes(ChallengeParams p) {
     p,
     id: 'count_shapes',
     tag: ChallengeTag.counting,
-    duration: p.pace(const Duration(milliseconds: 4000), floorMs: 1800),
+    // Counting a soup of shapes is the most computationally heavy starter
+    // trick in the pool — give it the most headroom of the three.
+    duration: p.pace(const Duration(milliseconds: 4600), floorMs: 2100),
     instruction: p.tr('challenge.count_shapes.instruction'),
     targets: numberTargets(list),
     correctIds: {'n$circles'},

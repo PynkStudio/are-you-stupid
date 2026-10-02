@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, client, flutter]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # Multiplayer Client (Mobile)
@@ -10,17 +10,32 @@ entry point, join flow, and an in-game "controller" screen. It is deliberately
 thin — a local renderer + input sender on top of the host's authority
 ([[Multiplayer Architecture]]). The single-player experience is untouched.
 
-## What the client never does
+## What the client does and doesn't do
 
-It does **not** generate challenges, does **not** judge answers, does **not**
-award itself points or lives, does **not** decide rounds or the winner.
-Everything it renders is a mirror of host state arriving as
-[[Multiplayer Protocol]] messages, or a deterministic local `ChallengeView`
-built from the host's own `{ challengeId, seed }` (identical to what the host
-built). It only:
+**Design change, see [[Decision Log]] and the note on `PlayerAction` in
+[[Multiplayer Protocol]]:** the client *does* judge answers now — it used
+not to. It does **not** generate challenges (the host still picks
+`{ challengeId, seed, level }` and pushes it via `ROUND_START`), does **not**
+award itself points or lives, and does **not** decide rounds or the winner —
+those stay entirely host-authoritative. But content judging — "was this tap
+correct" — moved here: `PartyChallengeRunner`
+(`lib/multiplayer/engine/party_challenge_runner.dart`) drives the exact same
+`Challenge` engine single-player uses (built from the host's
+`{ challengeId, seed, level }` via `buildFromSeed`, identical to what the
+host would have built if it still rebuilt anything) and reports the verdict
+in the `PLAYER_ACTION` it sends. The host trusts that verdict rather than
+re-deriving it — the deliberate trade-off is that a modified client could
+self-report "always correct," accepted for a local, in-person party game
+where porting 39 templates' judging logic (much of it genuinely
+time-dependent — moving buttons, color shifts, memory recall) into a second
+Swift implementation was the alternative. The client:
 
 - renders the current challenge + its local feedback/feedback flash;
-- collects taps → sends `PLAYER_ACTION`;
+- **runs** the current challenge (`PartyChallengeRunner`, driven by a real
+  `Ticker` in `mp_game_screen.dart` — the same pattern single-player's
+  `game_screen.dart` uses for `GameEngine.tick`) and judges its own input;
+- collects taps → forwards them into the runner, which sends the resulting
+  `PLAYER_ACTION` (verdict included) once it settles;
 - shows the join flow, lobby wait state, and result/share screens.
 
 ## Entry points
@@ -37,27 +52,49 @@ No account, no cloud, no network beyond the LAN ([[Game Design Pillars]]).
 
 ## Client structure (additive, pure-Dart core)
 
-Phase 2 ships the headless core; the widget layer + transport come in Phase 3.
+Phase 2 shipped the headless core; Phase 3 added the widget layer + real
+transport + discovery. See [[Multiplayer Development]] for exactly what's
+verified vs. still unreachable without a real host (Phase 4).
 
 ```
-lib/multiplayer/                    NEW pure-Dart layer (no widgets) — landed (Phase 2)
+lib/multiplayer/                    pure-Dart layer (no widgets) — landed (Phase 2)
 ├── protocol/protocol.dart          mirrors [[Multiplayer Protocol]] (Dart models + JSONL codec)
-├── engine/party_session.dart       connection lifecycle + state machine
+├── engine/party_session.dart       connection lifecycle + state machine; also owns the open
+│                                  round's PartyChallengeRunner (starts it on GO, stops it on
+│                                  ROUND_END) and exposes `tick(elapsed)` for the UI to drive
+├── engine/party_challenge_runner.dart  drives one round's Challenge to a verdict — the
+│                                  design-change piece, see above
 ├── engine/party_state.dart         client mirror of host state for the UI
-├── engine/party_controller.dart    tap → PLAYER_ACTION wiring
-└── networking/party_transport.dart in-memory transport (headless tests; the
-                                     real Bonjour + dart:io Socket arrive in Phase 3)
+├── engine/party_controller.dart    tap → PartySession.submitTap wiring (judging happens
+│                                  inside the session's runner, not here)
+├── networking/party_transport.dart in-memory transport (headless tests)
+├── networking/session_socket.dart  real dart:io Socket PartyTransport — landed (Phase 3)
+└── networking/lan_discovery.dart   Bonjour/NSD room-code resolution (package:nsd — native
+                                   NsdManager/NSNetServiceBrowser, not a raw mDNS socket;
+                                   see [[Decision Log]] for why it isn't multicast_dns anymore)
+                                     — landed (Phase 3), nothing to discover until
+                                     Phase 4's host advertises
+└── ai/party_ai_director.dart       the elected phone's [[Multiplayer AI Director]] runtime
+                                    (Phase 8) — inert on every other phone until named Director;
+                                    reuses `lib/ai/`'s AppleAIService/ChallengeValidator/
+                                    buildFromProposal pipeline, pushes results over the wire
+                                    instead of into a local cache
 
 test/support/party_host_reference.dart  in-process host authority for the
-                                    simulation harness (stands in for the Swift host)
+                                    simulation harness (stands in for the Swift host);
+                                    also reused real-time by tool/dev_multiplayer_host.dart
 
-lib/ui/screens/multiplayer/         NEW widget layer (controller UX) — Phase 3
-├── mp_home_screen.dart             MULTIPLAYER tile landing / scan / enter code
-├── mp_join_screen.dart             name + emoji + JOIN + waiting state
-├── mp_lobby_screen.dart            "✓ JOINED … waiting for players" + roster
-├── mp_game_screen.dart             controller ChallengeView + input
-├── mp_result_screen.dart           personal result + share
-└── mp_disconnect_view.dart         host-disconnected / network error states
+lib/services/multiplayer_profile.dart  name/emoji/stats, SharedPreferences — landed (Phase 3)
+
+lib/ui/screens/multiplayer/         widget layer (controller UX) — landed (Phase 3)
+├── mp_common.dart                  MpBackground / MpAvatar / MpTextField / leaveAndExit
+├── mp_home_screen.dart             MULTIPLAYER tile landing / in-app QR scan / enter code
+├── mp_join_screen.dart             resolve room → connect → name + JOIN + waiting state
+├── mp_lobby_screen.dart            "✓ JOINED … waiting for players" + roster + ready toggle
+├── mp_game_screen.dart             controller ChallengeView + input (ChallengeRenderer reused);
+│                                  owns the Ticker that drives PartySession.tick each frame
+├── mp_result_screen.dart           standings + share
+└── mp_disconnect_view.dart         host-disconnected / rejected overlay
 ```
 
 The multiplayer widget layer reuses the existing [[Rendering Pipeline]]

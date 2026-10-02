@@ -81,7 +81,8 @@ TapTargetChallenge buildOpposite(ChallengeParams p) {
     p,
     id: 'opposite',
     tag: ChallengeTag.word,
-    duration: p.pace(const Duration(milliseconds: 2300), floorMs: 1100),
+    // A beat of semantic recall, not just a glance-and-tap.
+    duration: p.pace(const Duration(milliseconds: 2700), floorMs: 1350),
     instruction: p.tr('challenge.opposite.instruction', {'word': asked}),
     targets: targets,
     correctIds: {targets[words.indexOf(answer)].id},
@@ -110,7 +111,8 @@ TapTargetChallenge buildSpellCount(ChallengeParams p) {
     p,
     id: 'spell_count',
     tag: ChallengeTag.word,
-    duration: p.pace(const Duration(milliseconds: 3600), floorMs: 1600),
+    // Reading, then literally counting letters — the heaviest word trick.
+    duration: p.pace(const Duration(milliseconds: 4200), floorMs: 1900),
     instruction: p.tr('challenge.spell_count.instruction', {'word': word}),
     hint: p.tr('challenge.spell_count.hint'),
     targets: targets,

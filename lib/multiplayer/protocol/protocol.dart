@@ -159,9 +159,22 @@ class GameResultEntry {
 
 /// The input a client submits in a `PLAYER_ACTION`.
 ///
-/// The host never trusts coordinates/timing from the client for correctness;
-/// it rebuilds the canonical challenge and judges the input itself. `elapsed`
-/// is derived by the host from its own clock, not sent by the client.
+/// **Design change, see [[Decision Log]]:** the host used to rebuild the
+/// canonical challenge and judge input itself. It no longer does — judging
+/// 39 templates' often time-dependent logic (moving buttons, color shifts,
+/// memory recall) a second time in Swift would mean keeping two
+/// implementations of the same rules in permanent lockstep, which is exactly
+/// the class of bug this project keeps tripping over. Instead, the *client*
+/// judges — using the exact same `Challenge` engine every template already
+/// has for single-player, via `PartyChallengeRunner` — and reports its
+/// verdict (`PlayerAction.correct`/`reason`/`note`) alongside the raw input.
+/// The host still owns *when* a round closes and still applies its own
+/// duplicate/stale/late-action checks; it just no longer re-derives
+/// *correctness*. This is a deliberate trust call for a local, in-person
+/// party game: a modified client could self-report "always correct," which
+/// is out of scope to defend against here. `elapsed` is still derived by
+/// the host from its own clock for the round-expiry check, not trusted from
+/// the client either.
 ///
 /// [kind] is `tap` (a single pointer-down on a target or the background) or
 /// `count` (the committed tap count for counting families like `tap_twice` /
@@ -669,12 +682,17 @@ class RoundCountdown extends PartyMessage {
       );
 }
 
-/// client → host. Input only; host judges.
+/// client → host. Carries the raw input *and* the client's own verdict —
+/// see the design-change note on [PartyAction] above for why the host
+/// trusts [correct]/[reason]/[note] instead of re-judging.
 class PlayerAction extends PartyMessage {
   const PlayerAction({
     required this.playerId,
     required this.roundId,
     required this.action,
+    required this.correct,
+    this.reason,
+    this.note,
     this.clientTimestampMs = 0,
     int ts = 0,
   }) : super(ts);
@@ -682,6 +700,18 @@ class PlayerAction extends PartyMessage {
   final String playerId;
   final String roundId;
   final PartyAction action;
+
+  /// The client's own verdict, computed by replaying the same `Challenge`
+  /// single-player uses (`PartyChallengeRunner`). Authoritative — the host
+  /// no longer rebuilds the challenge to check this.
+  final bool correct;
+
+  /// One-line wrong-answer explanation, shown on the board/other phones.
+  /// Every template ships one per docs/Gameplay/Game Design Pillars.md.
+  final String? reason;
+
+  /// Optional correct-answer flourish (e.g. a reaction-time note).
+  final String? note;
 
   /// Used only for the reaction-time bonus/tie-break, cross-checked by the
   /// host against its own `actionReceivedMs`. Never authoritative.
@@ -696,6 +726,9 @@ class PlayerAction extends PartyMessage {
         'playerId': playerId,
         'roundId': roundId,
         'action': action.toWire(),
+        'correct': correct,
+        if (reason != null) 'reason': reason,
+        if (note != null) 'note': note,
         'clientTimestampMs': clientTimestampMs,
       };
 
@@ -705,6 +738,9 @@ class PlayerAction extends PartyMessage {
         roundId: w['roundId'] as String? ?? '',
         action: PartyAction.fromWire(
             (w['action'] as Map?)?.cast<String, Object?>() ?? const {}),
+        correct: w['correct'] as bool? ?? false,
+        reason: w['reason'] as String?,
+        note: w['note'] as String?,
         clientTimestampMs: w['clientTimestampMs'] as int? ?? 0,
         ts: ts,
       );
@@ -909,6 +945,216 @@ class PartyError extends PartyMessage {
       );
 }
 
+// ------------------------------------------------------- AI Director (Phase 7)
+//
+// Additive kinds for [[Multiplayer AI Director]]. Naming follows this
+// protocol's own convention (flat Upper-`SNAKE_CASE`, no direction prefix)
+// rather than the design doc's `client/aiCapabilities`-style sketch — see
+// the 2026-09-11 Phase 7 [[Decision Log]] entry. `proposal` stays an opaque
+// `Map<String, Object?>` here (this file has no `lib/ai/` dependency by
+// design, same as `RoundStart.config`); callers decode it via
+// `ChallengeProposal.fromJson`.
+
+/// client → host, once after connecting: whether this phone can run the
+/// on-device model, for the host's Director election.
+class AiCapabilities extends PartyMessage {
+  const AiCapabilities({
+    required this.aiAvailable,
+    this.computeRank = 0,
+    this.batteryPercent = 100,
+    int ts = 0,
+  }) : super(ts);
+
+  final bool aiAvailable;
+
+  /// Tie-break rank. v1 keeps this a single tier (`aiAvailable ? 1 : 0`) —
+  /// see the Phase 8 [[Decision Log]] entry on why a finer SoC-based rank
+  /// isn't worth a new dependency.
+  final int computeRank;
+  final int batteryPercent;
+
+  @override
+  String get type => 'AI_CAPABILITIES';
+
+  @override
+  Map<String, Object?> toWire() => {
+        ...super.toWire(),
+        'aiAvailable': aiAvailable,
+        'computeRank': computeRank,
+        'batteryPercent': batteryPercent,
+      };
+
+  static AiCapabilities fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      AiCapabilities(
+        aiAvailable: w['aiAvailable'] as bool? ?? false,
+        computeRank: w['computeRank'] as int? ?? 0,
+        batteryPercent: w['batteryPercent'] as int? ?? 100,
+        ts: ts,
+      );
+}
+
+/// host → all: who won the Director election, or `null` when no capable
+/// phone is connected (the match plays 100% scripted).
+class AiDirectorAssignment extends PartyMessage {
+  const AiDirectorAssignment({this.directorPeerId, int ts = 0}) : super(ts);
+
+  final String? directorPeerId;
+
+  @override
+  String get type => 'AI_DIRECTOR_ASSIGNMENT';
+
+  @override
+  Map<String, Object?> toWire() => {
+        ...super.toWire(),
+        if (directorPeerId != null) 'directorPeerId': directorPeerId,
+      };
+
+  static AiDirectorAssignment fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      AiDirectorAssignment(
+        directorPeerId: w['directorPeerId'] as String?,
+        ts: ts,
+      );
+}
+
+/// client → host, Director only: a validated `ChallengeProposal` the host
+/// should relay as this round's content instead of a scripted
+/// `{challengeId, seed}` pick.
+class AiRoundProposal extends PartyMessage {
+  const AiRoundProposal({
+    required this.roundId,
+    required this.proposal,
+    int ts = 0,
+  }) : super(ts);
+
+  final String roundId;
+  final Map<String, Object?> proposal;
+
+  @override
+  String get type => 'AI_ROUND_PROPOSAL';
+
+  @override
+  Map<String, Object?> toWire() => {
+        ...super.toWire(),
+        'roundId': roundId,
+        'proposal': proposal,
+      };
+
+  static AiRoundProposal fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      AiRoundProposal(
+        roundId: w['roundId'] as String? ?? '',
+        proposal: (w['proposal'] as Map?)?.cast<String, Object?>() ?? const {},
+        ts: ts,
+      );
+}
+
+/// host → all: the AI-authored round, relayed as-is from the Director's
+/// `AiRoundProposal` (the host trusts it the same way it trusts every
+/// player's self-reported `PlayerAction.correct` — see [[Decision Log]]).
+/// Opens a round exactly like `ROUND_START`, but the full proposal travels
+/// on the wire since there's no shared generator to replay from a seed.
+class AiChallengeRound extends PartyMessage {
+  const AiChallengeRound({
+    required this.roundId,
+    required this.proposal,
+    required this.startAt,
+    required this.durationMs,
+    int ts = 0,
+  }) : super(ts);
+
+  final String roundId;
+  final Map<String, Object?> proposal;
+  final int startAt;
+  final int durationMs;
+
+  @override
+  String get type => 'AI_CHALLENGE_ROUND';
+
+  @override
+  Map<String, Object?> toWire() => {
+        ...super.toWire(),
+        'roundId': roundId,
+        'proposal': proposal,
+        'startAt': startAt,
+        'durationMs': durationMs,
+      };
+
+  static AiChallengeRound fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      AiChallengeRound(
+        roundId: w['roundId'] as String? ?? '',
+        proposal: (w['proposal'] as Map?)?.cast<String, Object?>() ?? const {},
+        startAt: w['startAt'] as int? ?? 0,
+        durationMs: w['durationMs'] as int? ?? 0,
+        ts: ts,
+      );
+}
+
+/// client → host, Director only: a validated commentary line for [kind]/
+/// [roundId] ([[AI Commentary]]).
+class AiCommentaryProposal extends PartyMessage {
+  const AiCommentaryProposal({
+    required this.kind,
+    required this.roundId,
+    required this.text,
+    int ts = 0,
+  }) : super(ts);
+
+  final String kind;
+  final String roundId;
+  final String text;
+
+  @override
+  String get type => 'AI_COMMENTARY_PROPOSAL';
+
+  @override
+  Map<String, Object?> toWire() => {
+        ...super.toWire(),
+        'kind': kind,
+        'roundId': roundId,
+        'text': text,
+      };
+
+  static AiCommentaryProposal fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      AiCommentaryProposal(
+        kind: w['kind'] as String? ?? '',
+        roundId: w['roundId'] as String? ?? '',
+        text: w['text'] as String? ?? '',
+        ts: ts,
+      );
+}
+
+/// host → all: the commentary line relayed from the Director, as-is.
+class AiCommentary extends PartyMessage {
+  const AiCommentary({
+    required this.kind,
+    required this.roundId,
+    required this.text,
+    int ts = 0,
+  }) : super(ts);
+
+  final String kind;
+  final String roundId;
+  final String text;
+
+  @override
+  String get type => 'AI_COMMENTARY';
+
+  @override
+  Map<String, Object?> toWire() => {
+        ...super.toWire(),
+        'kind': kind,
+        'roundId': roundId,
+        'text': text,
+      };
+
+  static AiCommentary fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      AiCommentary(
+        kind: w['kind'] as String? ?? '',
+        roundId: w['roundId'] as String? ?? '',
+        text: w['text'] as String? ?? '',
+        ts: ts,
+      );
+}
+
 // ------------------------------------------------------------------- Codec
 
 /// The JSONL codec shared by host, client, mirrors and tests.
@@ -979,6 +1225,18 @@ abstract final class PartyProtocol {
         return DecodedOk(PlayerScore.fromWire(wire, ts: ts));
       case 'ERROR':
         return DecodedOk(PartyError.fromWire(wire, ts: ts));
+      case 'AI_CAPABILITIES':
+        return DecodedOk(AiCapabilities.fromWire(wire, ts: ts));
+      case 'AI_DIRECTOR_ASSIGNMENT':
+        return DecodedOk(AiDirectorAssignment.fromWire(wire, ts: ts));
+      case 'AI_ROUND_PROPOSAL':
+        return DecodedOk(AiRoundProposal.fromWire(wire, ts: ts));
+      case 'AI_CHALLENGE_ROUND':
+        return DecodedOk(AiChallengeRound.fromWire(wire, ts: ts));
+      case 'AI_COMMENTARY_PROPOSAL':
+        return DecodedOk(AiCommentaryProposal.fromWire(wire, ts: ts));
+      case 'AI_COMMENTARY':
+        return DecodedOk(AiCommentary.fromWire(wire, ts: ts));
       default:
         return DecodedUnknownType(type);
     }

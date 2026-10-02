@@ -170,6 +170,7 @@ const Map<String, String> kStringsEn = {
   'ui.home.play': 'PLAY',
   'ui.home.best_score_button': 'BEST SCORE',
   'ui.home.settings': 'SETTINGS',
+  'ui.home.multiplayer': 'MULTIPLAYER',
   'ui.home.footer': 'NO ACCOUNT. NO INTERNET. NO EXCUSES.',
 
   'ui.game.level': 'LEVEL {n}',
@@ -217,6 +218,21 @@ const Map<String, String> kStringsEn = {
   'ui.settings.keep': 'KEEP',
   'ui.settings.reset': 'RESET',
 
+  // AI Experience Mode (Phase 9, [[Feature Flags]]) — UI chrome only, so it
+  // gets translated normally like every other settings row even though the
+  // AI-generated *content* it controls stays English-only
+  // ([[Localization and Language]]).
+  'ui.settings.ai.label': 'AI CHALLENGES',
+  'ui.settings.ai.mode.genius': 'GENIUS',
+  'ui.settings.ai.mode.focused': 'FOCUSED',
+  'ui.settings.ai.mode.classic': 'CLASSIC',
+  'ui.settings.ai.status.available': 'Challenge variety is on for this device.',
+  'ui.settings.ai.status.supported_not_enabled':
+      'Your device can do it, but Apple Intelligence is off in Settings.',
+  'ui.settings.ai.status.not_eligible': 'Not supported on this device.',
+  'ui.settings.ai.status.model_not_ready':
+      'Model download in progress. Classic mode active until it’s ready.',
+
   'ui.stats.title': 'BEST SCORE',
   'ui.stats.level': 'LEVEL',
   'ui.stats.total_attempts': 'TOTAL ATTEMPTS',
@@ -233,6 +249,57 @@ const Map<String, String> kStringsEn = {
   'ui.ad.close': 'CLOSE',
   'ui.ad.please_wait': 'PLEASE WAIT',
   'ui.ad.no_thanks': 'NO THANKS',
+
+  // ------------------------------------------------------------ multiplayer
+  'ui.mp.home.title': 'MULTIPLAYER',
+  'ui.mp.home.tagline': 'SCAN THE QR CODE ON THE TV TO JOIN A GAME.',
+  'ui.mp.home.scan': 'SCAN QR',
+  'ui.mp.home.enter_code': 'ENTER ROOM CODE',
+  'ui.mp.home.back': 'BACK',
+
+  'ui.mp.enter_code.title': 'ROOM CODE',
+  'ui.mp.enter_code.hint': 'E.G. 7F4K',
+  'ui.mp.enter_code.join': 'JOIN',
+
+  'ui.mp.scan.hint': 'POINT THE CAMERA AT THE QR CODE ON THE TV.',
+  'ui.mp.scan.permission_denied': 'CAMERA ACCESS DENIED. USE ENTER ROOM CODE INSTEAD.',
+
+  'ui.mp.join.resolving': 'LOOKING FOR ROOM {code}…',
+  'ui.mp.join.not_found': "COULDN'T FIND ROOM {code} ON THIS WI-FI.",
+  'ui.mp.join.retry': 'TRY AGAIN',
+  'ui.mp.join.dev_manual_address': 'DEV: HOST ADDRESS',
+  'ui.mp.join.rejected': "CAN'T JOIN: {reason}",
+  'ui.mp.join.playing_on': "YOU'RE PLAYING ON: {host}",
+  'ui.mp.join.name_label': 'PLAYER NAME',
+  'ui.mp.join.name_hint': 'YOUR NAME',
+  'ui.mp.join.waiting_host': 'WAITING FOR HOST…',
+  'ui.mp.join.join_button': 'JOIN',
+
+  'ui.mp.lobby.title': 'LOBBY',
+  'ui.mp.lobby.players': '{n} PLAYERS',
+  'ui.mp.lobby.ready': '✓ READY',
+  'ui.mp.lobby.not_ready': 'READY?',
+  'ui.mp.lobby.waiting_start': 'WAITING FOR THE HOST TO START…',
+  'ui.mp.lobby.leave': 'LEAVE',
+
+  'ui.mp.game.waiting_round': 'GET READY…',
+  'ui.mp.game.correct': 'YES!',
+  'ui.mp.game.wrong': 'WRONG',
+  'ui.mp.game.eliminated': "YOU'RE OUT — WATCHING",
+
+  'ui.mp.result.title': 'GAME OVER',
+  'ui.mp.result.winner': '{name} WINS',
+  'ui.mp.result.your_standing': 'YOU FINISHED #{n}',
+  'ui.mp.result.share': 'SHARE',
+  'ui.mp.result.menu': 'BACK TO MENU',
+
+  'ui.mp.disconnect.title': 'MATCH OVER',
+  'ui.mp.disconnect.connection_lost': 'CONNECTION LOST.',
+  'ui.mp.disconnect.rejected': "COULDN'T JOIN: {reason}",
+  'ui.mp.disconnect.menu': 'BACK TO MENU',
+
+  'ui.mp.share.line1': 'We played ARE YOU STUPID? on the TV. {name} won.',
+  'ui.mp.share.line2': 'Think you can beat us?',
 
   // ------------------------------------------------------------------ share
   'share.line1': 'I reached Level {level} in ARE YOU STUPID?',

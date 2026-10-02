@@ -80,11 +80,15 @@ void main() {
         playerId: 'p1',
         roundId: 'r1',
         action: const PartyAction.count(4),
+        correct: true,
+        note: 'fast',
         clientTimestampMs: 7,
       ));
       final counted = action.action;
       expect(counted.kind, 'count');
       expect(counted.count, 4);
+      expect(action.correct, isTrue);
+      expect(action.note, 'fast');
 
       final result = _roundTrip(RoundResult(
         roundId: 'r1',
@@ -121,11 +125,57 @@ void main() {
 
       final error = _roundTrip(const PartyError(code: 'ROOM_FULL', detail: 'full'));
       expect(error.code, 'ROOM_FULL');
+
+      final capabilities = _roundTrip(
+        const AiCapabilities(aiAvailable: true, computeRank: 1, batteryPercent: 42),
+      );
+      expect(capabilities.aiAvailable, isTrue);
+      expect(capabilities.batteryPercent, 42);
+
+      final assignment = _roundTrip(const AiDirectorAssignment(directorPeerId: 'p1'));
+      expect(assignment.directorPeerId, 'p1');
+      final noDirector = _roundTrip(const AiDirectorAssignment(directorPeerId: null));
+      expect(noDirector.directorPeerId, isNull);
+
+      final roundProposal = _roundTrip(AiRoundProposal(
+        roundId: 'r1',
+        proposal: const {'id': 'ai.abc12', 'source': 'ai'},
+      ));
+      expect(roundProposal.proposal['id'], 'ai.abc12');
+
+      final challengeRound = _roundTrip(AiChallengeRound(
+        roundId: 'r1',
+        proposal: const {'id': 'ai.abc12'},
+        startAt: 5000,
+        durationMs: 4000,
+      ));
+      expect(challengeRound.startAt, 5000);
+      expect(challengeRound.durationMs, 4000);
+
+      final commentaryProposal = _roundTrip(const AiCommentaryProposal(
+        kind: 'wrong',
+        roundId: 'r1',
+        text: 'Barely made it.',
+      ));
+      expect(commentaryProposal.text, 'Barely made it.');
+
+      final commentary = _roundTrip(const AiCommentary(
+        kind: 'elimination',
+        roundId: 'r1',
+        text: 'Gone, but not forgotten.',
+      ));
+      expect(commentary.kind, 'elimination');
     });
 
     test('PartyAction.tap background (no target) round-trips', () {
       final decoded = PartyProtocol.decode(PartyProtocol.encode(
-        PlayerAction(playerId: 'p1', roundId: 'r1', action: const PartyAction.tap()),
+        PlayerAction(
+          playerId: 'p1',
+          roundId: 'r1',
+          action: const PartyAction.tap(),
+          correct: false,
+          reason: 'wrong',
+        ),
       )) as DecodedOk;
       final action = (decoded.message as PlayerAction).action;
       expect(action.kind, 'tap');
@@ -139,6 +189,7 @@ void main() {
           playerId: 'p1',
           roundId: 'r1',
           action: const PartyAction.tap(targetId: 'bait', index: 1),
+          correct: true,
         ),
       )) as DecodedOk;
       final action = (decoded.message as PlayerAction).action;

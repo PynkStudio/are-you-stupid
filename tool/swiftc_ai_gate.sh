@@ -41,6 +41,9 @@ if [ ! -f "$FLUTTER_FRAMEWORK/Modules/module.modulemap" ]; then
 fi
 
 SRCS="ios/Runner/AppleAIService/ChallengeProposal.swift
+ios/Runner/AppleAIService/CommentaryProfile.swift
+ios/Runner/AppleAIService/GenerationTools.swift
+ios/Runner/AppleAIService/ChallengeGenerationProfile.swift
 ios/Runner/AppleAIService/AppleAIController.swift"
 
 echo "swiftc_ai_gate: typechecking AI bridge (iPhoneOS $SDK)"

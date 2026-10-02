@@ -23,27 +23,26 @@ class TimerBar extends StatelessWidget {
       duration: const Duration(milliseconds: 140),
       child: SizedBox(
         height: 8,
-        child: Row(
-          // The colored DecoratedBox below has no child of its own, so
-          // without stretching it to the Row's full height it lays out at
-          // zero height (loose cross-axis constraints) and is invisible —
-          // this is why the bar never rendered on a real device.
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              flex: (left * 1000).round().clamp(1, 1000),
-              child: DecoratedBox(
+        // An explicit pixel width via LayoutBuilder, not a Row/Expanded flex
+        // ratio: a flex-based fill (a childless DecoratedBox sized only by
+        // Expanded) depends on cross-axis constraints propagating a certain
+        // way and turned out to lay out at zero height in practice — see
+        // docs/Meta/Decision Log.md. A `Container` given both dimensions
+        // directly can't fall into that trap on any rendering backend.
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                width: constraints.maxWidth * left,
+                height: 8,
                 decoration: BoxDecoration(
                   color: color,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-            ),
-            Expanded(
-              flex: ((1 - left) * 1000).round().clamp(1, 1000),
-              child: const SizedBox(),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

@@ -1,6 +1,6 @@
 ---
 tags: [development, release]
-updated: 2026-09-07
+updated: 2026-09-11
 ---
 
 # Release Checklist
@@ -8,13 +8,16 @@ updated: 2026-09-07
 ## Code
 
 - [x] `flutter analyze` — zero issues (verified 2026-09-07)
-- [x] `flutter test` — 95 tests across 12 suites (7 single-player + 5
-      multiplayer, all green; the former `app_flow_test.dart` flake is fixed
-      — see [[Testing]]). `swift test` from `tvos/` also green (protocol
-      mirror, 23 cases)
+- [ ] `flutter test` — 199 tests across 21 suites (see [[Testing]]). As of
+      2026-09-07, 3 pre-existing failures in `test/ai/telemetry_test.dart`
+      (in-progress AI-phase work, unrelated to multiplayer) — must be green
+      before shipping. `swift test` from `tvos/` is green (protocol mirror,
+      23 cases)
 - [x] `docs/` updated ([[Documentation Rules]])
-- [ ] Version bumped in `pubspec.yaml` — still `0.1.0+1`; bump when the first
-      store submission is actually ready
+- [x] Build number bump automated — `scripts/bump_build_number.sh`, wired
+      into the iOS Archive pre-action and the Android `assembleRelease`/
+      `bundleRelease` Gradle tasks. Fires on every archive/release build, no
+      manual step. See [[Getting Started]] and [[Decision Log]]
 
 ## Product
 
@@ -22,11 +25,15 @@ updated: 2026-09-07
       done once the store listing exists ([[Virality and Sharing]])
 - [x] Real `AdProvider` wired in `main.dart` — `AdMobAdProvider`, real AdMob
       IDs ([[Monetization and Ads]])
-- [ ] App icon and launch screen replaced — **still the Flutter default logo**
-      on both platforms (`android/app/src/main/res/mipmap-*/ic_launcher.png`,
-      `ios/Runner/Assets.xcassets/AppIcon.appiconset/`) and the default blank
-      splash (`android/.../launch_background.xml`,
-      `ios/.../LaunchImage.imageset/`)
+- [x] App icon replaced on Android/iOS (`icon.png` at the repo root, run
+      through `flutter_launcher_icons`) and a real tvOS App Icon & Top Shelf
+      Image catalog generated — not yet wired into `tvos/project.yml`, see
+      [[Decision Log]]
+- [x] Blank white boot screen fixed — native launch backgrounds
+      (`android/.../launch_background.xml`, `ios/.../LaunchScreen.storyboard`)
+      recolored to `Ays.bg`, and `main.dart` now shows an animated
+      `SplashScreen` while `AppServices.boot()` runs instead of awaiting it
+      before `runApp` ([[Decision Log]])
 - [ ] Bundle id / application id: Android is `com.ays.are_you_stupid`, iOS is
       `com.ays.areYouStupid` — different casing, never unified. Not a
       functional problem but worth a conscious decision before submission

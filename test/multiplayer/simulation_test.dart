@@ -41,7 +41,15 @@ void main() {
           (c) => !(c.state.standings[c.state.selfClientId]?.eliminated ?? false),
         );
         for (final c in alive) {
-          if (c != clients.first) c.tapBackground();
+          // dont_tap: doing nothing is correct. P1 self-reports that via its
+          // own runner timing out locally, exactly like a real silent-but-
+          // connected phone would; everyone else taps (wrong) to get
+          // eliminated on schedule.
+          if (c == clients.first) {
+            c.letRoundTimeOut();
+          } else {
+            c.tapBackground();
+          }
         }
         h.host.completeRound();
       }
@@ -65,8 +73,8 @@ void main() {
       h.host.startGame(mode: GameMode.lastStupidStanding);
 
       h.host.startRound(challengeId: 'dont_tap', seed: 8, level: 2);
-      b.tapBackground();
-      h.host.completeRound();
+      b.tapBackground(); // wrong: dont_tap
+      a.letRoundTimeOut(); // correct: dont_tap rewards doing nothing
 
       // b is eliminated (spectator) but still a seat; winner is a.
       expect(b.state.phase, PartyPhase.gameEnded);

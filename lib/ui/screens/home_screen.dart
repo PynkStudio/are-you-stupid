@@ -5,6 +5,7 @@ import '../../services/app_services.dart';
 import '../theme.dart';
 import '../widgets/ays_button.dart';
 import 'game_screen.dart';
+import 'multiplayer/mp_home_screen.dart';
 import 'settings_screen.dart';
 import 'stats_screen.dart';
 
@@ -73,6 +74,21 @@ class HomeScreen extends StatelessWidget {
                           PageRouteBuilder(
                             transitionDuration: const Duration(milliseconds: 120),
                             pageBuilder: (_, _, _) => const GameScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    AysButton(
+                      label: t('ui.home.multiplayer'),
+                      height: 66,
+                      fontSize: 24,
+                      outlined: true,
+                      onTap: () {
+                        services.sound.button();
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const MpHomeScreen(),
                           ),
                         );
                       },

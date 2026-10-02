@@ -1,17 +1,17 @@
-/// Maps controller (UI) input to `PLAYER_ACTION`s for the open round.
+/// Maps controller (UI) input to taps for the open round's
+/// [PartyChallengeRunner], owned by [PartySession].
 ///
-/// The controller is thin on purpose — it never judges; it records what the
-/// player did and hands it to the session, which submits it to the host. The
-/// host compares against its own canonical challenge ([[Multiplayer
-/// Challenges]]).
+/// The controller stays thin: it resolves *which* target got tapped (the
+/// renderer only knows ids; the runner's [Challenge] wants a visual index
+/// too for position-based challenges like "TAP LEFT") and hands off a
+/// [TapInfo]. Judging happens inside the session's runner, not here — see
+/// the design-change note on `PlayerAction` in `../protocol/protocol.dart`.
 library;
 
 import '../../core/challenge.dart';
-import '../protocol/protocol.dart';
 import 'party_session.dart';
+import 'party_state.dart';
 
-/// Audible/haptic-safe tap: reads the open round's [ChallengeView] to attach
-/// the visual index, then lets [PartySession] decide whether to send.
 class PartyController {
   PartyController(this.session);
 
@@ -21,30 +21,22 @@ class PartyController {
   void onTargetTap(TargetSpec target) {
     final round = session.state.round;
     if (round == null) return;
-    int indexOf = -1;
     final targets = round.view.targets;
-    for (var i = 0; i < targets.length; i++) {
-      if (targets[i].id == target.id) {
-        indexOf = i;
-        break;
-      }
-    }
-    if (indexOf < 0) {
-      session.sendAction(PartyAction.tap(targetId: target.id));
-      return;
-    }
-    session.sendAction(
-      PartyAction.tap(targetId: target.id, index: indexOf),
-    );
+    final indexOf = targets.indexWhere((t) => t.id == target.id);
+    session.submitTap(TapInfo(
+      targetId: target.id,
+      elapsed: _elapsed(round),
+      index: indexOf < 0 ? null : indexOf,
+    ));
   }
 
   /// A tap landed on the background (no target).
   void onBackgroundTap() {
-    session.sendAction(const PartyAction.tap());
+    final round = session.state.round;
+    if (round == null) return;
+    session.submitTap(TapInfo(targetId: null, elapsed: _elapsed(round)));
   }
 
-  /// Remaining-count input for counting challenges (absent until supported).
-  void onCountCommitted(int count) {
-    session.sendAction(PartyAction.count(count));
-  }
+  Duration _elapsed(PartyRound round) =>
+      session.runnerElapsed ?? Duration.zero;
 }
