@@ -16,11 +16,9 @@ already registered against them ([[Decision Log]]).
 ## Code
 
 - [x] `flutter analyze` — zero issues (2026-10-02)
-- [ ] `flutter test` green — **blocked on this machine until the Xcode
-      licence is accepted** (`sudo xcodebuild -license`): the
-      `objective_c` native-asset hook calls `xcrun`, which refuses to run.
-      Last green run: 303/303 on 2026-09-15 ([[Testing]])
-- [ ] `swift test` (from `tvos/`) green — same licence blocker
+- [x] `flutter test` green — 303/303 (2026-10-02, after the audit fixes)
+- [x] `swift test` (from `tvos/`) green; `AYSHost-macOS` and `AYSHost-tvOS`
+      Release builds succeed with the new store config (2026-10-02)
 - [x] `docs/` updated ([[Documentation Rules]])
 - [x] Build number bump automated — `scripts/bump_build_number.sh`, wired
       into the iOS Archive pre-action and the Android `assembleRelease`/
@@ -64,7 +62,8 @@ already registered against them ([[Decision Log]]).
 - [x] One app record (Apple ID 6809188487, "ARE YOU STUPID?! - party
       game"), bundle id `com.ays.areYouStupid`, with **iOS, tvOS and macOS**
       platforms; subtitle, categories (Games › Word, Casual + Entertainment),
-      free in all 175 regions, Game Center off (2026-10-02)
+      free in 174 regions (Mainland China excluded: games there need a
+      government licence), Game Center off (2026-10-02)
 - [ ] In-app purchase `ays_remove_ads` (non-consumable): created, priced,
       review notes in. **Still needs the review screenshot** (Settings with
       the REMOVE ADS row) and must be **attached to the first iOS

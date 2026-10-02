@@ -2686,3 +2686,7 @@ not run — the Xcode licence isn't accepted on this machine, and the
 `objective_c` native-asset hook needs `xcrun`. Engine tests were updated for
 the skip grace and the READY beat; they must be run before submission
 ([[Release Checklist]]).
+
+**Verification addendum (same day):** once the Xcode licence was accepted,
+`flutter test` ran 303/303 green and `swift test` green; both host apps
+build in Release with the new bundle id, sandbox and icons.

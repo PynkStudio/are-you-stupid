@@ -134,7 +134,7 @@ Implementation phases are tracked in [[Development Plan]].
 | Target | State |
 |---|---|
 | `flutter analyze` | clean |
-| `flutter test` | last green 303/303 on 2026-09-15; the 2026-10-02 audit changes are not yet re-run — blocked until the Xcode licence is accepted on this machine — see [[Testing]] |
+| `flutter test` | 303/303 passing (2026-10-02, audit fixes included) — see [[Testing]] |
 | `swift test` (from `tvos/`) | 83 cases (29 protocol + 54 host core), all green; 4 real-socket cases skip by default (`AYS_RUN_NETWORK_TESTS=1` to run for real) — see [[Testing]] |
 | Android debug APK | builds |
 | Android release APK | builds, signed with a real upload key (not debug) — see [[Release Checklist]] |
