@@ -1,7 +1,7 @@
 name: are_you_stupid
 description: "ARE YOU STUPID? — a one-handed, offline hyper-casual game about failing at simple instructions."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.13.1

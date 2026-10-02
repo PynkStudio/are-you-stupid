@@ -108,6 +108,16 @@ flutter build ipa --release
 flutter build appbundle --release
 ```
 
+**1.0.0 (2), 2026-10-02:** all three store packages built and signed for
+distribution from commit `f2c9439` (331/331 tests green):
+`build/ios/export/Are You Stupid.ipa`, `build/hosts/tvos-export/Are You
+Stupid.ipa`, `build/hosts/macos-export/Are You Stupid.pkg`. The tvOS host is
+archived with `CODE_SIGNING_ALLOWED=NO` and signed at export — automatic
+signing can't make a tvOS *development* profile without a registered Apple
+TV. `xcodebuild -exportArchive` with `destination: upload` failed with
+"Credentialed provider request failed … providerId": re-add the Apple ID in
+Xcode → Settings → Accounts, or upload with Transporter.
+
 Upload `build/ios/ipa/*.ipa` with Transporter (or Xcode Organizer) and
 `build/app/outputs/bundle/release/app-release.aab` in Play Console. Hosts:
 open `tvos/AYSHost.xcodeproj`, scheme `AYSHost-tvOS` / `AYSHost-macOS`,
