@@ -1,6 +1,6 @@
 ---
 tags: [moc, index]
-updated: 2026-09-15
+updated: 2026-10-02
 ---
 
 # ARE YOU STUPID? — Documentation Home
@@ -120,26 +120,29 @@ Implementation phases are tracked in [[Development Plan]].
 | MVP gameplay loop | Done |
 | Challenge templates | 39 shipped |
 | Persistence (best score, stats, settings) | Done |
-| Ads | Real, via AdMob (`AdMobAdProvider`); `MockAdProvider` stays default for tests/local dev |
+| Ads | Real, via AdMob (`AdMobAdProvider`) behind GDPR/UMP consent + ATT; `MockAdProvider` stays default for tests/local dev |
 | Sound / haptics | System sounds + platform haptics |
 | Sharing | OS share sheet via `share_plus` |
 | Backend | None. On purpose. |
 | Multiplayer party mode (Apple TV + macOS board host) | Phases 1–4 landed (Dart + Swift host, `Net/`, `QR/`, App/UI Xcode shell), Phases 5–7's rules landed. **Real challenge judging landed:** the "Phase 4 open question" (can Swift judge a Dart-generated challenge) is resolved by moving judging to the client entirely — `PartyChallengeRunner` drives the real single-player `Challenge` engine and reports the verdict, both hosts trust it (see [[Decision Log]]). Discovery switched to `package:nsd` (native platform APIs) after two real-device bugs. Live standings board, mode picker, and no-downtime round auto-close/advance also landed. Still open: game-show polish (elimination card, winner animation, share card, humor lines — Phase 9) and a fresh real-device pass on the new judging flow. See [[Multiplayer Development]] |
-| AI dynamic director (Apple Intelligence) | All ten planned phases landed: `ChallengeProvider` providers in `lib/ai/` incl. a real `AIChallengeProvider`/`PrefetchLoop` wired into `game_screen.dart` (with a starter-level exclusion — see [[Decision Log]]), proposal vocabulary + `ChallengeValidator` + `ays/apple_intelligence` bridge (`available`/`requestCommentary`/`requestChallenge` all real; only `requestFinalRound`/`requestMultiplayerHost` still stubbed, no caller yet), `generated_challenge_runtime.dart`, `AiFeatureFlags` + its Settings Ai section, `lib/ai/commentary.dart`, `lib/ai/profile_for_prompts.dart`, the full multiplayer AI Director (election/relay/failover in `RoomHost.swift`, `lib/multiplayer/ai/party_ai_director.dart` wired into `mp_join_screen.dart`), and a Phase 10 full-run integration test driving the real production composition through a full `GameEngine` match. Real generation unverified on actual hardware (none available here) but the full pipeline compiles and is wired end-to-end. See [[Dynamic AI Director]] / [[Development Plan]] |
+| AI dynamic director (Apple Intelligence) | All ten planned phases landed: `ChallengeProvider` providers in `lib/ai/` incl. a real `AIChallengeProvider`/`PrefetchLoop` wired into `game_screen.dart` (with a starter-level exclusion — see [[Decision Log]]), proposal vocabulary + `ChallengeValidator` + `ays/apple_intelligence` bridge (`available`/`requestCommentary`/`requestChallenge` all real; only `requestFinalRound`/`requestMultiplayerHost` still stubbed, no caller yet), `generated_challenge_runtime.dart`, `AiFeatureFlags` + its Settings Ai section, `lib/ai/commentary.dart`, `lib/ai/profile_for_prompts.dart`, the full multiplayer AI Director (election/relay/failover in `RoomHost.swift`, `lib/multiplayer/ai/party_ai_director.dart` wired into `mp_join_screen.dart`), and a Phase 10 full-run integration test driving the real production composition through a full `GameEngine` match. Real generation unverified on actual hardware (none available here) but the full pipeline compiles and is wired end-to-end. **iOS only:** off on Android, where phones still play AI rounds relayed by an iOS Director ([[Feature Flags]]). See [[Dynamic AI Director]] / [[Development Plan]] |
 | Version control | Git, public on GitHub: `PynkStudio/are-you-stupid` |
 | Languages | English, Italian, French, Spanish, Portuguese, German — see [[Localization]] |
 
-## Build status (2026-09-15)
+## Build status (2026-10-02)
 
 | Target | State |
 |---|---|
 | `flutter analyze` | clean |
-| `flutter test` | 303/303 passing — see [[Testing]] |
+| `flutter test` | last green 303/303 on 2026-09-15; the 2026-10-02 audit changes are not yet re-run — blocked until the Xcode licence is accepted on this machine — see [[Testing]] |
 | `swift test` (from `tvos/`) | 83 cases (29 protocol + 54 host core), all green; 4 real-socket cases skip by default (`AYS_RUN_NETWORK_TESTS=1` to run for real) — see [[Testing]] |
 | Android debug APK | builds |
 | Android release APK | builds, signed with a real upload key (not debug) — see [[Release Checklist]] |
 | iOS simulator | builds and runs via `flutter run`, hot reload included |
 
-Still open before store submission: app icon, launch screen, entering the
-privacy policy URL into App Store Connect / Play Console — see [[Release
-Checklist]].
+**Release 1.0.0 is in store preparation.** One App Store record ships the
+iPhone/iPad game plus the Apple TV and Mac hosts (universal purchase);
+Google Play ships the Android game. The 2026-10-02 audit fixed GDPR consent,
+ATT timing, restore purchases, iPad orientation, localized permission
+prompts, the wrong-flash skip grace and the host apps' store config. What's
+left is store-console work and a real-device pass — see [[Release Checklist]].

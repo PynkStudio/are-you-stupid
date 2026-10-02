@@ -200,6 +200,7 @@ const Map<String, String> kStringsDe = {
   'ui.settings.remove_ads_error': 'KAUF FEHLGESCHLAGEN. VERSUCH ES NOCHMAL.',
   'ui.settings.about': 'ÜBER DAS SPIEL',
   'ui.settings.privacy_policy': 'PRIVACY POLICY',
+  'ui.settings.privacy_choices': 'WERBE-DATENSCHUTZ',
   'ui.settings.reset_stats': 'STATISTIK ZURÜCKSETZEN',
   'ui.settings.back': 'ZURÜCK',
   'ui.settings.footer':

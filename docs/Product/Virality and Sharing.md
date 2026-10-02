@@ -1,6 +1,6 @@
 ---
 tags: [product, virality, social]
-updated: 2026-09-06
+updated: 2026-10-02
 ---
 
 # Virality and Sharing
@@ -40,8 +40,13 @@ I reached Level 27 in ARE YOU STUPID?
 Can you beat me?
 ```
 
-Plus `(my best: Level 31)` when relevant, plus `ShareManager.storeUrl` once the
-app is live — **fill that constant in before launch** ([[Release Checklist]]).
+Plus `(my best: Level 31)` when relevant, plus the game's landing page
+(`ShareManager.landingUrlFor(locale)` — the Italian page for `it`, the `/en`
+page for every other locale; the same pages Settings opens as "ABOUT THE
+GAME"). A web page rather than a store link on purpose: a result shared from
+an iPhone is often opened on an Android phone and vice versa, and one page
+can link both stores. **That page must carry App Store and Google Play
+badges once the listings are live** ([[Release Checklist]]).
 `resultText()`/`shareResult()` take the player's `AppLocale` and render this
 in their language — see [[Localization]].
 

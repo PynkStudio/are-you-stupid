@@ -209,6 +209,7 @@ const Map<String, String> kStringsEn = {
   'ui.settings.remove_ads_error': 'PURCHASE FAILED. TRY AGAIN.',
   'ui.settings.about': 'ABOUT THE GAME',
   'ui.settings.privacy_policy': 'PRIVACY POLICY',
+  'ui.settings.privacy_choices': 'AD PRIVACY CHOICES',
   'ui.settings.reset_stats': 'RESET STATS',
   'ui.settings.back': 'BACK',
   'ui.settings.footer': 'OFFLINE. NO ACCOUNT. NO DATA LEAVES THIS PHONE.',

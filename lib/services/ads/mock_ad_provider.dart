@@ -9,6 +9,12 @@ class MockAdProvider implements AdProvider {
   Future<void> initialize() async {}
 
   @override
+  bool get privacyOptionsRequired => false;
+
+  @override
+  Future<void> showPrivacyOptions() async {}
+
+  @override
   Future<void> preload(AdPlacement placement) async {}
 
   @override

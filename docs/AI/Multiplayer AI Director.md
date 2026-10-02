@@ -1,6 +1,6 @@
 ---
 tags: [ai, multiplayer, architecture]
-updated: 2026-09-11
+updated: 2026-10-02
 ---
 
 # Multiplayer AI Director
@@ -54,7 +54,13 @@ At match start (and whenever the role is empty), the match host runs an
    tie-break that can't be verified without real hardware anyway (see
    [[Decision Log]]). **The host announces the winner via an
    `AI_DIRECTOR_ASSIGNMENT` message.** No device ever self-appoints.
-4. If no capable phone joined, the match plays 100 % scripted
+4. **Android phones are never candidates** (they announce
+   `aiAvailable: false` — `AiFeatureFlags.platformSupported` is off there)
+   but play AI-authored rounds like everyone else: the relayed proposal is
+   interpreted locally by `generated_challenge_runtime.dart`, which is
+   pure Dart. A mixed iPhone + Android party gets AI rounds as long as one
+   capable iPhone joined.
+5. If no capable phone joined, the match plays 100 % scripted
    ([[AI Challenge Generation]]) — identical to how a non-AI match already
    works. AI is additive, not required.
 

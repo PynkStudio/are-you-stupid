@@ -58,10 +58,21 @@ class AppServices {
       adProvider: adProvider,
       purchaseProvider: purchaseProvider,
     );
-    await services.ads.initialize();
-    await services.purchases.initialize();
+    // Purchases only read the store — never block the splash on a slow or
+    // unreachable StoreKit/Play Billing. Settings retries the product later.
+    await services.purchases
+        .initialize()
+        .timeout(const Duration(seconds: 4), onTimeout: () {});
+    // Ads are *not* started here: consent (UMP) and the iOS ATT prompt are
+    // native UI and must appear over a real, active screen — see
+    // [startAds] and `main.dart`.
     return services;
   }
+
+  /// Gathers ad consent and starts the ads SDK. Called once the first real
+  /// screen is on display; never awaited by gameplay (no ad is ever needed
+  /// to play).
+  Future<void> startAds() => ads.initialize();
 
   static AppServices of(BuildContext context) {
     final scope =

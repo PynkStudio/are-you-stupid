@@ -10,8 +10,15 @@ import '../i18n/strings.dart';
 class ShareManager {
   const ShareManager();
 
-  /// Fill this in when the app is live on the stores.
-  static const storeUrl = '';
+  /// The game's landing page, one per language family — the same pages
+  /// Settings links as "ABOUT THE GAME". A web page instead of a store link
+  /// on purpose: a shared result is read on any phone (an iPhone result sent
+  /// to an Android friend and vice versa), and the page links both stores.
+  static const _landingIt = 'https://pynkstudio.eu/it/lavori/are-you-stupid';
+  static const _landingEn = '$_landingIt/en';
+
+  static String landingUrlFor(AppLocale locale) =>
+      locale == AppLocale.it ? _landingIt : _landingEn;
 
   static String resultText(int level, {int? best, AppLocale locale = AppLocale.en}) {
     final buffer = StringBuffer()
@@ -20,7 +27,7 @@ class ShareManager {
     if (best != null && best > level) {
       buffer.writeln(Strings.t(locale, 'share.best', {'best': '$best'}));
     }
-    if (storeUrl.isNotEmpty) buffer.writeln(storeUrl);
+    buffer.writeln(landingUrlFor(locale));
     return buffer.toString().trim();
   }
 
@@ -48,7 +55,7 @@ class ShareManager {
     final buffer = StringBuffer()
       ..writeln(Strings.t(locale, 'ui.mp.share.line1', {'name': winnerName}))
       ..writeln(Strings.t(locale, 'ui.mp.share.line2'));
-    if (storeUrl.isNotEmpty) buffer.writeln(storeUrl);
+    buffer.writeln(landingUrlFor(locale));
     return buffer.toString().trim();
   }
 

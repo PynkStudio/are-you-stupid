@@ -1,0 +1,5 @@
+/* Localized Info.plist permission prompts — see docs/Architecture/Localization.md. */
+"CFBundleDisplayName" = "Are You Stupid";
+"NSCameraUsageDescription" = "Usado para ler o QR code da sala exibido na TV e entrar numa partida multijogador.";
+"NSLocalNetworkUsageDescription" = "Usado para encontrar uma sala multijogador na sua rede Wi-Fi. Nada sai da sua rede local.";
+"NSUserTrackingUsageDescription" = "Este identificador permite mostrar anúncios que financiam o jogo e medir se funcionaram.";

@@ -1,6 +1,6 @@
 ---
 tags: [architecture, services]
-updated: 2026-09-07
+updated: 2026-10-02
 ---
 
 # Services
@@ -20,7 +20,7 @@ final services = AppServices.of(context);
 | `SoundManager` | correct / wrong / level / record / button | platform system sounds, no assets |
 | `HapticManager` | correct / wrong / record / tap | `HapticFeedback` |
 | `ShareManager` | share text + OS share sheet | `share_plus` |
-| `AdManager` | *policy*: when ads may show | see [[Monetization and Ads]] |
+| `AdManager` | *policy*: when ads may show; consent (UMP) + ATT before the SDK starts | started post-frame via `AppServices.startAds()`, never during the splash — see [[Monetization and Ads]] |
 | `PurchaseManager` | *policy*: buy/restore the "remove ads" IAP | `ChangeNotifier`, see [[Monetization and Ads]] |
 | `AppleAIService` (Phase 2) | on-device Foundation Models client via the `ays/apple_intelligence` MethodChannel | `lib/ai/apple_ai_service.dart` + `AppleAIController.swift`; `available` real, generation stubbed until Phases 4–5 ([[Foundation Models Integration]]); `MockAppleAIService` for tests |
 
@@ -29,6 +29,14 @@ The **dynamic AI director** itself is *not* a service — it's the
 *above* `lib/services/`. Services stay platform-facing; `AppleAIService` is
 the **only** AI-related member of this table and its whole job is to own that
 one channel. See [[Dynamic AI Director]].
+
+### Boot order
+
+`AppServices.boot()` (behind the animated splash) loads prefs and starts
+purchases with a **4 s cap** — it no longer awaits the ads SDK at all.
+`main.dart` then calls `startAds()` after the first frame of `HomeScreen`,
+because the GDPR consent form and the iOS ATT prompt are native UI that must
+appear over an active app. Nothing in gameplay waits on either.
 
 ## External links
 
@@ -47,8 +55,10 @@ explicit, player-initiated exit to the browser, the same category as the ads
 
 The "about" URL is the one place this picks a link by `AppLocale`:
 `_gameInfoUrlFor` sends Italian to the Italian case-study page and every
-other locale to its `/en` counterpart — see [[Decision Log]] for why (and the
-open item to verify that `/en` page is actually live before release). The
+other locale to its `/en` counterpart — see [[Decision Log]] for why. Both
+pages were verified live on 2026-10-02. The URL pair is owned by
+`ShareManager.landingUrlFor`, which also appends it to shared results
+([[Virality and Sharing]]). The
 privacy policy stays a single URL for every locale; it's deliberately
 English-only.
 

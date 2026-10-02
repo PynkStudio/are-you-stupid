@@ -91,7 +91,8 @@ class RememberColorChallenge extends _ShowThenAskChallenge {
   @override
   void onTap(TapInfo tap, ChallengeHost host) {
     if (!answering || tap.kind != TapKind.down || tap.isBackground) return;
-    final hit = targets.firstWhere((t) => t.id == tap.targetId);
+    final hit = targetById(tap.targetId);
+    if (hit == null) return;
     if (hit.color == _secret) {
       host.pass();
     } else {
@@ -208,7 +209,8 @@ class LastColorChallenge extends BaseChallenge {
   @override
   void onTap(TapInfo tap, ChallengeHost host) {
     if (!_asking || tap.kind != TapKind.down || tap.isBackground) return;
-    final hit = targets.firstWhere((t) => t.id == tap.targetId);
+    final hit = targetById(tap.targetId);
+    if (hit == null) return;
     if (hit.color == _sequence.last) {
       host.pass();
     } else {

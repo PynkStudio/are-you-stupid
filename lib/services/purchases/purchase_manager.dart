@@ -35,21 +35,44 @@ class PurchaseManager extends ChangeNotifier {
     if (_initialized) return;
     _initialized = true;
     _subscription = _provider.purchaseUpdates.listen(_onUpdate);
-    await _provider.initialize();
+    try {
+      await _provider.initialize();
+    } catch (_) {
+      // Store unreachable at boot: Settings retries via [refreshProduct].
+    }
+    notifyListeners();
+  }
+
+  /// Retries loading the product (see [PurchaseProvider.refreshProduct]).
+  Future<void> refreshProduct() async {
+    if (product != null) return;
+    await _provider.refreshProduct();
+    notifyListeners();
   }
 
   Future<void> buyRemoveAds() async {
     if (isPurchased || busy || !storeAvailable || product == null) return;
     busy = true;
     notifyListeners();
-    await _provider.buyRemoveAds();
+    try {
+      await _provider.buyRemoveAds();
+    } catch (_) {
+      // A thrown store call never produces a purchase update, so without
+      // this the buy button would stay disabled for the whole session.
+      _settle(PurchaseFeedback.error);
+    }
   }
 
   Future<void> restorePurchases() async {
     if (busy || !storeAvailable) return;
     busy = true;
     notifyListeners();
-    await _provider.restorePurchases();
+    try {
+      await _provider.restorePurchases();
+    } catch (_) {
+      _settle(PurchaseFeedback.error);
+      return;
+    }
     // Some stores stay silent on `restorePurchases()` when there is nothing
     // to restore — fall back to "not found" if no update ever arrives.
     _restoreTimeout?.cancel();
@@ -59,6 +82,12 @@ class PurchaseManager extends ChangeNotifier {
       feedback = PurchaseFeedback.nothingToRestore;
       notifyListeners();
     });
+  }
+
+  void _settle(PurchaseFeedback value) {
+    busy = false;
+    feedback = value;
+    notifyListeners();
   }
 
   void clearFeedback() {

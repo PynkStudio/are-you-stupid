@@ -1,6 +1,6 @@
 ---
 tags: [product, ads, monetization]
-updated: 2026-09-11
+updated: 2026-10-02
 ---
 
 # Monetization and Ads
@@ -40,13 +40,39 @@ update all three files together.
 "Not implemented on purpose" below) — give it its own unit only if it
 actually ships.
 
+## Consent (GDPR/UMP) and ATT
+
+**Ads never start during the splash.** `AppServices.boot()` no longer
+touches the ads SDK; `main.dart` calls `AppServices.startAds()` from a
+post-frame callback once `HomeScreen` is on display. `AdMobAdProvider
+.initialize()` then runs Google's required order:
+
+1. **UMP consent** — `ConsentInformation.requestConsentInfoUpdate` (10 s
+   timeout) then `ConsentForm.loadAndShowConsentFormIfRequired`. Mandatory
+   for EEA/UK users since 2024; outside those regions UMP shows nothing.
+   The message itself (GDPR, and optionally an IDFA explainer) is configured
+   in the AdMob console → *Privacy & messaging*, not in code.
+2. **ATT** (iOS only) — requested only after consent, with the app already
+   active. iOS silently drops ATT requests made while the app is still
+   launching, which App Review reports as "ATT prompt not found".
+3. **SDK start + preload** — only if `ConsentInformation.canRequestAds()`.
+   Until then every `preload` is a no-op, so a player who declines simply
+   sees no ads and no CONTINUE button (unless ads were removed).
+
+When UMP reports `PrivacyOptionsRequirementStatus.required`, Settings shows
+an **AD PRIVACY CHOICES** row (`AdManager.showPrivacyOptions()` →
+`ConsentForm.showPrivacyOptionsForm`) so consent can be withdrawn, as GDPR
+requires. Starting ads after a changed choice happens in the same call.
+
 ## The abstraction
 
 `lib/services/ads/ad_provider.dart`
 
 ```dart
 abstract class AdProvider {
-  Future<void> initialize();
+  Future<void> initialize();            // consent → ATT → SDK (see above)
+  bool get privacyOptionsRequired;      // GDPR: show "privacy choices"
+  Future<void> showPrivacyOptions();
   Future<void> preload(AdPlacement placement);
   bool isReady(AdPlacement placement);
   Future<bool> show(BuildContext context, AdPlacement placement);
@@ -120,6 +146,16 @@ removes every ad permanently and works offline from the moment it's bought —
 the same "no dead-end button" rule as ads applies to the buy/restore buttons
 themselves (hidden, not disabled, when the store can't be reached).
 
+**Restore is always visible** whenever the store is available, even while
+the product hasn't resolved yet — App Review requires a restore path, and a
+reinstall on a flaky connection must still get its purchase back. The
+product is queried at boot (with a 4 s cap so a slow StoreKit never holds
+the splash) and **re-queried every time Settings opens**
+(`PurchaseManager.refreshProduct`), so a product that failed to load at
+launch still appears later. A store call that throws (or refuses to start
+the purchase) settles to `PurchaseFeedback.error` instead of leaving the
+buy button disabled for the rest of the session.
+
 **The abstraction** mirrors `AdProvider`/`AdManager` exactly:
 
 ```dart
@@ -130,6 +166,7 @@ abstract class PurchaseProvider {
   Stream<PurchaseUpdate> get purchaseUpdates;
   Future<void> buyRemoveAds();
   Future<void> restorePurchases();
+  Future<void> refreshProduct();           // retried when Settings opens
 }
 ```
 

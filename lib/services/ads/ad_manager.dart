@@ -36,6 +36,11 @@ class AdManager {
     await _provider.preload(AdPlacement.rewardedContinue);
   }
 
+  /// See [AdProvider.privacyOptionsRequired].
+  bool get privacyOptionsRequired => _provider.privacyOptionsRequired;
+
+  Future<void> showPrivacyOptions() => _provider.showPrivacyOptions();
+
   bool get shouldShowInterstitial =>
       !_adsRemoved && _scores.runsSinceAd >= _runsBetweenInterstitials;
 

@@ -1,6 +1,6 @@
 ---
 tags: [meta, decisions, adr]
-updated: 2026-09-15
+updated: 2026-10-02
 ---
 
 # Decision Log
@@ -2619,3 +2619,70 @@ full-run test). `docs/Home.md` and `docs/AI/Development Plan.md` updated;
 [[Testing and Evaluation]]'s blind-playtest and real-device gates remain
 explicitly unexercised (no Apple-Intelligence hardware in this
 environment) — the honest caveat every phase since Phase 2 has carried.
+
+### 2026-10-02 — Store-readiness audit: consent, ATT, restore, iPad, host store config
+
+**GDPR consent before any ad request (UMP).** The app shipped AdMob with no
+consent flow, which Google requires for EEA/UK traffic since 2024 and which
+EU law requires of an EU publisher regardless. `AdMobAdProvider.initialize`
+now runs Google's documented order: UMP info update + form, then ATT, then
+`MobileAds.initialize` only if `canRequestAds()`. A Settings row reopens the
+form when UMP marks privacy options as required (withdrawal must be as easy
+as consent).
+
+**Ads leave the boot path.** ATT requested while the app is still launching
+is silently dropped by iOS — the classic "we can't find the ATT prompt"
+rejection — and the UMP form needs a live screen. So `AppServices.boot()`
+no longer awaits the ads SDK at all; `main.dart` starts it post-frame once
+`HomeScreen` is up. Purchases stay in boot but capped at 4 s, so a slow
+StoreKit can't hold the splash. Gameplay never needed either.
+
+**Restore always visible; product retried.** The restore link used to vanish
+with the buy row whenever the product failed to load at boot — the exact
+state App Review often sees when the IAP isn't attached yet. Restore now
+shows whenever the store is reachable, and Settings re-queries the product on
+open. Store calls that throw settle to an error instead of leaving `busy`
+stuck.
+
+**Wrong-flash skip grace (500 ms) + Game Over input lock (600 ms).** Tap
+anywhere to skip stays (it's a pillar), but the first beat of the roast can't
+be skipped: mashing players were skipping the fail line unread and hitting
+TRY AGAIN/CONTINUE by accident. 500 ms is long enough to absorb the tail of a
+mash, short enough that a deliberate skip still feels instant.
+
+**Continue goes through READY.** Returning from a rewarded ad straight into
+a running timer cost players the level they just paid an ad for.
+
+**iPad: full-screen portrait, not dropped.** iPadOS ignores the Flutter
+portrait lock when multitasking is allowed, so the game rotated to
+landscape. `UIRequiresFullScreen` + portrait-only orientations fix it while
+keeping iPads usable as party controllers. iPhone `Info.plist` now lists
+portrait only, matching `main.dart`.
+
+**AI is iOS-only.** `AiFeatureFlags.platformSupported` (set from
+`Platform.isIOS`) forces the master switch off on Android; Settings hides the
+section there. Android phones still play AI rounds in multiplayer because the
+Director relays proposals, and their interpretation is pure Dart. The flag
+defaults to `true` so tests keep the full matrix. The AI default on iOS stays
+`genius` (opt-out), by product decision, with real-device evaluation still
+open.
+
+**One App Store record for phone + TV + Mac.** The tvOS and macOS hosts take
+the phone app's bundle id `com.ays.areYouStupid` (universal purchase), so a
+player who has the game on iPhone sees it offered on their Apple TV with no
+search, and reviews/rankings aren't split. The alternative — a separate
+"Party Host" listing — was simpler to administer but invisible to exactly
+the users who need it. The Mac host gets the App Sandbox (server + client
+network only) and a Mac-grid icon generated from `icon.png`. Android keeps
+`com.ays.are_you_stupid`: store ids can't change after first upload and
+the AdMob apps are already registered against both spellings.
+
+**Share link = game landing page, not a store link.** Results are shared
+across platforms, so a single web page that links both stores beats any one
+store URL; the `/en` page that was 404 in September is live as of today.
+
+**Verification:** `flutter analyze` clean. `flutter test`/`swift test` could
+not run — the Xcode licence isn't accepted on this machine, and the
+`objective_c` native-asset hook needs `xcrun`. Engine tests were updated for
+the skip grace and the READY beat; they must be run before submission
+([[Release Checklist]]).

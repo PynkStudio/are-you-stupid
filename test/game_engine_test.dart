@@ -113,10 +113,15 @@ void main() {
     engine.handleTap(const TapInfo(targetId: 'bad', elapsed: Duration.zero));
     expect(engine.state.phase, GamePhase.wrong);
 
-    // Nowhere near GameEngine.wrongFlash yet — only the skip should move it.
+    // Inside the skip grace: a stray tap must not swallow the roast.
     tick(engine, 200);
+    engine.skipWrongFlash();
     expect(engine.state.phase, GamePhase.wrong);
 
+    // Past the grace, nowhere near GameEngine.wrongFlash yet — only the
+    // skip should move it.
+    tick(engine, 400);
+    expect(engine.state.phase, GamePhase.wrong);
     engine.skipWrongFlash();
     expect(engine.state.phase, GamePhase.gameOver);
   });
@@ -161,6 +166,9 @@ void main() {
     expect(engine.state.continueUsed, isFalse);
 
     engine.continueRun();
+    // READY beat first, then the same level again.
+    expect(engine.state.phase, GamePhase.intro);
+    tick(engine, 600);
     expect(engine.state.phase, GamePhase.playing);
     expect(engine.state.level, 2);
     expect(engine.state.continueUsed, isTrue);

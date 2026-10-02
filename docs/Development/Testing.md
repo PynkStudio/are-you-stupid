@@ -1,6 +1,6 @@
 ---
 tags: [development, testing]
-updated: 2026-09-15
+updated: 2026-10-02
 ---
 
 # Testing
@@ -207,7 +207,9 @@ widgets and no clock.
 
 ### `test/game_engine_test.dart` — the loop
 Phases and timings, level progression, roasts, timeout, input ignored outside
-`playing`, continue-once-per-run, event emission, and the generator rules
+`playing`, continue-once-per-run (now through the READY intro beat), the
+wrong-flash skip grace (a skip inside the first 500 ms is ignored),
+event emission, and the generator rules
 (starter gating, no back-to-back repeats, `minLevel` respected). The
 `difficulty` group asserts the stepped speed table itself — the tutorial's
 five gentle sub-steps through level 9, that every ten-level band from 10 on

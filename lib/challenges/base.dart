@@ -50,6 +50,16 @@ abstract class BaseChallenge extends Challenge {
         tapCounter: tapCounter,
       );
 
+  /// The current target with [targetId], or null when the tap hit a button
+  /// that was just swapped out (e.g. a show→ask phase change landing in the
+  /// same frame as the tap) — callers ignore such a stale tap.
+  TargetSpec? targetById(String? targetId) {
+    for (final t in targets) {
+      if (t.id == targetId) return t;
+    }
+    return null;
+  }
+
   /// Replaces the target with [id] using [update].
   void mutateTarget(String targetId, TargetSpec Function(TargetSpec) update) {
     targets = [

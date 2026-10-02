@@ -1,6 +1,6 @@
 ---
 tags: [ai, architecture, configuration]
-updated: 2026-09-11
+updated: 2026-10-02
 ---
 
 # Feature Flags
@@ -37,6 +37,16 @@ mirroring these keys, stored in `ayu.*` prefs ([[State and Persistence]]):
 | `aiObservabilityEnabled` | enabled, local-only | internal QA counters ([[Privacy and Offline]] → observability section) |
 
 Rules that make these boring-by-design:
+
+- **Apple-only.** `AiFeatureFlags.platformSupported` (static, set once by
+  `main.dart` to `Platform.isIOS`) forces `dynamicAIEnabled` — and so every
+  flag above — to `false` on Android, whatever is persisted, and Settings
+  hides the Ai section there instead of showing a permanent "not eligible".
+  An Android phone never generates and announces `aiAvailable: false` in
+  multiplayer, but still **plays** AI rounds an iOS Director relays: those
+  arrive as plain proposals interpreted by the pure-Dart runtime
+  ([[Multiplayer AI Director]]). Tests leave the flag at its `true` default
+  so the full matrix stays covered.
 
 - **No remote configuration.** All flags ship compiled in and are togglable
   only through Settings' Ai section or a debug-only harness. There is no

@@ -43,6 +43,11 @@ abstract class PurchaseProvider {
 
   Stream<PurchaseUpdate> get purchaseUpdates;
 
+  /// Re-queries the store for [removeAdsProduct] — called when Settings
+  /// opens, so a product that failed to load at boot (offline, slow
+  /// StoreKit) still shows up later in the session.
+  Future<void> refreshProduct();
+
   Future<void> buyRemoveAds();
 
   Future<void> restorePurchases();

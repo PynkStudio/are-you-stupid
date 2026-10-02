@@ -6,6 +6,7 @@ import '../../ai/feature_flags.dart';
 import '../../i18n/app_locale.dart';
 import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
+import '../../services/share_manager.dart';
 import '../../services/purchases/purchase_manager.dart';
 import '../theme.dart';
 import '../widgets/ays_button.dart';
@@ -20,13 +21,11 @@ final Object _systemChoice = Object();
 /// (fr/es/pt/de included — there's no dedicated page for those yet, English
 /// is the fallback). The privacy policy itself is English-only and shared by
 /// both, since it's the same product regardless of UI language.
-const _gameInfoUrlIt = 'https://pynkstudio.eu/it/lavori/are-you-stupid';
-const _gameInfoUrlEn = '$_gameInfoUrlIt/en';
-const _privacyPolicyUrl = '$_gameInfoUrlIt/privacy';
+const _privacyPolicyUrl =
+    'https://pynkstudio.eu/it/lavori/are-you-stupid/privacy';
 const _studioUrl = 'https://pynkstudio.eu';
 
-String _gameInfoUrlFor(AppLocale locale) =>
-    locale == AppLocale.it ? _gameInfoUrlIt : _gameInfoUrlEn;
+String _gameInfoUrlFor(AppLocale locale) => ShareManager.landingUrlFor(locale);
 
 Future<void> _openUrl(String url) =>
     launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
@@ -89,7 +88,11 @@ class SettingsScreen extends StatelessWidget {
                                   : locale.nativeName,
                               onTap: () => _pickLanguage(context, services),
                             ),
-                            _AiSection(t: t),
+                            // Apple Intelligence only — hidden on Android
+                            // rather than shown as permanently "not
+                            // eligible" ([[Feature Flags]]).
+                            if (AiFeatureFlags.platformSupported)
+                              _AiSection(t: t),
                             _RemoveAdsSection(services: services, t: t),
                             _LinkRow(
                               label: t('ui.settings.about'),
@@ -99,6 +102,14 @@ class SettingsScreen extends StatelessWidget {
                               label: t('ui.settings.privacy_policy'),
                               onTap: () => _openUrl(_privacyPolicyUrl),
                             ),
+                            // GDPR/UK: players who consented must be able
+                            // to withdraw — only shown where UMP says the
+                            // option is required.
+                            if (services.ads.privacyOptionsRequired)
+                              _LinkRow(
+                                label: t('ui.settings.privacy_choices'),
+                                onTap: services.ads.showPrivacyOptions,
+                              ),
                           ],
                         ),
                       ),
@@ -480,6 +491,8 @@ class _RemoveAdsSectionState extends State<_RemoveAdsSection> {
   void initState() {
     super.initState();
     widget.services.purchases.addListener(_onPurchasesChanged);
+    // The product may have failed to load at boot (offline, slow store).
+    widget.services.purchases.refreshProduct();
   }
 
   @override
@@ -524,15 +537,18 @@ class _RemoveAdsSectionState extends State<_RemoveAdsSection> {
         }
 
         final product = purchases.product;
-        if (product == null) return const SizedBox.shrink();
+        // Restore stays visible even while the product is unresolved —
+        // App Review requires a restore path, and a reinstall on a flaky
+        // connection must still be able to get its purchase back.
         return Column(
           children: [
-            _RemoveAdsRow(
-              label: t('ui.settings.remove_ads'),
-              caption: t('ui.settings.remove_ads_caption'),
-              trailing: product.price,
-              onTap: purchases.busy ? null : purchases.buyRemoveAds,
-            ),
+            if (product != null)
+              _RemoveAdsRow(
+                label: t('ui.settings.remove_ads'),
+                caption: t('ui.settings.remove_ads_caption'),
+                trailing: product.price,
+                onTap: purchases.busy ? null : purchases.buyRemoveAds,
+              ),
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Center(

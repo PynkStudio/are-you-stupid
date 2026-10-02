@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'ai/feature_flags.dart';
 import 'i18n/strings.dart';
 import 'services/ads/ad_provider.dart';
 import 'services/ads/admob_ad_provider.dart';
@@ -17,6 +18,10 @@ import 'ui/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // The on-device AI director is Apple Intelligence only. Android phones
+  // never generate, but still play AI rounds an iOS Director relays in
+  // multiplayer — see [AiFeatureFlags.platformSupported].
+  AiFeatureFlags.platformSupported = Platform.isIOS;
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -72,6 +77,12 @@ class _AreYouStupidAppState extends State<AreYouStupidApp> {
     );
     if (!mounted) return;
     setState(() => _services = services);
+    // After the first frame of the real UI, so the consent form and the ATT
+    // prompt are shown over an active app (iOS drops ATT requests made
+    // while the app is still launching).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) services.startAds().catchError((Object _) {});
+    });
   }
 
   @override

@@ -198,7 +198,8 @@ class ShiftingColorsChallenge extends BaseChallenge {
   @override
   void onTap(TapInfo tap, ChallengeHost host) {
     if (tap.kind != TapKind.down || tap.isBackground) return;
-    final hit = targets.firstWhere((t) => t.id == tap.targetId);
+    final hit = targetById(tap.targetId);
+    if (hit == null) return;
     if (hit.color == GameColor.red) {
       host.fail(
         reason: params.tr(

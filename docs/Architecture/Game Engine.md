@@ -1,6 +1,6 @@
 ---
 tags: [architecture, engine]
-updated: 2026-09-06
+updated: 2026-10-02
 ---
 
 # Game Engine
@@ -31,6 +31,15 @@ player who already knows why they lost isn't stuck waiting either. Do not
 shorten `wrong` back down, or remove the skip, without a very good reason —
 see [[Game Design Pillars]].
 
+### Skip grace
+
+`skipWrongFlash()` is ignored for the first `wrongFlashSkipGrace` (500 ms)
+of the wrong flash. Without it, the next tap of a player mashing a
+tap-N-times challenge skipped the roast unread (breaking "every failure is
+explainable in one line") and could land on a Game Over button.
+`GameOverView` adds the matching guard on its side: its buttons absorb input
+for the first 600 ms after the card appears. See [[Decision Log]].
+
 ## Clock
 
 The engine has no timers. `GameScreen` drives it with a `Ticker`:
@@ -60,7 +69,10 @@ persistence. Nothing else may listen for gameplay purposes.
 
 ## Continue
 
-`continueRun()` resumes the *same* level and flips `continueUsed`. The UI only
+`continueRun()` resumes the *same* level and flips `continueUsed`. It goes
+back through the **READY intro beat** (`GamePhase.intro`, 550 ms) instead of
+starting the level instantly — a player returning from a 30-second rewarded
+ad must not land in a level whose timer is already running. The UI only
 offers it once per run, and only behind a rewarded ad — see
 [[Monetization and Ads]].
 

@@ -1,96 +1,126 @@
 ---
 tags: [development, release]
-updated: 2026-09-11
+updated: 2026-10-02
 ---
 
 # Release Checklist
 
+Version **1.0.0**. One App Store record ships three platforms (universal
+purchase, bundle id `com.ays.areYouStupid`): the Flutter phone app (iPhone +
+iPad), the Apple TV host and the Mac board host (`tvos/`, see
+[[Multiplayer Host (tvOS)]]). Google Play ships the Android phone app
+(`com.ays.are_you_stupid`). The two ids differ in casing and stay that way:
+a store id can never change after the first upload, and the AdMob apps are
+already registered against them ([[Decision Log]]).
+
 ## Code
 
-- [x] `flutter analyze` — zero issues (verified 2026-09-07)
-- [ ] `flutter test` — 199 tests across 21 suites (see [[Testing]]). As of
-      2026-09-07, 3 pre-existing failures in `test/ai/telemetry_test.dart`
-      (in-progress AI-phase work, unrelated to multiplayer) — must be green
-      before shipping. `swift test` from `tvos/` is green (protocol mirror,
-      23 cases)
+- [x] `flutter analyze` — zero issues (2026-10-02)
+- [ ] `flutter test` green — **blocked on this machine until the Xcode
+      licence is accepted** (`sudo xcodebuild -license`): the
+      `objective_c` native-asset hook calls `xcrun`, which refuses to run.
+      Last green run: 303/303 on 2026-09-15 ([[Testing]])
+- [ ] `swift test` (from `tvos/`) green — same licence blocker
 - [x] `docs/` updated ([[Documentation Rules]])
 - [x] Build number bump automated — `scripts/bump_build_number.sh`, wired
       into the iOS Archive pre-action and the Android `assembleRelease`/
-      `bundleRelease` Gradle tasks. Fires on every archive/release build, no
-      manual step. See [[Getting Started]] and [[Decision Log]]
+      `bundleRelease` Gradle tasks ([[Getting Started]])
 
-## Product
+## Compliance (fixed in the 2026-10-02 audit)
 
-- [ ] `ShareManager.storeUrl` filled with the real store link — can only be
-      done once the store listing exists ([[Virality and Sharing]])
-- [x] Real `AdProvider` wired in `main.dart` — `AdMobAdProvider`, real AdMob
-      IDs ([[Monetization and Ads]])
-- [x] App icon replaced on Android/iOS (`icon.png` at the repo root, run
-      through `flutter_launcher_icons`) and a real tvOS App Icon & Top Shelf
-      Image catalog generated — not yet wired into `tvos/project.yml`, see
-      [[Decision Log]]
-- [x] Blank white boot screen fixed — native launch backgrounds
-      (`android/.../launch_background.xml`, `ios/.../LaunchScreen.storyboard`)
-      recolored to `Ays.bg`, and `main.dart` now shows an animated
-      `SplashScreen` while `AppServices.boot()` runs instead of awaiting it
-      before `runApp` ([[Decision Log]])
-- [ ] Bundle id / application id: Android is `com.ays.are_you_stupid`, iOS is
-      `com.ays.areYouStupid` — different casing, never unified. Not a
-      functional problem but worth a conscious decision before submission
-- [x] Android release build signs with a real upload key, not the debug key —
-      `android/key.properties` (gitignored, never commit it) points
-      `signingConfigs.release` at `android/upload-keystore.jks` (also
-      gitignored); falls back to debug signing only when `key.properties` is
-      absent, e.g. a fresh checkout ([[Decision Log]])
-- [x] Android launcher label is a real name (`Are You Stupid`), not the raw
-      package name (`are_you_stupid`)
-- [x] Privacy policy written and published — lives on the PynkStudio site
-      (separate repo), not in this one:
-      `pynkstudio.eu/it/lavori/are-you-stupid` (case-study page) and
-      `pynkstudio.eu/it/lavori/are-you-stupid/privacy` (full policy, English
-      only). Covers exactly what ships today: no account/backend/
-      analytics, local-only `shared_preferences`, and what Google AdMob
-      collects for ads (IDFA/Advertising ID, ATT prompt, Android ad-settings
-      opt-out). See [[Decision Log]].
-      - [ ] Still open: enter both URLs in App Store Connect (Privacy Policy /
-            Support URL) and Play Console (App content → Privacy policy) when
-            actually submitting
-      - [x] Linked from the in-app Settings screen
-            (`lib/ui/screens/settings_screen.dart`): "ABOUT THE GAME" and
-            "PRIVACY POLICY" rows, plus a "Made by PynkStudio" credit linking
-            to `pynkstudio.eu`. See [[Decision Log]].
-      - [ ] Still open: Settings now picks the case-study URL by `AppLocale`
-            (Italian → the Italian page, every other supported locale →
-            `pynkstudio.eu/it/lavori/are-you-stupid/en`), but as of
-            2026-09-06 that `/en` URL still 404s — it's not published yet.
-            **Verify it resolves before shipping**, or non-Italian players
-            tapping "ABOUT THE GAME" hit a dead link. The privacy policy was
-            already English-only and needed no change. See [[Decision Log]].
-- [ ] iOS signing confirmed in Xcode before archiving: `DEVELOPMENT_TEAM` is
-      already set (`G48384PHQK`), but the archive step needs an active Apple
-      Developer Program membership and a distribution certificate, not just
-      the "iPhone Developer" identity used for local runs
-- [x] Export compliance (encryption) answered in `Info.plist` —
-      `ITSAppUsesNonExemptEncryption = false`, since the app only uses
-      standard HTTPS/TLS (ads, in-app purchase, external links), no
-      proprietary encryption. Skips the manual question in App Store Connect
-      on every submission. See [[Decision Log]]
+- [x] **GDPR consent** — UMP form before any ad request, then ATT, then the
+      SDK; "AD PRIVACY CHOICES" row in Settings when UMP requires it
+      ([[Monetization and Ads]])
+- [x] **ATT** requested only once the app is active (post-frame of
+      `HomeScreen`), never during the splash
+- [x] **Restore purchases** always visible; product re-queried when
+      Settings opens
+- [x] iPhone portrait-only in `Info.plist`; iPad `UIRequiresFullScreen` +
+      portrait (portrait lock is ignored on iPad otherwise)
+- [x] `CFBundleLocalizations` + localized permission prompts in six
+      languages ([[Localization]])
+- [x] Android camera declared optional (`uses-feature required="false"`)
+- [x] AI off on Android ([[Feature Flags]])
+- [x] Export compliance: `ITSAppUsesNonExemptEncryption = false` in the
+      phone and host `Info.plist`s
+- [x] Mac App Sandbox entitlements + macOS app icon for the board host
+- [x] Android release signs with the real upload key (`android/key.properties`
+      + `upload-keystore.jks`, both gitignored — back them up offline)
+
+## AdMob console (not code)
+
+- [ ] *Privacy & messaging* → create and **publish** a GDPR message for both
+      apps (the UMP form shows nothing until one is published), optionally
+      an IDFA explainer for iOS
+- [ ] Link each AdMob app to its store listing once live
+- [ ] `app-ads.txt` on `pynkstudio.eu` (root) with the publisher line from
+      AdMob → *Apps* → *app-ads.txt*; set `pynkstudio.eu` as the developer
+      website in both stores
+
+## App Store Connect
+
+- [ ] Apple Developer Program active; distribution certificate available
+      (automatic signing, team `G48384PHQK`)
+- [ ] One app record, bundle id `com.ays.areYouStupid`, with **iOS, tvOS
+      and macOS** platforms added
+- [ ] In-app purchase `ays_remove_ads` (non-consumable) created with
+      price, review screenshot and notes, and **attached to the first iOS
+      submission** — otherwise review can't find it
+- [ ] App Privacy: **Data used to track you** — Device ID (IDFA),
+      Advertising Data, Product Interaction, Coarse Location, Diagnostics
+      (all from the Google Mobile Ads SDK). *Not* "no data collected"
+- [ ] Privacy Policy URL `https://pynkstudio.eu/it/lavori/are-you-stupid/privacy`;
+      Support/Marketing URL the `/en` game page
+- [ ] Age rating questionnaire: frequent crude humor/profanity → expect 12+
+- [ ] Review notes: multiplayer needs the Apple TV / Mac host on the same
+      Wi-Fi; Apple Intelligence features need an iOS 26 eligible device and
+      fall back to scripted challenges otherwise
+- [ ] Screenshots: iPhone 6.9", iPad 13", Apple TV (1920×1080), Mac
+      (≥1280×800). Suggested phone set: instruction frame, green flash, red
+      roast, Game Over card
+
+## Google Play Console
+
+- [ ] App created, package `com.ays.are_you_stupid`, Play App Signing on
+- [ ] Data safety: advertising ID + app interactions + diagnostics shared
+      with Google for advertising; no account; data encrypted in transit
+      (HTTPS)
+- [ ] Advertising ID declaration: yes (AdMob)
+- [ ] Contains ads: yes. Target audience: 13+ (avoid "Designed for
+      Families" — the language rules it out)
+- [ ] Content rating (IARC) questionnaire: crude humor, profanity
+- [ ] In-app product `ays_remove_ads` created and active
+- [ ] Internal testing track first, then production
+- [ ] Feature graphic 1024×500 + phone screenshots
+
+## Builds
+
+```bash
+flutter build ipa --release
+flutter build appbundle --release
+```
+
+Upload `build/ios/ipa/*.ipa` with Transporter (or Xcode Organizer) and
+`build/app/outputs/bundle/release/app-release.aab` in Play Console. Hosts:
+open `tvos/AYSHost.xcodeproj`, scheme `AYSHost-tvOS` / `AYSHost-macOS`,
+*Product → Archive → Distribute → App Store Connect*.
 
 ## Manual pass (do it on a real phone, in portrait, one hand)
 
+- [ ] First launch in the EEA: consent form, then ATT (iOS), then home
 - [ ] Menu → PLAY starts in under a second
 - [ ] Ten runs in a row: nothing repeats back to back, levels 1–3 stay trivial
-- [ ] Every flash is readable at arm's length
+- [ ] Every flash is readable at arm's length; a mashed tap can't skip the
+      roast or hit a Game Over button
 - [ ] TRY AGAIN restarts in under a second
-- [ ] CONTINUE (rewarded) resumes the same level, once per run
-- [ ] Share sheet opens with the right text
+- [ ] CONTINUE (rewarded) resumes the same level after a READY beat, once per run
+- [ ] Remove ads: buy, kill app, reinstall, restore
+- [ ] Share sheet opens with the right text and link
 - [ ] Sound off / vibration off actually silences everything
 - [ ] Airplane mode: the game is fully playable
 - [ ] Kill and relaunch: best score and settings survived
-- [ ] Screen-record a run vertically: it reads at thumbnail size
-
-## Store
-
-- [ ] Screenshots: instruction frame, green flash, red roast, Game Over card
-- [ ] Age rating reflects the language ("DON'T FUCK IT UP", roasts)
-- [ ] Privacy: no data collected, no account, no network — say so
+- [ ] Multiplayer: Apple TV host + iPhone + Android in one room; with an
+      Apple-Intelligence iPhone in the room the Android phone still plays
+      AI rounds
+- [ ] Apple Intelligence on a real iOS 26 device — never verified on
+      hardware yet ([[Testing and Evaluation]])

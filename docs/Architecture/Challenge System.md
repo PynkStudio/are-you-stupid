@@ -1,6 +1,6 @@
 ---
 tags: [architecture, challenges]
-updated: 2026-09-06
+updated: 2026-10-02
 ---
 
 # Challenge System
@@ -58,7 +58,10 @@ by "TAP LEFT" after the buttons swap) and `elapsed`.
 
 `lib/challenges/base.dart`:
 
-- `BaseChallenge` — mutable fields + `view` assembly + `mutateTarget()`
+- `BaseChallenge` — mutable fields + `view` assembly + `mutateTarget()` +
+  `targetById()` (null for a tap on a button that was swapped out in the
+  same frame — e.g. a show→ask phase change; callers ignore that tap rather
+  than throw, as `firstWhere` used to)
 - `TapTargetChallenge` — "tap the right one", with `correctIds`
 - `PatienceChallenge` — passes on timeout, fails on any touch
 

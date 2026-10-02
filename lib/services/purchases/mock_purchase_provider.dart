@@ -27,6 +27,9 @@ class MockPurchaseProvider implements PurchaseProvider {
   Future<void> initialize() async {}
 
   @override
+  Future<void> refreshProduct() async {}
+
+  @override
   Future<void> buyRemoveAds() async {
     _updates.add(const PurchaseUpdate(
       productId: IapProductIds.removeAds,

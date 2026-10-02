@@ -1,6 +1,6 @@
 ---
 tags: [architecture, localization, i18n]
-updated: 2026-09-06
+updated: 2026-10-02
 ---
 
 # Localization
@@ -89,6 +89,15 @@ directly (no `flutter_localizations` delegate). Any screen whose text must
 update the moment the language changes wraps its body in
 `AnimatedBuilder(animation: services.settings, ...)` — see `home_screen.dart`
 and `settings_screen.dart`.
+
+### iOS system strings
+
+The OS, not the game, renders the permission prompts (ATT, camera, local
+network), so they are localized natively: `ios/Runner/<lang>.lproj/
+InfoPlist.strings` for all six languages, registered as an
+`InfoPlist.strings` variant group in `Runner.xcodeproj`, plus
+`CFBundleLocalizations` in `Info.plist` — without that key the App Store
+lists the app as English-only. A new language needs a new `.lproj` there too.
 
 ## Choosing a language
 

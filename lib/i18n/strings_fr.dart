@@ -201,6 +201,7 @@ const Map<String, String> kStringsFr = {
   'ui.settings.remove_ads_error': "ÉCHEC DE L'ACHAT. RÉESSAIE.",
   'ui.settings.about': 'À PROPOS DU JEU',
   'ui.settings.privacy_policy': 'PRIVACY POLICY',
+  'ui.settings.privacy_choices': 'CHOIX DE CONFIDENTIALITÉ PUB',
   'ui.settings.reset_stats': 'RÉINITIALISER',
   'ui.settings.back': 'RETOUR',
   'ui.settings.footer':

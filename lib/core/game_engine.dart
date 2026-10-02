@@ -61,6 +61,12 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
   static const correctFlash = Duration(milliseconds: 240);
   static const wrongFlash = Duration(milliseconds: 2850);
 
+  /// The first stretch of the wrong flash can't be skipped. Without it, the
+  /// next tap of a player mashing a tap-N-times challenge skips the roast
+  /// unread — breaking "every failure is explainable in one line" — and can
+  /// land on a Game Over button. See `docs/Meta/Decision Log.md`.
+  static const wrongFlashSkipGrace = Duration(milliseconds: 500);
+
   Duration _phaseElapsed = Duration.zero;
 
   void addEventListener(GameEventListener listener) => _listeners.add(listener);
@@ -90,12 +96,17 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
   }
 
   /// Resume the run from the level where it ended. One per run.
+  ///
+  /// Goes through the READY beat like a fresh run, so a player coming back
+  /// from a rewarded ad isn't dropped into a level with the timer running.
   void continueRun() {
     if (!_state.continueUsed) {
       _state = _state.copyWith(continueUsed: true);
     }
+    _phaseElapsed = Duration.zero;
+    _state = _state.copyWith(phase: GamePhase.intro);
     _emit(GameEvent.continued);
-    _startLevel(_state.level);
+    notifyListeners();
   }
 
   void _startLevel(int level) {
@@ -192,6 +203,7 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
   /// [wrongFlash] — a no-op outside that phase.
   void skipWrongFlash() {
     if (_state.phase != GamePhase.wrong) return;
+    if (_phaseElapsed < wrongFlashSkipGrace) return;
     _enterGameOver();
   }
 

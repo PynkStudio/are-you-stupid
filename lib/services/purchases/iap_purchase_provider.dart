@@ -35,22 +35,33 @@ class IapPurchaseProvider implements PurchaseProvider {
   @override
   Future<void> initialize() async {
     _subscription = _iap.purchaseStream.listen(_onPurchaseDetails);
-    _available = await _iap.isAvailable();
-    if (!_available) return;
-    final response =
-        await _iap.queryProductDetails({IapProductIds.removeAds});
-    if (response.productDetails.isNotEmpty) {
-      _details = response.productDetails.first;
+    await refreshProduct();
+  }
+
+  @override
+  Future<void> refreshProduct() async {
+    if (_details != null) return;
+    try {
+      _available = await _iap.isAvailable();
+      if (!_available) return;
+      final response =
+          await _iap.queryProductDetails({IapProductIds.removeAds});
+      if (response.productDetails.isNotEmpty) {
+        _details = response.productDetails.first;
+      }
+    } catch (_) {
+      // Store unreachable: leave the product unresolved, retry next time.
     }
   }
 
   @override
   Future<void> buyRemoveAds() async {
     final details = _details;
-    if (details == null) return;
-    await _iap.buyNonConsumable(
+    if (details == null) throw StateError('remove-ads product not loaded');
+    final started = await _iap.buyNonConsumable(
       purchaseParam: PurchaseParam(productDetails: details),
     );
+    if (!started) throw StateError('store refused to start the purchase');
   }
 
   @override

@@ -19,15 +19,91 @@ class AdMobAdProvider implements AdProvider {
   bool _loadingInterstitial = false;
   bool _loadingRewarded = false;
 
+  /// False until consent allows ad requests (UMP `canRequestAds`). Every
+  /// load is a no-op while false, so a player who declined in the EEA simply
+  /// sees no ads (and no continue button, unless ads were removed).
+  bool _canRequestAds = false;
+  bool _sdkStarted = false;
+  bool _privacyOptionsRequired = false;
+
+  @override
+  bool get privacyOptionsRequired => _privacyOptionsRequired;
+
+  /// Google's required order: UMP consent first (GDPR/UK), then the iOS ATT
+  /// prompt, then the SDK. Runs after the first real screen is up (see
+  /// `main.dart`) — ATT requested while the app isn't active yet is silently
+  /// dropped by iOS, which App Review flags as "ATT prompt not found".
   @override
   Future<void> initialize() async {
+    await _updateConsentInfo();
+    await _showConsentFormIfRequired();
     if (Platform.isIOS) {
-      final status = await AppTrackingTransparency.trackingAuthorizationStatus;
-      if (status == TrackingStatus.notDetermined) {
-        await AppTrackingTransparency.requestTrackingAuthorization();
+      try {
+        final status =
+            await AppTrackingTransparency.trackingAuthorizationStatus;
+        if (status == TrackingStatus.notDetermined) {
+          await AppTrackingTransparency.requestTrackingAuthorization();
+        }
+      } catch (_) {
+        // A failed ATT call only means non-personalised ads.
       }
     }
+    await _startSdkIfAllowed();
+  }
+
+  @override
+  Future<void> showPrivacyOptions() async {
+    final done = Completer<void>();
+    await ConsentForm.showPrivacyOptionsForm((_) {
+      if (!done.isCompleted) done.complete();
+    });
+    await done.future;
+    await _refreshPrivacyStatus();
+    await _startSdkIfAllowed();
+  }
+
+  Future<void> _updateConsentInfo() async {
+    final done = Completer<void>();
+    ConsentInformation.instance.requestConsentInfoUpdate(
+      ConsentRequestParameters(),
+      () {
+        if (!done.isCompleted) done.complete();
+      },
+      (_) {
+        // Offline or misconfigured: UMP falls back to the last stored
+        // consent, which `canRequestAds` below still honours.
+        if (!done.isCompleted) done.complete();
+      },
+    );
+    await done.future.timeout(const Duration(seconds: 10), onTimeout: () {});
+  }
+
+  Future<void> _showConsentFormIfRequired() async {
+    try {
+      await ConsentForm.loadAndShowConsentFormIfRequired((_) {});
+    } catch (_) {
+      // No form available (e.g. offline) — same fallback as above.
+    }
+    await _refreshPrivacyStatus();
+  }
+
+  Future<void> _refreshPrivacyStatus() async {
+    try {
+      _privacyOptionsRequired = await ConsentInformation.instance
+              .getPrivacyOptionsRequirementStatus() ==
+          PrivacyOptionsRequirementStatus.required;
+      _canRequestAds = await ConsentInformation.instance.canRequestAds();
+    } catch (_) {
+      _canRequestAds = false;
+    }
+  }
+
+  Future<void> _startSdkIfAllowed() async {
+    if (!_canRequestAds || _sdkStarted) return;
+    _sdkStarted = true;
     await MobileAds.instance.initialize();
+    await _loadInterstitial();
+    await _loadRewarded();
   }
 
   @override
@@ -47,7 +123,7 @@ class AdMobAdProvider implements AdProvider {
       };
 
   Future<void> _loadInterstitial() async {
-    if (_interstitial != null || _loadingInterstitial) return;
+    if (!_sdkStarted || _interstitial != null || _loadingInterstitial) return;
     _loadingInterstitial = true;
     await InterstitialAd.load(
       adUnitId: AdUnitIds.forPlacement(AdPlacement.interstitial),
@@ -63,7 +139,7 @@ class AdMobAdProvider implements AdProvider {
   }
 
   Future<void> _loadRewarded() async {
-    if (_rewarded != null || _loadingRewarded) return;
+    if (!_sdkStarted || _rewarded != null || _loadingRewarded) return;
     _loadingRewarded = true;
     await RewardedAd.load(
       adUnitId: AdUnitIds.forPlacement(AdPlacement.rewardedContinue),

@@ -201,6 +201,7 @@ const Map<String, String> kStringsIt = {
   'ui.settings.remove_ads_error': 'ACQUISTO FALLITO. RIPROVA.',
   'ui.settings.about': 'INFO SUL GIOCO',
   'ui.settings.privacy_policy': 'PRIVACY POLICY',
+  'ui.settings.privacy_choices': 'SCELTE PRIVACY ANNUNCI',
   'ui.settings.reset_stats': 'AZZERA STATISTICHE',
   'ui.settings.back': 'INDIETRO',
   'ui.settings.footer':

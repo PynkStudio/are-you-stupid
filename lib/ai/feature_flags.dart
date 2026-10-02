@@ -64,6 +64,15 @@ enum AiExperienceMode {
 class AiFeatureFlags {
   AiFeatureFlags(this._prefs);
 
+  /// False on platforms with no on-device model at all (Android). Set once
+  /// by `main.dart` from `Platform`; left `true` everywhere else so pure-Dart
+  /// tests keep exercising the full flag matrix. When false, the master
+  /// switch reads `false` whatever is persisted — the phone never generates
+  /// or announces AI capability, but still *plays* AI rounds relayed by an
+  /// iOS Director in multiplayer ([[Multiplayer AI Director]]), since those
+  /// arrive as plain proposals interpreted by the Dart runtime.
+  static bool platformSupported = true;
+
   static const _kDynamicAI = 'ayu.dynamicAI.enabled';
   static const _kChallengeGeneration = 'ayu.dynamicAI.challengeGeneration';
   static const _kCommentary = 'ayu.dynamicAI.commentary';
@@ -82,7 +91,8 @@ class AiFeatureFlags {
   /// other flag below reads as `false` regardless of its own persisted
   /// value, so flipping this one alone is a complete, instant rollback to a
   /// pre-AI build.
-  bool get dynamicAIEnabled => _prefs.getBool(_kDynamicAI) ?? true;
+  bool get dynamicAIEnabled =>
+      platformSupported && (_prefs.getBool(_kDynamicAI) ?? true);
 
   /// AI challenge generation vs. scripted-only ([[AI Challenge Generation]]).
   bool get aiChallengeGenerationEnabled =>
