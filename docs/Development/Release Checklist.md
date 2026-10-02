@@ -127,6 +127,11 @@ open `tvos/AYSHost.xcodeproj`, scheme `AYSHost-tvOS` / `AYSHost-macOS`,
 - [ ] Sound off / vibration off actually silences everything
 - [ ] Airplane mode: the game is fully playable
 - [ ] Kill and relaunch: best score and settings survived
+- [ ] Multiplayer permissions (iOS, **release** build, fresh install): no
+      Local Network prompt before MULTIPLAYER; primer → CONTINUE → system
+      prompt. Deny it: the OPEN SETTINGS notice appears, opens Settings,
+      and disappears on return once access is on. Revoke it later in
+      Settings: the notice comes back on the next visit
 - [ ] Multiplayer: Apple TV host + iPhone + Android in one room; with an
       Apple-Intelligence iPhone in the room the Android phone still plays
       AI rounds

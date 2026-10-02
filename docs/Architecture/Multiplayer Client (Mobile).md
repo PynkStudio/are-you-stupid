@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, client, flutter]
-updated: 2026-09-11
+updated: 2026-10-02
 ---
 
 # Multiplayer Client (Mobile)
@@ -49,6 +49,40 @@ ways in:
    ([[Multiplayer Product]]).
 
 No account, no cloud, no network beyond the LAN ([[Game Design Pillars]]).
+
+## Permissions
+
+Multiplayer is the only part of the app that needs OS permissions: **Local
+Network** (required — Bonjour browse for `_ays-party._tcp`, iOS only; Android
+NSD needs no runtime permission) and **Camera** (optional — QR scan only).
+Single-player never asks for either.
+
+- **Primer first.** The first time `MpHomeScreen` opens, a primer dialog
+  (`showMpPermissionsPrimer`, `mp_common.dart`) explains both permissions
+  *before* anything touches the network. CONTINUE stores
+  `ays.mp.permissionsPrimerSeen` and only then probes the local network —
+  which is what makes iOS show its system prompt, so the prompt always
+  follows the explanation. NOT NOW backs out of multiplayer, stores nothing,
+  and the primer shows again next time.
+- **Probe.** `LocalNetworkPermission` (`lib/services/`) asks the native
+  `ays/permissions` channel for `granted` / `denied` / `unknown`. iOS has no
+  API that reads this permission, so `PermissionsController.swift` runs a
+  short `NWBrowser` and reads its state (Apple TN3179); because iOS reports
+  "denied" while its own alert is still up, the probe waits for the app to
+  become active again before answering. Android always says `granted`.
+  `unknown` (channel missing, no answer) never nags.
+- **Denied or revoked.** `MpHomeScreen` re-checks on every visit and on every
+  app resume; when denied it shows `MpPermissionNotice` with **OPEN
+  SETTINGS** (deep link to this app's Settings page). It disappears on its
+  own when the player comes back with access on. `MpJoinScreen` does the same
+  when a room isn't found: if the cause is a denied permission it says so
+  instead of "couldn't find the room", and retries by itself on resume.
+- **Camera denied.** The scanner's error view gains the same OPEN SETTINGS
+  button; ENTER ROOM CODE stays the no-camera path.
+
+In **debug** builds iOS can show the Local Network prompt at launch: the
+Flutter debug VM service advertises itself over Bonjour. Release builds
+don't, so the primer is the only lead-in players ever see.
 
 ## Client structure (additive, pure-Dart core)
 
@@ -110,6 +144,8 @@ On mobile, persist locally:
   name; auto-generated avatar if none — colored circle + initial, see
   [[Multiplayer Gameplay]]),
 - **multiplayer statistics** (matches played, wins, best *least-stupid* finish),
+- **permissions primer seen** (`ays.mp.permissionsPrimerSeen`, see
+  Permissions above),
 - **settings** (reuse `SettingsManager` language/sound/haptics, [[Services]]).
 
 All via `SharedPreferences` ([[State and Persistence]]) — no cloud.

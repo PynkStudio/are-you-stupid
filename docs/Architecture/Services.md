@@ -22,6 +22,7 @@ final services = AppServices.of(context);
 | `ShareManager` | share text + OS share sheet | `share_plus` |
 | `AdManager` | *policy*: when ads may show; consent (UMP) + ATT before the SDK starts | started post-frame via `AppServices.startAds()`, never during the splash — see [[Monetization and Ads]] |
 | `PurchaseManager` | *policy*: buy/restore the "remove ads" IAP | `ChangeNotifier`, see [[Monetization and Ads]] |
+| `LocalNetworkPermission` | multiplayer Local Network status probe + "open this app's Settings" | `ays/permissions` MethodChannel (`PermissionsController.swift`, `MainActivity.kt`); never throws, `unknown` when the channel is missing — see [[Multiplayer Client (Mobile)]] "Permissions" |
 | `AppleAIService` (Phase 2) | on-device Foundation Models client via the `ays/apple_intelligence` MethodChannel | `lib/ai/apple_ai_service.dart` + `AppleAIController.swift`; `available` real, generation stubbed until Phases 4–5 ([[Foundation Models Integration]]); `MockAppleAIService` for tests |
 
 The **dynamic AI director** itself is *not* a service — it's the

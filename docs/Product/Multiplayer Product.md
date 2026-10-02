@@ -1,6 +1,6 @@
 ---
 tags: [product, multiplayer, party]
-updated: 2026-09-07
+updated: 2026-10-02
 ---
 
 # Multiplayer Product
@@ -69,6 +69,23 @@ Scan the QR code on the Apple TV to join a game.
 ```
 If a scanned deep link already opened the app, skip this screen and go
 straight to the join flow.
+
+First visit only, before any system prompt — the permissions primer:
+```
+QUICK THING FIRST
+To play on the TV, this phone needs:
+LOCAL NETWORK — to find the TV on your Wi-Fi. Nothing leaves your home.
+CAMERA (OPTIONAL) — only to scan the QR code. You can type the code instead.
+Your phone will ask. Tap Allow. It is not a trick question.
+[ CONTINUE ]   [ NOT NOW ]
+```
+If Local Network access is denied or later revoked, the menu entry (and the
+join screen, when a room can't be found) shows:
+```
+Local network access is off. Without it this phone can't find the TV.
+[ OPEN SETTINGS ]
+```
+Details in [[Multiplayer Client (Mobile)]] "Permissions".
 
 ### Mobile — join
 ```

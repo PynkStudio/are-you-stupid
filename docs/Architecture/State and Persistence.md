@@ -1,6 +1,6 @@
 ---
 tags: [architecture, persistence, offline]
-updated: 2026-09-07
+updated: 2026-10-02
 ---
 
 # State and Persistence
@@ -19,6 +19,7 @@ needed. Everything lives in `SharedPreferences` on the device.
 | `ays.runsSinceAd` | interstitial pacing counter |
 | `ays.sound`, `ays.haptics`, `ays.roasts` | settings |
 | `ays.locale` | chosen language; absent = follow the device language — see [[Localization]] |
+| `ays.mp.permissionsPrimerSeen` | the multiplayer permissions primer was accepted; until then nothing touches the local network — see [[Multiplayer Client (Mobile)]] |
 | `ays.noAdsPurchased` | the "remove ads" IAP, set by `PurchaseManager` after a store purchase or restore — see [[Monetization and Ads]] |
 
 ### AI feature keys (`ayu.*`, spec — [[Feature Flags]], [[Privacy and Offline]])
