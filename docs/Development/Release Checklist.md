@@ -111,7 +111,7 @@ flutter build appbundle --release
 **1.0.0 (2), 2026-10-02:** all three store packages built and signed for
 distribution from commit `f2c9439` (331/331 tests green):
 `build/ios/export/Are You Stupid.ipa`, `build/hosts/tvos-export/Are You
-Stupid.ipa`, `build/hosts/macos-export/Are You Stupid.pkg` (macOS re-built as **build 2**: build 1 was rejected for an invalid `LSApplicationCategoryType`). All three delivered with Transporter on 2026-10-02. The tvOS host is
+Stupid.ipa`, `build/hosts/macos-export/Are You Stupid.pkg` (macOS re-built up to **build 3**: builds 1–2 were rejected for an invalid `LSApplicationCategoryType`; tvOS re-built as **build 2** with proper layered icons). Delivered with Transporter on 2026-10-02. The tvOS host is
 archived with `CODE_SIGNING_ALLOWED=NO` and signed at export — automatic
 signing can't make a tvOS *development* profile without a registered Apple
 TV. `xcodebuild -exportArchive` with `destination: upload` failed with
