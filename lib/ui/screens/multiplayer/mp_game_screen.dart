@@ -23,6 +23,7 @@ import '../../widgets/challenge_renderer.dart';
 import '../../widgets/flash_overlay.dart';
 import 'mp_disconnect_view.dart';
 import 'mp_result_screen.dart';
+import '../../widgets/balanced_text.dart';
 
 class MpGameScreen extends StatefulWidget {
   const MpGameScreen({super.key, required this.session});
@@ -161,19 +162,19 @@ class _MpGameScreenState extends State<MpGameScreen>
     final round = _state.round;
     if (round == null) {
       return Center(
-        child: Text(
+        child: BalancedText(
           Strings.t(locale, 'ui.mp.game.waiting_round'),
-          textAlign: TextAlign.center,
           style: Ays.title(44),
+          maxLines: 3,
         ),
       );
     }
     if (!round.isGo) {
       return Center(
-        child: Text(
+        child: BalancedText(
           Strings.t(locale, 'ui.mp.game.waiting_round'),
-          textAlign: TextAlign.center,
           style: Ays.title(44),
+          maxLines: 3,
         ),
       );
     }

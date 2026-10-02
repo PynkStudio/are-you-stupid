@@ -22,6 +22,7 @@ import '../widgets/challenge_renderer.dart';
 import '../widgets/flash_overlay.dart';
 import '../widgets/timer_bar.dart';
 import 'game_over_view.dart';
+import '../widgets/balanced_text.dart';
 
 /// The whole run lives on one screen: no route changes between challenges,
 /// no route change on Game Over. Restart is one tap and zero navigation.
@@ -440,6 +441,7 @@ class _ReadyText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(Strings.t(locale, 'ui.game.ready'), style: Ays.title(64));
+    return BalancedText(Strings.t(locale, 'ui.game.ready'),
+        style: Ays.title(64), maxLines: 1);
   }
 }

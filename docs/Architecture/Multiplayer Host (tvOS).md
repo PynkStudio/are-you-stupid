@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, tvos, macos, host]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Multiplayer Host (tvOS)
@@ -47,8 +47,8 @@ Dart one). That single contract is the only coupling between the two ends.
 ## Responsibilities
 
 - Boot a room: generate a random room code, advertise
-  `_ays-party._tcp` (Bonjour) with the room code as instance name, listen on a
-  localhost-bound TCP socket.
+  `_ays-party._tcp` (Bonjour) with the room code as instance name plus a live
+  TXT snapshot (device name, occupancy, capacity, state), listen on TCP.
 - Render the lobby, the join QR (`areyoustupid://join?room=7F4K`), the player
   roster with ready states, and the START GAME gate (≥2 ready players).
 - Own challenges: pick `challengeId` + `seed`, build the canonical challenge,
@@ -90,10 +90,11 @@ tvos/
 │   ├── HostViewModel.swift        wires RoomHost + NWListenerServer + QRGenerator to SwiftUI via
 │                                  RoomHost.onBroadcast; owns the room code and BoardScreen state
 │   ├── RootView.swift             LOBBY -> ROUND -> RESULTS -> GAME_END, off HostViewModel.screen
-│   ├── LobbyView.swift            room code, join QR, roster, START GAME (>=2 ready)
-│   ├── RoundView.swift            GET READY / GO countdown display (round auto-closes on deadline)
-│   ├── ResultsView.swift          per-player ✓/✕ + score delta, NEXT ROUND
-│   ├── GameEndView.swift          standings + winner + REMATCH (same room, per docs/Gameplay/
+│   ├── LobbyView.swift            animated game-show lobby: join ticket, live marquee, two-column
+│                                  player cards, mode picker and 2-ready party meter
+│   ├── RoundView.swift            restrained live-show stage: GET READY / GO + compact damage board
+│   ├── ResultsView.swift          reactive comic verdict, per-player reason + score, live standings
+│   ├── GameEndView.swift          animated winner headline, final damage board + REMATCH (same room, per docs/Gameplay/
 │                                  Multiplayer Gameplay.md "instant rematch back into the lobby")
 │   ├── AirPlayButton.swift        macOS-only `AVRoutePickerView` wrapper (board-only Mac host)
 │   ├── RoundDurationProvider.swift  the App target's `ChallengeJudge` — resolves a duration
@@ -101,7 +102,8 @@ tvos/
 │                                  (see "Challenge judging" below); looks up each template's real
 │                                  `maxDurationMs` from `AYSChallengeCatalog` (see [[Decision Log]])
 │   ├── RoomCode.swift             random 4-char room code, ambiguous characters excluded
-│   └── Theme.swift                dark ground, bold uppercase type — no bundled assets
+│   └── Theme.swift                purple stage palette, generated edge lights and broadcast chrome
+│                                  — bold uppercase type, no bundled assets
 ├── Sources/
 │   ├── AYSProtocol/                mirrors [[Multiplayer Protocol]] models — landed (Phase 2)
 │   └── AYSHostCore/                 room/round/scoring authority — landed (Phase 4, partial)
@@ -131,7 +133,8 @@ tvos/
 **Verified live, this session:** `AYSHost-macOS` builds (`xcodebuild ...
 -scheme AYSHost-macOS`) and runs — screenshotted with a real room code, a
 real scannable QR, `NWListenerServer` actually bound and listening
-("LISTENING ON PORT ...") and the AirPlay picker button, all with zero
+(the UI now says `READY TO PARTY`; the numeric port stays internal) and the
+AirPlay picker button, all with zero
 manual intervention (no permission dialog blocked the local bind — unlike
 the bare `swift test` CLI binary, a real signed `.app` with
 `NSLocalNetworkUsageDescription` declared gets the normal one-time-if-ever
@@ -153,18 +156,18 @@ the Info.plist content is confirmed correct.
 `AYSHost-tvOS` is the same sources compiled for tvOS — confirmed building
 (`xcodebuild -destination 'generic/platform=tvOS Simulator'`) and running
 live on a booted `Apple TV` simulator (`xcrun simctl install`/`launch`/`io
-screenshot`), same room code + QR + listening-port pattern as macOS, after
+screenshot`), same room code + QR + ready-state pattern as macOS, after
 downloading the tvOS platform (`xcodebuild -downloadPlatform tvOS`, done
 with the user's explicit go-ahead — see [[Decision Log]]). This
 confirmation predates the `NSBonjourServices` fix above, so it proves the
 shared SwiftUI code and TCP bind work on tvOS too, not that tvOS discovery
 specifically works — the same open item applies here.
 
-**What the App/UI shell does not yet have:** EliminationCard, a real winner
-animation beyond a name in text, a share card, and the humor lines
-([[Multiplayer Gameplay]] "Humor lines", [[Multiplayer Development]] Phase
-9) — the live standings overlay landed this session (`ScoreboardView.swift`,
-fed by `PLAYER_SCORE` broadcasts via `HostViewModel.standings`). It also has
+**What the App/UI shell does not yet have:** a dedicated EliminationCard or a
+share card ([[Multiplayer Development]] Phase 9). Winner reveal, result
+verdicts, restrained humor and the live standings overlay have landed
+(`ScoreboardView.swift`, fed by `PLAYER_SCORE` broadcasts via
+`HostViewModel.standings`; see [[Multiplayer Gameplay]]). It also has
 no XCTest target of its own — `RoomCode`/`RoundDurationProvider` are
 exercised only by building successfully and the one live screenshot above,
 not by an automated suite the way `AYSHostCoreTests` covers the package
@@ -184,8 +187,8 @@ deep link (`areyoustupid://join?room=XXXX`, matching
 via `CIQRCodeGenerator` — no SwiftUI/UIKit/AppKit dependency, so it's usable
 from tvOS, iOS and macOS alike.
 
-**What's actually verified headless:** `BonjourServiceTests` (the instance
-name / service type rule) and all of `QRGeneratorTests` (deep-link string,
+**What's actually verified headless:** `BonjourServiceTests` (instance name,
+service type and the exact TXT room-card fields) and all of `QRGeneratorTests` (deep-link string,
 deterministic output, different input → different pixels, scaling) run
 every time, no network involved.
 

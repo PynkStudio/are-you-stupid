@@ -42,9 +42,8 @@ final class HostViewModel: ObservableObject {
     @Published private(set) var directorName: String?
 
     /// The most recent AI commentary line relayed by the Director, if any.
-    /// Not yet shown anywhere in the UI — captured for the next targeted
-    /// pass, same as [[Pre-generation Cache]]'s commentary ring on the
-    /// single-player side.
+    /// Cleared at each round boundary and shown only in results/end chrome,
+    /// never over the active play state.
     @Published private(set) var lastAiCommentary: String?
 
     /// Live per-player standings, keyed by `playerId` — populated from every
@@ -62,6 +61,7 @@ final class HostViewModel: ObservableObject {
 
     private let host: RoomHost
     private let server = NWListenerServer()
+    private let advertisedDeviceName: String
 
     var readyCount: Int { roster.filter(\.ready).count }
     var canStart: Bool { readyCount >= 2 && screen == .lobby }
@@ -84,6 +84,10 @@ final class HostViewModel: ObservableObject {
     init() {
         let code = RoomCode.random()
         roomCode = code
+        let rawHostName = ProcessInfo.processInfo.hostName
+        advertisedDeviceName = rawHostName
+            .replacingOccurrences(of: ".local", with: "", options: [.caseInsensitive])
+            .replacingOccurrences(of: "-", with: " ")
         host = RoomHost(
             hostName: "ARE YOU STUPID?",
             roomCode: code,
@@ -100,8 +104,8 @@ final class HostViewModel: ObservableObject {
             self?.host.attachClient(transport)
         }
         do {
-            let port = try await server.start(advertising: BonjourService(roomCode: roomCode))
-            networkStatus = "LISTENING ON PORT \(port)"
+            try await server.start(advertising: advertisement(state: "lobby"))
+            networkStatus = "READY TO PARTY"
         } catch {
             networkStatus = "NETWORK UNAVAILABLE"
             lastError = "\(error)"
@@ -180,13 +184,38 @@ final class HostViewModel: ObservableObject {
 
     var joinDeepLink: String { QRGenerator.joinDeepLink(roomCode: roomCode) }
 
+    private func advertisement(state: String) -> BonjourService {
+        BonjourService(
+            roomCode: roomCode,
+            displayName: advertisedDeviceName,
+            playerCount: roster.count,
+            maxPlayers: 8,
+            state: state
+        )
+    }
+
+    private func refreshAdvertisement(state: String? = nil) {
+        let currentState: String
+        if let state {
+            currentState = state
+        } else if case .lobby = screen {
+            currentState = "lobby"
+        } else {
+            currentState = "playing"
+        }
+        server.updateAdvertising(advertisement(state: currentState))
+    }
+
     private func handle(_ message: any PartyMessage) {
         switch message {
         case let m as PlayerReadyRoster:
             roster = m.players
+            refreshAdvertisement()
         case let m as RoundStart:
             screen = .round(roundId: m.roundId)
             countdownState = nil
+            lastAiCommentary = nil
+            refreshAdvertisement(state: "playing")
             scheduleAutoComplete(roundId: m.roundId, closesAt: m.startAt + m.durationMs)
         case let m as RoundCountdown:
             countdownState = m.state
@@ -195,6 +224,9 @@ final class HostViewModel: ObservableObject {
             scheduleAutoAdvance(afterRoundId: m.roundId)
         case let m as PlayerScore:
             standings[m.playerId] = m
+        case let m as PlayerLeave:
+            roster.removeAll { $0.playerId == m.playerId }
+            refreshAdvertisement()
         case let m as GameEnd:
             screen = .gameEnd(m)
         case let m as AiDirectorAssignment:
@@ -202,6 +234,8 @@ final class HostViewModel: ObservableObject {
         case let m as AiChallengeRound:
             screen = .round(roundId: m.roundId)
             countdownState = nil
+            lastAiCommentary = nil
+            refreshAdvertisement(state: "playing")
             scheduleAutoComplete(roundId: m.roundId, closesAt: m.startAt + m.durationMs)
         case let m as AiCommentary:
             lastAiCommentary = m.text
@@ -218,5 +252,6 @@ final class HostViewModel: ObservableObject {
     func rematch() {
         screen = .lobby
         countdownState = nil
+        refreshAdvertisement(state: "lobby")
     }
 }

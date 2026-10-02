@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/challenge.dart';
 import '../theme.dart';
 import 'target_button.dart';
+import 'balanced_text.dart';
 
 /// Lets the background listener know a target already handled this pointer.
 ///
@@ -132,10 +133,7 @@ class _PlayArea extends StatelessWidget {
           if (big != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 14),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(big, style: Ays.title(76)),
-              ),
+              child: BalancedText(big, style: Ays.title(76), maxLines: 1),
             ),
           Expanded(child: grid),
         ],

@@ -4,6 +4,7 @@ import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
 import '../theme.dart';
 import '../widgets/ays_button.dart';
+import '../widgets/balanced_text.dart';
 
 class StatsScreen extends StatelessWidget {
   const StatsScreen({super.key});
@@ -27,7 +28,8 @@ class StatsScreen extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(t('ui.stats.title'), style: Ays.title(44)),
+                    BalancedText(t('ui.stats.title'),
+                        style: Ays.title(44), textAlign: TextAlign.left),
                     const SizedBox(height: 24),
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 26),
@@ -38,7 +40,8 @@ class StatsScreen extends StatelessWidget {
                       child: Column(
                         children: [
                           Text(t('ui.stats.level'), style: Ays.mono(14)),
-                          Text('${s.bestLevel}', style: Ays.title(86)),
+                          BalancedText('${s.bestLevel}',
+                              style: Ays.title(86), maxLines: 1),
                         ],
                       ),
                     ),

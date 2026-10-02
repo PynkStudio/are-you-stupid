@@ -9,16 +9,20 @@
 /// if it was denied or revoked, show a banner that deep-links to Settings.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../i18n/strings.dart';
 import '../../../services/app_services.dart';
 import '../../../services/local_network_permission.dart';
+import '../../../multiplayer/networking/lan_discovery.dart';
 import '../../theme.dart';
 import '../../widgets/ays_button.dart';
 import 'mp_common.dart';
 import 'mp_join_screen.dart';
+import '../../widgets/balanced_text.dart';
 
 /// The QR encodes `areyoustupid://join?room=XXXX` ([[Multiplayer Protocol]]).
 final _deepLinkRoomCode = RegExp(
@@ -50,6 +54,10 @@ class _MpHomeScreenState extends State<MpHomeScreen>
   bool _navigated = false;
   LocalNetworkStatus _network = LocalNetworkStatus.unknown;
   bool _probing = false;
+  PartyRoomBrowser? _roomBrowser;
+  StreamSubscription<List<PartyHostCandidate>>? _roomSubscription;
+  List<PartyHostCandidate> _nearbyRooms = const [];
+  bool _searchingRooms = false;
 
   @override
   void initState() {
@@ -63,6 +71,8 @@ class _MpHomeScreenState extends State<MpHomeScreen>
     WidgetsBinding.instance.removeObserver(this);
     _codeController.dispose();
     _scannerController?.dispose();
+    unawaited(_roomSubscription?.cancel());
+    unawaited(_roomBrowser?.dispose());
     super.dispose();
   }
 
@@ -70,8 +80,12 @@ class _MpHomeScreenState extends State<MpHomeScreen>
   /// banner disappears the moment access is switched back on.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed || !mounted) return;
-    if (AppServices.of(context).multiplayerProfile.permissionsPrimerSeen) {
+    if (!mounted) return;
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      unawaited(_stopRoomDiscovery());
+    } else if (state == AppLifecycleState.resumed &&
+        AppServices.of(context).multiplayerProfile.permissionsPrimerSeen) {
       _refreshNetwork();
     }
   }
@@ -81,7 +95,10 @@ class _MpHomeScreenState extends State<MpHomeScreen>
     final services = AppServices.of(context);
     final profile = services.multiplayerProfile;
     if (!profile.permissionsPrimerSeen) {
-      final accepted = await showMpPermissionsPrimer(context, services.settings.locale);
+      final accepted = await showMpPermissionsPrimer(
+        context,
+        services.settings.locale,
+      );
       if (!mounted) return;
       if (!accepted) {
         Navigator.of(context).pop();
@@ -98,7 +115,42 @@ class _MpHomeScreenState extends State<MpHomeScreen>
     _probing = true;
     final status = await AppServices.of(context).localNetwork.status();
     _probing = false;
-    if (mounted) setState(() => _network = status);
+    if (!mounted) return;
+    setState(() => _network = status);
+    if (status == LocalNetworkStatus.granted) {
+      await _startRoomDiscovery();
+    } else {
+      await _stopRoomDiscovery();
+    }
+  }
+
+  Future<void> _startRoomDiscovery() async {
+    if (_roomBrowser != null) return;
+    final browser = PartyRoomBrowser();
+    _roomBrowser = browser;
+    setState(() => _searchingRooms = true);
+    _roomSubscription = browser.rooms.listen((rooms) {
+      if (!mounted) return;
+      setState(() {
+        _nearbyRooms = rooms;
+        _searchingRooms = false;
+      });
+    });
+    await browser.start();
+  }
+
+  Future<void> _stopRoomDiscovery() async {
+    await _roomSubscription?.cancel();
+    _roomSubscription = null;
+    final browser = _roomBrowser;
+    _roomBrowser = null;
+    if (browser != null) await browser.dispose();
+    if (mounted) {
+      setState(() {
+        _nearbyRooms = const [];
+        _searchingRooms = false;
+      });
+    }
   }
 
   void _openSettings() {
@@ -128,9 +180,7 @@ class _MpHomeScreenState extends State<MpHomeScreen>
     final services = AppServices.of(context);
     services.sound.button();
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => MpJoinScreen(roomCode: roomCode),
-      ),
+      MaterialPageRoute<void>(builder: (_) => MpJoinScreen(roomCode: roomCode)),
     );
   }
 
@@ -149,6 +199,9 @@ class _MpHomeScreenState extends State<MpHomeScreen>
               return _Landing(
                 t: t,
                 networkDenied: _network == LocalNetworkStatus.denied,
+                nearbyRooms: _nearbyRooms,
+                searchingRooms: _searchingRooms,
+                onJoinRoom: (room) => _goToJoin(room.roomCode),
                 onOpenSettings: _openSettings,
                 onScan: _startScan,
                 onEnterCode: () => setState(() => _mode = _Mode.enteringCode),
@@ -184,6 +237,9 @@ class _Landing extends StatelessWidget {
   const _Landing({
     required this.t,
     required this.networkDenied,
+    required this.nearbyRooms,
+    required this.searchingRooms,
+    required this.onJoinRoom,
     required this.onOpenSettings,
     required this.onScan,
     required this.onEnterCode,
@@ -191,6 +247,9 @@ class _Landing extends StatelessWidget {
 
   final String Function(String, [Map<String, String>?]) t;
   final bool networkDenied;
+  final List<PartyHostCandidate> nearbyRooms;
+  final bool searchingRooms;
+  final ValueChanged<PartyHostCandidate> onJoinRoom;
   final VoidCallback onOpenSettings;
   final VoidCallback onScan;
   final VoidCallback onEnterCode;
@@ -201,8 +260,12 @@ class _Landing extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Spacer(flex: 2),
-          Text(t('ui.mp.home.title'), style: Ays.title(56), textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          BalancedText(
+            t('ui.mp.home.title'),
+            style: Ays.title(56),
+            maxLines: 1,
+          ),
           const SizedBox(height: 14),
           Text(
             t('ui.mp.home.tagline'),
@@ -217,8 +280,66 @@ class _Landing extends StatelessWidget {
               onAction: onOpenSettings,
             ),
           ],
-          const Spacer(flex: 3),
-          AysButton(label: t('ui.mp.home.scan'), height: 78, fontSize: 28, onTap: onScan),
+          const SizedBox(height: 28),
+          if (!networkDenied) ...[
+            Row(
+              children: [
+                Text(
+                  t('ui.mp.home.nearby'),
+                  style: Ays.label(13, color: Ays.yellow),
+                ),
+                const Spacer(),
+                if (searchingRooms)
+                  const Icon(
+                    Icons.wifi_find_rounded,
+                    size: 18,
+                    color: Ays.inkDim,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (nearbyRooms.isEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 20,
+                ),
+                decoration: BoxDecoration(
+                  color: Ays.surface,
+                  borderRadius: Ays.radiusSmall,
+                  border: Border.all(color: Ays.surfaceHigh),
+                ),
+                child: Text(
+                  t('ui.mp.home.searching'),
+                  textAlign: TextAlign.center,
+                  style: Ays.label(13, color: Ays.inkDim),
+                ),
+              )
+            else
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 224),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: nearbyRooms.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final room = nearbyRooms[index];
+                    return _NearbyRoomCard(
+                      room: room,
+                      t: t,
+                      onTap: () => onJoinRoom(room),
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: 20),
+          ],
+          AysButton(
+            label: t('ui.mp.home.scan'),
+            height: 78,
+            fontSize: 28,
+            onTap: onScan,
+          ),
           const SizedBox(height: 12),
           AysButton(
             label: t('ui.mp.home.enter_code'),
@@ -236,6 +357,90 @@ class _Landing extends StatelessWidget {
             onTap: () => Navigator.of(context).pop(),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _NearbyRoomCard extends StatelessWidget {
+  const _NearbyRoomCard({
+    required this.room,
+    required this.t,
+    required this.onTap,
+  });
+
+  final PartyHostCandidate room;
+  final String Function(String, [Map<String, String>?]) t;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final canJoin = room.canJoin;
+    return Semantics(
+      button: canJoin,
+      label: '${room.displayName}, ${room.playerCount} of ${room.maxPlayers}',
+      child: InkWell(
+        onTap: canJoin ? onTap : null,
+        borderRadius: Ays.radiusSmall,
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: canJoin ? Ays.surface : Ays.surface.withValues(alpha: 0.55),
+            borderRadius: Ays.radiusSmall,
+            border: Border.all(
+              color: canJoin ? Ays.purple : Ays.surfaceHigh,
+              width: 2,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: Ays.purple,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.tv_rounded, color: Ays.ink, size: 24),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      room.displayName.toUpperCase(),
+                      style: Ays.label(17),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      t('ui.mp.home.players', {
+                        'n': '${room.playerCount}',
+                        'max': '${room.maxPlayers}',
+                      }),
+                      style: Ays.label(12, color: Ays.inkDim),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                canJoin ? t('ui.mp.home.join') : t('ui.mp.home.in_progress'),
+                style: Ays.label(12, color: canJoin ? Ays.yellow : Ays.inkDim),
+              ),
+              if (canJoin) ...[
+                const SizedBox(width: 5),
+                const Icon(
+                  Icons.arrow_forward_rounded,
+                  color: Ays.yellow,
+                  size: 18,
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -261,7 +466,7 @@ class _EnterCode extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Spacer(flex: 2),
-          Text(t('ui.mp.enter_code.title'), style: Ays.title(40), textAlign: TextAlign.center),
+          BalancedText(t('ui.mp.enter_code.title'), style: Ays.title(40)),
           const SizedBox(height: 24),
           MpTextField(
             controller: controller,
@@ -273,7 +478,12 @@ class _EnterCode extends StatelessWidget {
             onSubmitted: (_) => onJoin(),
           ),
           const Spacer(flex: 3),
-          AysButton(label: t('ui.mp.enter_code.join'), height: 78, fontSize: 28, onTap: onJoin),
+          AysButton(
+            label: t('ui.mp.enter_code.join'),
+            height: 78,
+            fontSize: 28,
+            onTap: onJoin,
+          ),
           const SizedBox(height: 12),
           AysButton(
             label: t('ui.mp.home.back'),

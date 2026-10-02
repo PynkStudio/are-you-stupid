@@ -1,6 +1,6 @@
 ---
 tags: [development, testing]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Testing
@@ -9,7 +9,7 @@ updated: 2026-10-02
 flutter test          # everything
 flutter analyze       # must be clean, zero issues
 dart run tool/gen_protocol_fixtures.dart   # regenerate Swift golden fixtures (protocol change only)
-swift test             # from tvos/ — AYSProtocol (29) + AYSHostCore (54) = 83 cases, 4 skipped by
+swift test             # from tvos/ — AYSProtocol (29) + AYSHostCore (55) = 84 cases, 4 skipped by
                         # default (real-socket tests — see AYS_RUN_NETWORK_TESTS below)
 ```
 
@@ -92,7 +92,8 @@ no widget-level test yet, see [[Multiplayer Development]] for that gap:
   `send()` after `close()` is a safe no-op, `connect()` throws
   `SocketException` against a dead port. The first suite exercising an
   actual socket instead of `InMemoryPartyTransport`.
-- `lan_discovery_test.dart` — `matchesRoomCode`'s matching rule: a plain
+- `lan_discovery_test.dart` — room matching plus TXT metadata parsing,
+  joinability and old-host fallback: a plain
   case-insensitive/trimmed instance-name match against `package:nsd`'s
   `Service.name` (rewritten from a PTR-domain regex when the package
   switched from `multicast_dns` to `nsd` — see [[Decision Log]]). The
@@ -101,6 +102,8 @@ no widget-level test yet, see [[Multiplayer Development]] for that gap:
   `NSNetServiceBrowser` plumbing `nsd` wraps.
 - `mp_home_screen_test.dart` — `roomCodeFromScannedValue` parses the
   `areyoustupid://join?room=XXXX` QR payload, rejects anything else.
+  The same parser gates system-Camera links before navigation; native iOS and
+  Android registration remains part of the Phase 10 physical-device pass.
 - `mp_permissions_test.dart` — the permissions UX with a fake
   `LocalNetworkPermission`: the primer shows on first visit and nothing
   probes the network before CONTINUE; NOT NOW backs out without storing or

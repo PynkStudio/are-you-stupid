@@ -13,6 +13,7 @@ import '../../../i18n/strings.dart';
 import '../../../multiplayer/engine/party_session.dart';
 import '../../theme.dart';
 import '../../widgets/ays_button.dart';
+import '../../widgets/balanced_text.dart';
 
 /// Full-screen dark gradient + safe area, matching every other screen.
 class MpBackground extends StatelessWidget {
@@ -150,7 +151,7 @@ Future<bool> showMpPermissionsPrimer(BuildContext context, AppLocale locale) asy
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(t('ui.mp.primer.title'), style: Ays.title(30), textAlign: TextAlign.center),
+            BalancedText(t('ui.mp.primer.title'), style: Ays.title(30)),
             const SizedBox(height: 12),
             Text(
               t('ui.mp.primer.body'),

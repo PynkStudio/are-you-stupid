@@ -1,6 +1,6 @@
 ---
 tags: [product, multiplayer, party]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Multiplayer Product
@@ -30,8 +30,9 @@ The party mode is for a group sitting in front of a shared screen:
 
 1. Open ARE YOU STUPID? on Apple TV **(or on your Mac — the Mac hosts the
    room board-only, and you play on your phone like everyone else)**.
-2. The board creates a local room and shows a QR code.
-3. Players scan the QR with their phones → the mobile app opens.
+2. The board creates a local room, advertises it on the LAN, and shows a QR code.
+3. Opening Multiplayer on a phone automatically suggests nearby rooms with the
+   host device name and live occupancy; QR and room code remain fallbacks.
 4. The player joins the room ({NAME} + optional emoji), name appears on the board.
 5. Everyone presses READY; the host starts when ≥2 are ready.
 6. The same challenge appears on every connected device.
@@ -64,9 +65,13 @@ Same QR, same room code, same join flow, same rules either way.
 ### Mobile — menu entry
 ```
 MULTIPLAYER
-Scan the QR code on the Apple TV to join a game.
+[ APPLE TV — LIVING ROOM       3/8 PLAYERS   JOIN ]
 [ SCAN QR ]   [ ENTER ROOM CODE ]
 ```
+Nearby rooms update while this screen is visible. A match already in progress
+stays visible as `IN PROGRESS` but cannot accept a new player. Discovery stops
+when the app leaves the foreground. The advertised name is the host's local
+device name — LAN-only metadata, never sent outside the home network.
 If a scanned deep link already opened the app, skip this screen and go
 straight to the join flow.
 

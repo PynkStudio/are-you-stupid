@@ -1,6 +1,6 @@
 ---
 tags: [meta, decisions, adr]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Decision Log
@@ -2810,3 +2810,66 @@ and English-only canonical fail lines. All five now handle every locale:
 
 Unverified on real hardware. A too-strict verb list or cap can only cause a
 rejection → scripted fallback, never a broken round.
+
+### 2026-10-03 — The multiplayer lobby is the opening act, not a setup form
+
+**Decision.** Replace the shared tvOS/macOS black two-column utility lobby with
+an always-on game-show stage: purple/cyan/pink/yellow generated lighting, a
+reactive `LIVE` marquee, a high-contrast join ticket, cast-style player cards,
+and a two-seat readiness meter. The animation uses only SwiftUI drawing and
+freezes when Reduce Motion is enabled.
+
+**Why.** Waiting for phones is unavoidable party-game time, so a static QR and
+empty list made the product feel unfinished precisely when the whole room is
+looking at it. Treating the lobby as the opening act creates energy before the
+first round without adding assets, network work, or gameplay delay. Motion is
+kept behind the QR and intentionally slow so spectacle never harms joining.
+
+### 2026-10-03 — In-game character belongs around play, not over it
+
+**Decision.** Carry the lobby's game-show identity through round, results,
+scoreboard and winner screens, but keep the active round's center deliberately
+empty. Generated motion stays at the edges; jokes live in status copy and
+data-derived result headlines. Real failure reasons remain attached to wrong
+players. AI Director commentary is shown only after a round or at game end,
+and its slot resets when the next round starts.
+
+**Why.** The television should give the party personality while the phones
+remain the place players must read and act. More decoration in the center would
+steal attention at exactly the wrong moment. Results and transitions are safe
+comic beats; clearing commentary per round prevents a funny line from becoming
+incorrect stale context. **Cost:** the board intentionally does not render the
+challenge itself, and winner commentary may arrive after the initial reveal.
+
+### 2026-10-03 — System Camera QR scans use the existing custom join scheme
+
+**Decision.** Register `areyoustupid://join?room=XXXX` as a browsable custom
+URL scheme on iOS and Android and deliver cold- and warm-start links through
+`app_links`. Reuse the in-app scanner's strict payload parser, retain only the
+room code while services boot, collapse duplicate initial/stream delivery, and
+send a valid link straight to `MpJoinScreen`. The first deep-link launch still
+shows the multiplayer permissions primer before requesting Local Network
+access.
+
+**Why.** The Apple TV already displays this compact QR payload, and requiring
+players to know they must first open the game makes the most obvious camera
+gesture fail. Reusing one parser keeps in-app and system scans equivalent;
+holding only the room code preserves the offline/LAN-only architecture. A
+custom scheme avoids a hosted association file and external web dependency.
+**Cost:** if the game is not installed, the OS cannot offer a web fallback;
+the human-readable four-character room code remains available on the TV.
+
+### 2026-10-03 — Nearby rooms advertise a live Bonjour card
+
+**Decision.** Keep the room code as the Bonjour service identity, and add a
+DNS-SD TXT snapshot with local device name, player count, capacity and
+`lobby`/`playing` state. Mobile browses all rooms only while the Multiplayer
+landing screen is foregrounded and renders one-tap cards; QR and manual code
+remain fallbacks. Running/full rooms are visible but disabled. The host UI
+shows `READY TO PARTY`, never its internal ephemeral port.
+
+**Why.** Requiring a QR or code when the host is already advertising on the
+same LAN wastes Bonjour's strongest affordance. TXT metadata makes the
+suggestion useful without speculative TCP sessions or a protocol-v1 change.
+The device name stays LAN-only. **Cost:** occupancy can be briefly stale while
+mDNS propagates; the host still enforces capacity authoritatively on join.

@@ -1,6 +1,6 @@
 ---
 tags: [development, setup, troubleshooting]
-updated: 2026-09-08
+updated: 2026-10-03
 ---
 
 # Getting Started
@@ -21,9 +21,11 @@ the whole feature is off and scripted by default until Phase 2+
 Dependencies: `shared_preferences` (persistence), `share_plus` (share sheet),
 `google_mobile_ads` + `app_tracking_transparency` (ads, see [[Monetization and
 Ads]]), `in_app_purchase` (the "remove ads" purchase, same doc), `url_launcher`
-(the PynkStudio links in Settings, see [[Services]]), `multicast_dns` (LAN room
-discovery, pure Dart — no native plugin code) and `mobile_scanner` (in-app QR
-join, both [[Multiplayer Client (Mobile)]]). Every one earns its
+(the PynkStudio links in Settings, see [[Services]]), `nsd` (native Bonjour/NSD
+room discovery), `mobile_scanner` (in-app QR join), and `app_links` (delivery
+of the Apple TV QR's `areyoustupid://` link from the system Camera app; all
+three multiplayer dependencies are covered by [[Multiplayer Client (Mobile)]]).
+Every one earns its
 place — no dependency added speculatively ([[Game Design Pillars]]).
 
 ## Run

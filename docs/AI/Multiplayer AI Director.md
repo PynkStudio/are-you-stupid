@@ -1,6 +1,6 @@
 ---
 tags: [ai, multiplayer, architecture]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Multiplayer AI Director
@@ -14,8 +14,10 @@ Party mode, directed. Extends the v1 multiplayer architecture
 `PartyAiDirector` runtime that generates and sends rounds/commentary all
 exist and are tested. See "What travels over the wire" below for two
 corrections against the original sketch (real names, six kinds not four).
-Not built: commentary display in the UI (captured, not shown anywhere —
-same deferral as single-player's own Phase 5), and the finer
+Commentary display is now built into the host's non-interruptive moments:
+the latest round-scoped line appears under results as `HOST SAYS`, and a late
+winner/loser line can replace the static final aside. Active play remains free
+of commentary. Still not built: the finer
 battery/SoC-based Director tie-break this doc originally described (v1
 uses a single compute-rank tier instead — see [[Decision Log]]).
 
@@ -144,9 +146,9 @@ itself already serializes).
   five multiplayer kinds today — `elimination` (on `PLAYER_ELIMINATED`) and
   `winner`/`loser` (on `GAME_END`, by whether this phone's own
   `selfClientId` matches `winnerId`); `finalRound` and `closeMatch` aren't
-  wired to a trigger yet, and none of the three are shown anywhere in the
-  UI yet either (captured in `HostViewModel.lastAiCommentary`, not
-  displayed — see [[Decision Log]]).
+  wired to a trigger yet. Relayed lines are displayed only in results/game-end
+  chrome; `HostViewModel` clears the slot at each round start so an old
+  elimination quip cannot leak into a later result (see [[Decision Log]]).
 - If both a capable and an incapable phone are in a match, the incapable
   phones simply receive AI rounds like everyone else — capability is only
   needed to *be* the Director, never to *play*.

@@ -7,6 +7,7 @@ import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
 import '../theme.dart';
 import '../widgets/ays_button.dart';
+import '../widgets/balanced_text.dart';
 
 /// Designed to be screenshotted: the verdict, the big number, and the
 /// stupidly simple instruction that ended the run — readable at thumbnail
@@ -183,11 +184,11 @@ class _GameOverViewState extends State<GameOverView>
                                 0,
                                 AnimatedSwitcher(
                                   duration: const Duration(milliseconds: 220),
-                                  child: Text(
+                                  child: BalancedText(
                                     headline,
                                     key: ValueKey(headline),
-                                    textAlign: TextAlign.center,
                                     maxLines: 3,
+                                    maxWidth: box.maxWidth,
                                     style: Ays.title(
                                       headline.length <= 18 ? 40 : 30,
                                     ).copyWith(color: Ays.red, height: 1.0),
@@ -399,11 +400,8 @@ class _KilledByCard extends StatelessWidget {
         children: [
           Text(label, style: Ays.mono(11, color: Ays.red)),
           const SizedBox(height: 6),
-          Text(
+          BalancedText(
             '“${instruction.toUpperCase()}”',
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
             style: Ays.instruction(24),
           ),
           if (reason != null && reason != instruction) ...[

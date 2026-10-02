@@ -6,6 +6,7 @@ import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
 import '../theme.dart';
 import 'ays_button.dart';
+import 'balanced_text.dart';
 
 /// Placeholder ad unit. Same timing and same flow as a real one, so swapping
 /// in a network SDK changes nothing about the UX.
@@ -81,8 +82,7 @@ class _MockAdOverlayState extends State<MockAdOverlay> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(t('ui.ad.your_ad_here'),
-                              textAlign: TextAlign.center,
+                          BalancedText(t('ui.ad.your_ad_here'),
                               style: Ays.title(46)),
                           const SizedBox(height: 12),
                           Text(

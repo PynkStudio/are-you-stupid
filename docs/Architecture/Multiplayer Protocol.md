@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, protocol, contract]
-updated: 2026-09-11
+updated: 2026-10-03
 ---
 
 # Multiplayer Protocol
@@ -40,8 +40,10 @@ controllers talk. Both ends implement this exact contract; the tvOS app does
    host is a plain TCP server — no new dependency ([[Getting Started]]).
 - **Discovery:** host advertises Bonjour service `_ays-party._tcp` on the
    local network, with an `instance name` of the room code (e.g.
-   `7F4K._ays-party._tcp`). Mobile can either scan for it or, more reliably on
-   the QR path, resolve the host from the deep link (below).
+   `7F4K._ays-party._tcp`). Its DNS-SD TXT snapshot carries `room`, `name`,
+   `players`, `max`, and `state` (`lobby` or `playing`) so mobile can render a
+   room card before opening TCP. These fields are discovery metadata, not
+   JSONL messages, and do not change protocol v1.
 - **Security on LAN:** the broadcast is plaintext. Room codes are short and the
    service is gone the moment the tvOS app quits ([[Multiplayer Product]]).
    No secrets travel; nothing is sensitive. This is acceptable for a local

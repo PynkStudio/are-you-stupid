@@ -27,17 +27,55 @@ public struct BonjourService: Equatable {
     public static let serviceType = "_ays-party._tcp"
 
     public let roomCode: String
+    public let displayName: String
+    public let playerCount: Int
+    public let maxPlayers: Int
+    public let state: String
 
-    public init(roomCode: String) {
+    public init(
+        roomCode: String,
+        displayName: String = "ARE YOU STUPID?",
+        playerCount: Int = 0,
+        maxPlayers: Int = 8,
+        state: String = "lobby"
+    ) {
         self.roomCode = roomCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        self.displayName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.playerCount = max(0, min(playerCount, maxPlayers))
+        self.maxPlayers = maxPlayers
+        self.state = state
     }
 
     /// The Bonjour instance name a client's PTR lookup must match — see
     /// `matchesRoomCode` in lan_discovery.dart for the reverse direction.
     public var instanceName: String { roomCode }
 
+    /// DNS-SD TXT wire format: one length-prefixed UTF-8 `key=value` field.
+    /// Short stable keys also work on Android's NSD implementation.
+    public var txtRecord: Data {
+        let fields = [
+            "max=\(maxPlayers)",
+            "name=\(displayName)",
+            "players=\(playerCount)",
+            "room=\(roomCode)",
+            "state=\(state)",
+        ]
+        var data = Data()
+        for field in fields {
+            let bytes = Array(field.utf8.prefix(255))
+            data.append(UInt8(bytes.count))
+            data.append(contentsOf: bytes)
+        }
+        return data
+    }
+
     var nwService: NWListener.Service {
-        NWListener.Service(name: instanceName, type: Self.serviceType)
+        NWListener.Service(
+            name: instanceName,
+            type: Self.serviceType,
+            domain: nil,
+            txtRecord: txtRecord
+        )
     }
 }
 
@@ -136,5 +174,13 @@ public final class NWListenerServer {
     public func stop() {
         listener?.cancel()
         listener = nil
+    }
+
+    /// Refreshes room metadata without rebinding the TCP port. Browsers see
+    /// the same service identity with a new TXT snapshot.
+    public func updateAdvertising(_ service: BonjourService) {
+        acceptQueue.async { [weak self] in
+            self?.listener?.service = service.nwService
+        }
     }
 }

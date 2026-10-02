@@ -1,6 +1,6 @@
 ---
 tags: [gameplay, multiplayer, modes, design]
-updated: 2026-09-06
+updated: 2026-10-03
 ---
 
 # Multiplayer Gameplay
@@ -59,6 +59,29 @@ host-published, not client wall-clock ([[Multiplayer Protocol]]).
 ## TV presentation (game-show, not a mirrored phone)
 
 Large typography, dramatic but **short** transitions:
+
+- The game show starts in the **lobby**, not at the first round. A generated
+  purple stage drifts behind a `LIVE` marquee; the join QR is presented as a
+  bright ticket, the empty roster has a bouncing dance-floor invitation, and
+  joined players appear as numbered two-column cast cards. The copy reacts to
+  0, 1, or 2+ players and the two-segment party meter makes the start gate
+  legible from across the room.
+- Motion is ambient and low-frequency so the QR stays easy to scan. The same
+  lobby respects Reduce Motion by freezing its generated stage and emoji loop.
+
+During play, the spectacle moves to the **edges**. The active-round board keeps
+one oversized status in an otherwise quiet center; a compact `CURRENT DAMAGE`
+board sits in the lower corner, while slow generated light pools stay
+peripheral. Short, irreverent lines (`THE TV IS JUDGING YOU`, `EVERYONE CAN SEE
+YOU THINKING`) supply character without competing with the actual challenge on
+the phones.
+
+Results are the comedy beat: the headline is derived from the real correct
+count (`SUSPICIOUSLY COMPETENT`, `NOBODY READ THE INSTRUCTION`, or a mixed
+verdict), each wrong card preserves its real one-line failure reason, and the
+latest round-scoped AI Director line may appear as `HOST SAYS`. The final board
+frames the winner as breaking news, calls the ranking `FINAL DAMAGE`, and uses
+a single short spring reveal (disabled by Reduce Motion).
 
 - `ROUND 14` → `GET READY…` → `3 2 1 GO` (countdown driven by the host's
   deadline).

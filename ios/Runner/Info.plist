@@ -25,6 +25,21 @@
 	</array>
 	<key>CFBundleName</key>
 	<string>Are You Stupid</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.pynkstudio.areyoustupid.join</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>areyoustupid</string>
+			</array>
+		</dict>
+	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

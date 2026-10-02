@@ -18,6 +18,7 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:nsd/nsd.dart';
 
@@ -33,6 +34,10 @@ class PartyHostCandidate {
     required this.hostname,
     required this.address,
     required this.port,
+    this.displayName = 'ARE YOU STUPID?',
+    this.playerCount = 0,
+    this.maxPlayers = 8,
+    this.state = 'lobby',
   });
 
   final String roomCode;
@@ -42,6 +47,51 @@ class PartyHostCandidate {
   final String hostname;
   final String address;
   final int port;
+  final String displayName;
+  final int playerCount;
+  final int maxPlayers;
+  final String state;
+
+  bool get canJoin => state == 'lobby' && playerCount < maxPlayers;
+}
+
+String? _txtString(Service service, String key) {
+  final bytes = service.txt?[key];
+  if (bytes == null) return null;
+  try {
+    return utf8.decode(bytes).trim();
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Converts one resolved DNS-SD service into the room card shown on mobile.
+/// Old hosts without TXT metadata remain joinable with safe defaults.
+PartyHostCandidate? candidateFromService(Service service) {
+  final serviceName = service.name?.trim();
+  final roomCode = (_txtString(service, 'room') ?? serviceName ?? '')
+      .toUpperCase();
+  final address = service.addresses?.firstOrNull;
+  final port = service.port;
+  if (roomCode.isEmpty || address == null || port == null) return null;
+
+  final advertisedName = _txtString(service, 'name');
+  final fallbackName = (service.host ?? address.address).replaceFirst(
+    RegExp(r'\.local\.?$', caseSensitive: false),
+    '',
+  );
+  return PartyHostCandidate(
+    roomCode: roomCode,
+    hostname: service.host ?? address.address,
+    address: address.address,
+    port: port,
+    displayName: advertisedName?.isNotEmpty == true
+        ? advertisedName!
+        : fallbackName,
+    playerCount: int.tryParse(_txtString(service, 'players') ?? '') ?? 0,
+    maxPlayers: int.tryParse(_txtString(service, 'max') ?? '') ?? 8,
+    state: _txtString(service, 'state') ?? 'lobby',
+  );
 }
 
 /// True when a discovered service's instance name is the one advertising
@@ -53,6 +103,67 @@ class PartyHostCandidate {
 bool matchesRoomCode(String? serviceName, String roomCode) {
   if (serviceName == null) return false;
   return serviceName.trim().toUpperCase() == roomCode.trim().toUpperCase();
+}
+
+/// Long-lived room browser for the Multiplayer landing screen. It owns the
+/// native discovery only while that screen is active and emits sorted room
+/// snapshots for found, updated and lost services.
+class PartyRoomBrowser {
+  final _rooms = <String, PartyHostCandidate>{};
+  final _controller = StreamController<List<PartyHostCandidate>>.broadcast();
+  Discovery? _discovery;
+
+  Stream<List<PartyHostCandidate>> get rooms => _controller.stream;
+
+  Future<void> start() async {
+    if (_discovery != null) return;
+    try {
+      final discovery = await startDiscovery(
+        kAysPartyServiceType,
+        ipLookupType: IpLookupType.any,
+      );
+      _discovery = discovery;
+      void listener(Service service, ServiceStatus status) {
+        final key = service.name?.trim().toUpperCase();
+        if (key == null || key.isEmpty) return;
+        if (status == ServiceStatus.lost) {
+          _rooms.remove(key);
+        } else {
+          final candidate = candidateFromService(service);
+          if (candidate != null) _rooms[key] = candidate;
+        }
+        _emit();
+      }
+
+      discovery.addServiceListener(listener);
+      for (final service in discovery.services) {
+        listener(service, ServiceStatus.found);
+      }
+      _emit();
+    } catch (_) {
+      _emit();
+    }
+  }
+
+  Future<void> stop() async {
+    final discovery = _discovery;
+    _discovery = null;
+    _rooms.clear();
+    _emit();
+    if (discovery != null) await stopDiscovery(discovery);
+  }
+
+  Future<void> dispose() async {
+    await stop();
+    await _controller.close();
+  }
+
+  void _emit() {
+    if (_controller.isClosed) return;
+    final snapshot = _rooms.values.toList()
+      ..sort((a, b) => a.displayName.compareTo(b.displayName));
+    _controller.add(List.unmodifiable(snapshot));
+  }
 }
 
 class LanPartyDiscovery {
@@ -81,12 +192,14 @@ class LanPartyDiscovery {
         final port = service.port;
         if (address == null || port == null) return;
         if (!completer.isCompleted) {
-          completer.complete(PartyHostCandidate(
-            roomCode: roomCode.trim().toUpperCase(),
-            hostname: service.host ?? address.address,
-            address: address.address,
-            port: port,
-          ));
+          completer.complete(
+            PartyHostCandidate(
+              roomCode: roomCode.trim().toUpperCase(),
+              hostname: service.host ?? address.address,
+              address: address.address,
+              port: port,
+            ),
+          );
         }
       }
 
@@ -98,10 +211,7 @@ class LanPartyDiscovery {
         listener(service, ServiceStatus.found);
       }
 
-      return await completer.future.timeout(
-        timeout,
-        onTimeout: () => null,
-      );
+      return await completer.future.timeout(timeout, onTimeout: () => null);
     } catch (_) {
       return null;
     } finally {

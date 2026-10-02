@@ -248,6 +248,11 @@ const Map<String, String> kStringsDe = {
   'ui.mp.home.scan': 'QR SCANNEN',
   'ui.mp.home.enter_code': 'RAUMCODE EINGEBEN',
   'ui.mp.home.back': 'ZURÜCK',
+  'ui.mp.home.nearby': 'IN DER NÄHE BEREIT',
+  'ui.mp.home.searching': 'SUCHE PARTY IN DIESEM WLAN…',
+  'ui.mp.home.players': '{n}/{max} SPIELER',
+  'ui.mp.home.join': 'BEITRETEN',
+  'ui.mp.home.in_progress': 'LÄUFT',
 
   'ui.mp.enter_code.title': 'RAUMCODE',
   'ui.mp.enter_code.hint': 'Z. B. 7F4K',

@@ -1,6 +1,6 @@
 ---
 tags: [moc, index]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # ARE YOU STUPID? — Documentation Home
@@ -88,8 +88,8 @@ multiplayer AI Director: election, a single-slot proposal relay, failover
 elected phone's own generation loop, wired into production
 `mp_join_screen.dart`. Single-player now **shows** AI commentary (a
 wrong-flash aside + the Game Over verdict) and AI challenges are generated
-in all six languages (multiplayer stays English); multiplayer commentary is
-still captured, not shown. **All ten
+in all six languages (multiplayer stays English); multiplayer commentary now
+appears in the host's results/game-end chrome, never over active play. **All ten
 planned phases have landed**, including Phase 10's full-run integration
 test (`test/ai/full_run_with_mock_bridge_test.dart`) exercising the real
 production provider composition end to end. Real generation is unverified
@@ -126,7 +126,7 @@ Implementation phases are tracked in [[Development Plan]].
 | Sound / haptics | System sounds + platform haptics |
 | Sharing | OS share sheet via `share_plus` |
 | Backend | None. On purpose. |
-| Multiplayer party mode (Apple TV + macOS board host) | Phases 1–4 landed (Dart + Swift host, `Net/`, `QR/`, App/UI Xcode shell), Phases 5–7's rules landed. **Real challenge judging landed:** the "Phase 4 open question" (can Swift judge a Dart-generated challenge) is resolved by moving judging to the client entirely — `PartyChallengeRunner` drives the real single-player `Challenge` engine and reports the verdict, both hosts trust it (see [[Decision Log]]). Discovery switched to `package:nsd` (native platform APIs) after two real-device bugs. Live standings board, mode picker, and no-downtime round auto-close/advance also landed. Still open: game-show polish (elimination card, winner animation, share card, humor lines — Phase 9) and a fresh real-device pass on the new judging flow. See [[Multiplayer Development]] |
+| Multiplayer party mode (Apple TV + macOS board host) | Phases 1–4 landed (Dart + Swift host, `Net/`, `QR/`, App/UI Xcode shell), Phases 5–7's rules landed. **Real challenge judging landed:** the "Phase 4 open question" (can Swift judge a Dart-generated challenge) is resolved by moving judging to the client entirely — `PartyChallengeRunner` drives the real single-player `Challenge` engine and reports the verdict, both hosts trust it (see [[Decision Log]]). Discovery uses `package:nsd`; hosts now advertise live room-card metadata and Multiplayer auto-suggests nearby devices with occupancy. Live standings, game-show lobby/game chrome, mode picker and no-downtime round flow have landed. Still open: dedicated elimination/share cards and a fresh real-device pass. See [[Multiplayer Development]] |
 | AI dynamic director (Apple Intelligence) | All ten planned phases landed: `ChallengeProvider` providers in `lib/ai/` incl. a real `AIChallengeProvider`/`PrefetchLoop` wired into `game_screen.dart` (with a starter-level exclusion — see [[Decision Log]]), proposal vocabulary + `ChallengeValidator` + `ays/apple_intelligence` bridge (`available`/`requestCommentary`/`requestChallenge` all real; only `requestFinalRound`/`requestMultiplayerHost` still stubbed, no caller yet), `generated_challenge_runtime.dart`, `AiFeatureFlags` + its Settings Ai section, `lib/ai/commentary.dart`, `lib/ai/profile_for_prompts.dart`, the full multiplayer AI Director (election/relay/failover in `RoomHost.swift`, `lib/multiplayer/ai/party_ai_director.dart` wired into `mp_join_screen.dart`), and a Phase 10 full-run integration test driving the real production composition through a full `GameEngine` match. Real generation unverified on actual hardware (none available here) but the full pipeline compiles and is wired end-to-end. **iOS only:** off on Android, where phones still play AI rounds relayed by an iOS Director ([[Feature Flags]]). See [[Dynamic AI Director]] / [[Development Plan]] |
 | Version control | Git, public on GitHub: `PynkStudio/are-you-stupid` |
 | Languages | English, Italian, French, Spanish, Portuguese, German — see [[Localization]] |
@@ -136,8 +136,8 @@ Implementation phases are tracked in [[Development Plan]].
 | Target | State |
 |---|---|
 | `flutter analyze` | clean |
-| `flutter test` | 331/331 passing (2026-10-02, audit fixes + multiplayer permissions primer + single-player AI commentary & Game Over redesign) — see [[Testing]] |
-| `swift test` (from `tvos/`) | 83 cases (29 protocol + 54 host core), all green; 4 real-socket cases skip by default (`AYS_RUN_NETWORK_TESTS=1` to run for real) — see [[Testing]] |
+| `flutter test` | 334/334 passing (2026-10-03, nearby-room Bonjour metadata parsing added) — see [[Testing]] |
+| `swift test` (from `tvos/`) | 84 cases (29 protocol + 55 host core), all green; 4 real-socket cases skip by default (`AYS_RUN_NETWORK_TESTS=1` to run for real) — see [[Testing]] |
 | Android debug APK | builds |
 | Android release APK | builds, signed with a real upload key (not debug) — see [[Release Checklist]] |
 | iOS simulator | builds and runs via `flutter run`, hot reload included |

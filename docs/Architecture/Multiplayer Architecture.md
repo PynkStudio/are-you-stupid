@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, overview]
-updated: 2026-09-07
+updated: 2026-10-03
 ---
 
 # Multiplayer Architecture
@@ -97,7 +97,9 @@ Product]] and [[Decision Log]]).
 Two complementary paths, both offline/LAN-only:
 
 - **Bonjour discovery:** host advertises `_ays-party._tcp` with the room code
-  as its instance name. The app's lobby can auto-list live rooms.
+  as its instance name and a TXT snapshot containing device name, occupancy,
+  capacity and lobby/playing state. The app browses while foregrounded and
+  auto-lists live rooms; roster changes refresh the snapshot without rebinding.
 - **Deep-link QR:** the TV shows `areyoustupid://join?room=7F4K` as a QR
   (image generated on-device — zero external assets, [[Game Design Pillars]]).
   Scanning opens the Flutter app straight into the join flow; the app resolves

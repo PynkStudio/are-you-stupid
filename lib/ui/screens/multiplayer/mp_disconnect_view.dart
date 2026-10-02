@@ -12,6 +12,7 @@ import '../../../multiplayer/engine/party_state.dart';
 import '../../theme.dart';
 import '../../widgets/ays_button.dart';
 import 'mp_common.dart';
+import '../../widgets/balanced_text.dart';
 
 class MpDisconnectView extends StatelessWidget {
   const MpDisconnectView({
@@ -43,11 +44,7 @@ class MpDisconnectView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              t('ui.mp.disconnect.title'),
-              textAlign: TextAlign.center,
-              style: Ays.title(40),
-            ),
+            BalancedText(t('ui.mp.disconnect.title'), style: Ays.title(40)),
             const SizedBox(height: 14),
             Text(
               message,

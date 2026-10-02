@@ -1,6 +1,6 @@
 ---
 tags: [development, multiplayer, testing, roadmap]
-updated: 2026-09-11
+updated: 2026-10-03
 ---
 
 # Multiplayer Development
@@ -82,10 +82,10 @@ host → connect → play) cannot be exercised yet. To validate everything
 *except* discovery this session, `mp_join_screen.dart` also has a
 debug-only (`kDebugMode`) "DEV: HOST ADDRESS" manual `ip:port` entry, paired
 with `tool/dev_multiplayer_host.dart` — see below and [[Decision Log]].
-No OS-level deep link (scanning the room QR with the system camera and
-having it open the app directly) yet either — that's Phase 8 ("QR joining +
-polished lobby") by design; Phase 3's "scan" is the in-app camera scanner
-only, which already covers the canonical `[ SCAN QR ]` entry point.
+The later Phase 8 follow-up completed OS-level deep linking: scanning the room
+QR with the system Camera now opens the installed app on both iOS and Android,
+including cold start, and routes directly to the room's join flow. The in-app
+camera scanner and manual four-character code remain equivalent fallbacks.
 
 **Test suites landed** (`test/multiplayer/`): `session_socket_test.dart`
 (real loopback TCP round-trip — the first suite to exercise a live socket
@@ -270,6 +270,11 @@ started — Phase 9.
 ### Phase 8 — QR joining + polished lobby
 QR deep-link → join ([[Multiplayer Product]]); roster editing, player count,
 grace-period reconnects.
+
+**Status: QR deep-link joining landed.** The custom `areyoustupid://` scheme is
+registered on iOS and Android; `app_links` handles cold and warm launches,
+preserves the permissions primer, and opens `MpJoinScreen` with the QR's room
+code. Roster editing and the remaining lobby polish stay open.
 
 ### Phase 9 — TV animations, humor, result screens
 Humour lines ([[Multiplayer Gameplay]]), winner card, share card, rematch.

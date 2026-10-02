@@ -12,6 +12,7 @@ import '../../../services/app_services.dart';
 import '../../theme.dart';
 import '../../widgets/ays_button.dart';
 import 'mp_common.dart';
+import '../../widgets/balanced_text.dart';
 
 class MpResultScreen extends StatefulWidget {
   const MpResultScreen({super.key, required this.session});
@@ -66,7 +67,7 @@ class _MpResultScreenState extends State<MpResultScreen> {
               Strings.t(locale, key, args);
 
           if (end == null) {
-            return MpBackground(child: Center(child: Text(t('ui.mp.result.title'), style: Ays.title(36))));
+            return MpBackground(child: Center(child: BalancedText(t('ui.mp.result.title'), style: Ays.title(36))));
           }
           _recordOnce(end, state.selfClientId);
 
@@ -79,7 +80,7 @@ class _MpResultScreenState extends State<MpResultScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 8),
-                Text(t('ui.mp.result.title'), style: Ays.title(36), textAlign: TextAlign.center),
+                BalancedText(t('ui.mp.result.title'), style: Ays.title(36)),
                 if (winnerName.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(

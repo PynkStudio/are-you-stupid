@@ -8,6 +8,7 @@ import 'game_screen.dart';
 import 'multiplayer/mp_home_screen.dart';
 import 'settings_screen.dart';
 import 'stats_screen.dart';
+import '../widgets/balanced_text.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -31,16 +32,12 @@ class HomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const Spacer(flex: 3),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(t('ui.home.title1'), style: Ays.title(74)),
-                    ),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        t('ui.home.title2'),
-                        style: Ays.title(96).copyWith(color: Ays.red),
-                      ),
+                    BalancedText(t('ui.home.title1'),
+                        style: Ays.title(74), maxLines: 1),
+                    BalancedText(
+                      t('ui.home.title2'),
+                      style: Ays.title(96).copyWith(color: Ays.red),
+                      maxLines: 1,
                     ),
                     const SizedBox(height: 18),
                     Text(

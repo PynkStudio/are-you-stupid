@@ -19,6 +19,7 @@ import '../../widgets/ays_button.dart';
 import 'mp_common.dart';
 import 'mp_disconnect_view.dart';
 import 'mp_game_screen.dart';
+import '../../widgets/balanced_text.dart';
 
 class MpLobbyScreen extends StatefulWidget {
   const MpLobbyScreen({super.key, required this.session});
@@ -98,7 +99,7 @@ class _MpLobbyScreenState extends State<MpLobbyScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(t('ui.mp.lobby.title'), style: Ays.title(36), textAlign: TextAlign.center),
+        BalancedText(t('ui.mp.lobby.title'), style: Ays.title(36)),
         const SizedBox(height: 4),
         Text(
           t('ui.mp.lobby.players', {'n': '${_state.players.length}'}),

@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, client, flutter]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Multiplayer Client (Mobile)
@@ -44,9 +44,18 @@ The home screen ([[Architecture Overview]]) gains a **MULTIPLAYER** tile. Two
 ways in:
 
 1. **Scan QR** — `areyoustupid://join?room=7F4K`. If the deep link opened the
-   app directly, skip the scan screen and go straight to the join flow.
+   app directly, `app_links` delivers it on cold start or while the app is
+   already running; the app skips the scan screen and goes straight to the
+   join flow. iOS registers the custom scheme in `Info.plist`, Android in the
+   launcher activity's browsable intent filter. Invalid links are ignored.
 2. **ENTER ROOM CODE** — manual fallback, no camera needed
    ([[Multiplayer Product]]).
+
+Before either fallback, `MpHomeScreen` starts `PartyRoomBrowser` after Local
+Network permission is granted. It shows resolved hosts as
+`{device name} · {players}/{max}` and joins from one tap. `playing` or full
+rooms remain visible but disabled. Browsing stops on background/dispose and
+restarts on resume; nothing runs before the permissions primer.
 
 No account, no cloud, no network beyond the LAN ([[Game Design Pillars]]).
 
@@ -64,6 +73,10 @@ Single-player never asks for either.
   which is what makes iOS show its system prompt, so the prompt always
   follows the explanation. NOT NOW backs out of multiplayer, stores nothing,
   and the primer shows again next time.
+- **System-Camera deep link.** The same primer gates a direct QR launch. The
+  room code is held while services boot, then the primer and iOS Local Network
+  prompt run before `MpJoinScreen` starts Bonjour resolution. A duplicate
+  initial-link/stream delivery is collapsed so one scan opens one join screen.
 - **Probe.** `LocalNetworkPermission` (`lib/services/`) asks the native
   `ays/permissions` channel for `granted` / `denied` / `unknown`. iOS has no
   API that reads this permission, so `PermissionsController.swift` runs a
@@ -103,7 +116,8 @@ lib/multiplayer/                    pure-Dart layer (no widgets) — landed (Pha
 │                                  inside the session's runner, not here)
 ├── networking/party_transport.dart in-memory transport (headless tests)
 ├── networking/session_socket.dart  real dart:io Socket PartyTransport — landed (Phase 3)
-└── networking/lan_discovery.dart   Bonjour/NSD room-code resolution (package:nsd — native
+└── networking/lan_discovery.dart   Bonjour/NSD room resolution + foreground room browser
+                                   with TXT metadata parsing (package:nsd — native
                                    NsdManager/NSNetServiceBrowser, not a raw mDNS socket;
                                    see [[Decision Log]] for why it isn't multicast_dns anymore)
                                      — landed (Phase 3), nothing to discover until
@@ -122,7 +136,7 @@ lib/services/multiplayer_profile.dart  name/emoji/stats, SharedPreferences — l
 
 lib/ui/screens/multiplayer/         widget layer (controller UX) — landed (Phase 3)
 ├── mp_common.dart                  MpBackground / MpAvatar / MpTextField / leaveAndExit
-├── mp_home_screen.dart             MULTIPLAYER tile landing / in-app QR scan / enter code
+├── mp_home_screen.dart             discovered room cards / in-app QR scan / enter code
 ├── mp_join_screen.dart             resolve room → connect → name + JOIN + waiting state
 ├── mp_lobby_screen.dart            "✓ JOINED … waiting for players" + roster + ready toggle
 ├── mp_game_screen.dart             controller ChallengeView + input (ChallengeRenderer reused);

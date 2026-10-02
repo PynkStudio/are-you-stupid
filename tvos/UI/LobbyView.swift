@@ -1,11 +1,3 @@
-//
-//  LobbyView.swift
-//  AYSHost
-//
-//  Room code, join QR, live roster, START GAME gate (>=2 ready) — the
-//  responsibilities list in docs/Architecture/Multiplayer Host (tvOS).md.
-//
-
 import AYSProtocol
 import SwiftUI
 
@@ -13,105 +5,229 @@ struct LobbyView: View {
     @ObservedObject var model: HostViewModel
 
     var body: some View {
-        HStack(spacing: 48) {
-            VStack(spacing: 24) {
-                ShoutText(text: "SCAN TO JOIN", size: 28, color: Theme.accent)
-                model.joinQRImage
-                    .interpolation(.none)
-                    .resizable()
-                    .frame(width: 220, height: 220)
-                    .background(Color.white)
-                    .padding(12)
-                    .background(Color.white)
-                    .cornerRadius(12)
-                VStack(spacing: 4) {
-                    Text("ROOM CODE")
-                        .font(Theme.label(18))
-                        .foregroundStyle(.gray)
-                    Text(model.roomCode)
-                        .font(.system(size: 56, weight: .black, design: .monospaced))
-                        .tracking(8)
+        GeometryReader { geometry in
+            let compact = geometry.size.width < 1050
+            ZStack {
+                PartyStageBackground()
+                VStack(spacing: compact ? 14 : 22) {
+                    LobbyMarquee(playerCount: model.roster.count)
+                    HStack(alignment: .top, spacing: compact ? 18 : 30) {
+                        JoinTicket(model: model, compact: compact)
+                            .frame(width: min(geometry.size.width * 0.34, 430))
+                        PartyRoster(model: model, compact: compact)
+                    }
+                    .frame(maxHeight: .infinity)
                 }
-                Text(model.networkStatus)
-                    .font(Theme.label(14))
-                    .foregroundStyle(.gray)
-                #if os(macOS)
-                AirPlayButton()
-                    .frame(width: 32, height: 32)
-                #endif
+                .padding(.horizontal, compact ? 24 : 48)
+                .padding(.vertical, compact ? 20 : 32)
             }
-            .frame(maxWidth: 320)
+        }
+    }
+}
 
-            VStack(alignment: .leading, spacing: 16) {
-                ShoutText(text: "PLAYERS", size: 28)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+private struct LobbyMarquee: View {
+    let playerCount: Int
 
+    private var subtitle: String {
+        switch playerCount {
+        case 0: return "GRAB YOUR PHONES. BAD DECISIONS START HERE."
+        case 1: return "ONE LEGEND IN. WHO'S BRAVE ENOUGH TO JOIN?"
+        default: return "\(playerCount) PLAYERS. ZERO EXCUSES."
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 18) {
+            Text("● LIVE").font(Theme.label(16)).foregroundStyle(Theme.hotPink)
+            ShoutText(text: "ARE YOU STUPID?", size: 34)
+            Rectangle().fill(Color.white.opacity(0.2)).frame(height: 1)
+            Text(subtitle)
+                .font(Theme.label(15)).foregroundStyle(Color.white.opacity(0.72)).lineLimit(1)
+        }
+        .padding(.horizontal, 22).padding(.vertical, 14)
+        .background(.black.opacity(0.25), in: Capsule())
+        .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1))
+    }
+}
+
+private struct JoinTicket: View {
+    @ObservedObject var model: HostViewModel
+    let compact: Bool
+
+    var body: some View {
+        VStack(spacing: compact ? 12 : 18) {
+            VStack(spacing: 2) {
+                Text("YOUR PHONE IS THE CONTROLLER")
+                    .font(Theme.label(compact ? 12 : 14)).foregroundStyle(Theme.sunshine)
+                ShoutText(text: "SCAN. JOIN. PANIC.", size: compact ? 24 : 30)
+            }
+            model.joinQRImage
+                .interpolation(.none).resizable()
+                .frame(width: compact ? 158 : 200, height: compact ? 158 : 200)
+                .padding(10).background(Color.white, in: RoundedRectangle(cornerRadius: 18))
+                .shadow(color: Theme.cyan.opacity(0.45), radius: 22)
+            VStack(spacing: 3) {
+                Text("OR ENTER ROOM CODE").font(Theme.label(12)).foregroundStyle(Color.white.opacity(0.55))
+                Text(model.roomCode)
+                    .font(.system(size: compact ? 42 : 54, weight: .black, design: .monospaced))
+                    .tracking(8).foregroundStyle(Theme.sunshine)
+            }
+            HStack(spacing: 8) {
+                Circle().fill(Theme.correct).frame(width: 8, height: 8)
+                Text(model.networkStatus.uppercased())
+                    .font(Theme.label(11)).lineLimit(1).foregroundStyle(Color.white.opacity(0.65))
+            }
+            #if os(macOS)
+            AirPlayButton().frame(width: 30, height: 30)
+            #endif
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity).padding(compact ? 18 : 26)
+        .background(.black.opacity(0.32), in: RoundedRectangle(cornerRadius: 28))
+        .overlay(RoundedRectangle(cornerRadius: 28).stroke(Theme.cyan.opacity(0.32), lineWidth: 2))
+    }
+}
+
+private struct PartyRoster: View {
+    @ObservedObject var model: HostViewModel
+    let compact: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: compact ? 12 : 18) {
+            HStack(alignment: .firstTextBaseline) {
+                ShoutText(text: "WHO'S IN?", size: compact ? 28 : 38)
+                Spacer()
+                Text("\(model.roster.count)/8 PLAYERS").font(Theme.label(14)).foregroundStyle(Theme.cyan)
+            }
+            Group {
                 if model.roster.isEmpty {
-                    Text("Waiting for players to join…")
-                        .font(Theme.label(20))
-                        .foregroundStyle(.gray)
+                    EmptyDanceFloor()
                 } else {
                     ScrollView {
-                        VStack(spacing: 12) {
-                            ForEach(model.roster, id: \.playerId) { player in
-                                PlayerRow(player: player)
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: compact ? 10 : 14) {
+                            ForEach(Array(model.roster.enumerated()), id: \.element.playerId) { index, player in
+                                PlayerCard(player: player, seat: index + 1)
                             }
                         }
                     }
                 }
-
-                Spacer()
-
-                ModePicker(model: model)
-
-                Button(action: { model.startGame() }) {
-                    Text("START GAME (\(model.readyCount) READY)")
-                        .font(Theme.label(24))
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .disabled(!model.canStart)
-                .opacity(model.canStart ? 1 : 0.4)
-                .background(Theme.accent)
-                .foregroundStyle(.black)
-                .cornerRadius(16)
-                #if os(tvOS)
-                .buttonStyle(.card)
-                #else
-                .buttonStyle(.plain)
-                #endif
             }
+            .frame(maxHeight: .infinity)
+            ModePicker(model: model)
+            StartPanel(model: model)
         }
-        .padding(48)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
-/// Two-way mode toggle — docs/Gameplay/Multiplayer Gameplay.md "MODE 1 —
-/// LAST STUPID STANDING" / "MODE 2 — STUPID BATTLE". A plain `Picker` would
-/// pull in each platform's native control chrome, breaking the game-show
-/// look every other element here shares — this stays in-house like the
-/// rest of the UI (`ShoutText`, the cards).
+private struct EmptyDanceFloor: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var bouncing = false
+
+    var body: some View {
+        VStack(spacing: 14) {
+            HStack(spacing: 14) {
+                ForEach(["🪩", "🤡", "🧠"], id: \.self) { emoji in
+                    Text(emoji).font(.system(size: 42)).offset(y: bouncing && !reduceMotion ? -8 : 5)
+                }
+            }
+            ShoutText(text: "THE DANCE FLOOR IS EMPTY", size: 22, color: Theme.sunshine)
+            Text("SCAN THE CODE. BE THE FIRST BAD INFLUENCE.")
+                .font(Theme.label(14)).foregroundStyle(Color.white.opacity(0.58))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Theme.cardBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: 24))
+        .overlay(RoundedRectangle(cornerRadius: 24)
+            .stroke(style: StrokeStyle(lineWidth: 2, dash: [9, 8])).foregroundStyle(Color.white.opacity(0.16)))
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) { bouncing = true }
+        }
+    }
+}
+
+private struct PlayerCard: View {
+    let player: PlayerInfo
+    let seat: Int
+
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle().fill(player.ready ? Theme.correct : Theme.hotPink)
+                Text(player.emoji.isEmpty ? "🙂" : player.emoji).font(.system(size: 28))
+            }.frame(width: 52, height: 52)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("PLAYER \(seat)").font(Theme.label(10)).foregroundStyle(Color.white.opacity(0.45))
+                Text(player.playerName.uppercased()).font(Theme.label(19)).lineLimit(1)
+            }
+            Spacer(minLength: 4)
+            Text(player.ready ? "READY!" : "WARMING UP")
+                .font(Theme.label(11)).foregroundStyle(player.ready ? Theme.correct : Color.white.opacity(0.45))
+        }
+        .padding(13).background(Theme.cardBackground.opacity(0.9), in: RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18)
+            .stroke(player.ready ? Theme.correct.opacity(0.75) : Color.white.opacity(0.09), lineWidth: 2))
+        .transition(.scale(scale: 0.8).combined(with: .opacity))
+    }
+}
+
+private struct StartPanel: View {
+    @ObservedObject var model: HostViewModel
+
+    private var status: String {
+        if model.readyCount == 0 { return "WAITING FOR 2 READY PLAYERS" }
+        if model.readyCount == 1 { return "ONE MORE READY PLAYER" }
+        return "THE PARTY IS READY"
+    }
+
+    var body: some View {
+        VStack(spacing: 9) {
+            HStack(spacing: 7) {
+                ForEach(0..<2, id: \.self) { index in
+                    Capsule().fill(index < model.readyCount ? Theme.correct : Color.white.opacity(0.16)).frame(height: 6)
+                }
+            }
+            Button(action: { model.startGame() }) {
+                HStack {
+                    Text(model.canStart ? "START THE CHAOS" : status)
+                    Spacer()
+                    Text(model.canStart ? "→" : "\(model.readyCount)/2")
+                }
+                .font(Theme.title(20)).padding(.horizontal, 22).padding(.vertical, 16).frame(maxWidth: .infinity)
+            }
+            .disabled(!model.canStart)
+            .background(model.canStart ? Theme.sunshine : Color.white.opacity(0.09))
+            .foregroundStyle(model.canStart ? Theme.ink : Color.white.opacity(0.42))
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            #if os(tvOS)
+            .buttonStyle(.card)
+            #else
+            .buttonStyle(.plain)
+            #endif
+        }
+    }
+}
+
 private struct ModePicker: View {
     @ObservedObject var model: HostViewModel
 
     var body: some View {
-        HStack(spacing: 12) {
-            option("STUPID BATTLE", mode: .stupidBattle)
-            option("LAST STUPID STANDING", mode: .lastStupidStanding)
+        HStack(spacing: 10) {
+            option("STUPID BATTLE", detail: "20 ROUNDS", mode: .stupidBattle)
+            option("LAST STUPID STANDING", detail: "3 LIVES", mode: .lastStupidStanding)
         }
     }
 
-    private func option(_ title: String, mode: GameMode) -> some View {
+    private func option(_ title: String, detail: String, mode: GameMode) -> some View {
         let selected = model.selectedMode == mode
         return Button(action: { model.selectedMode = mode }) {
-            Text(title)
-                .font(Theme.label(14))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
+            VStack(spacing: 2) {
+                Text(title).font(Theme.label(13)).lineLimit(1)
+                Text(detail).font(Theme.label(9)).opacity(0.65)
+            }.frame(maxWidth: .infinity).padding(.vertical, 11)
         }
-        .background(selected ? Theme.accent : Theme.cardBackground)
-        .foregroundStyle(selected ? .black : .white)
-        .cornerRadius(12)
+        .background(selected ? Theme.cyan : Theme.cardBackground.opacity(0.8))
+        .foregroundStyle(selected ? Theme.ink : .white)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(selected ? 0 : 0.1)))
         #if os(tvOS)
         .buttonStyle(.card)
         #else
@@ -120,23 +236,29 @@ private struct ModePicker: View {
     }
 }
 
-private struct PlayerRow: View {
-    let player: PlayerInfo
+private struct PartyStageBackground: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        HStack {
-            Text(player.emoji.isEmpty ? "🙂" : player.emoji)
-                .font(.system(size: 32))
-            Text(player.playerName.uppercased())
-                .font(Theme.label(22))
-            Spacer()
-            Text(player.ready ? "READY" : "…")
-                .font(Theme.label(18))
-                .foregroundStyle(player.ready ? Theme.correct : .gray)
+        TimelineView(.animation(minimumInterval: 1 / 24, paused: reduceMotion)) { timeline in
+            Canvas { context, size in
+                let time = timeline.date.timeIntervalSinceReferenceDate
+                context.fill(Path(CGRect(origin: .zero, size: size)), with: .linearGradient(
+                    Gradient(colors: [Theme.stageTop, Theme.stageBottom]), startPoint: .zero,
+                    endPoint: CGPoint(x: size.width, y: size.height)))
+                let colors = [Theme.hotPink, Theme.cyan, Theme.sunshine]
+                for index in 0..<12 {
+                    let phase = time * (0.035 + Double(index % 3) * 0.008) + Double(index) * 0.47
+                    let x = (sin(phase) * 0.42 + 0.5) * size.width
+                    let y = (cos(phase * 1.31) * 0.42 + 0.5) * size.height
+                    let diameter = CGFloat(80 + (index % 4) * 34)
+                    let rect = CGRect(x: x - diameter / 2, y: y - diameter / 2, width: diameter, height: diameter)
+                    context.opacity = 0.08
+                    context.fill(Path(ellipseIn: rect), with: .color(colors[index % colors.count]))
+                }
+            }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(Theme.cardBackground)
-        .cornerRadius(12)
+        .overlay { LinearGradient(colors: [.clear, .black.opacity(0.28)], startPoint: .top, endPoint: .bottom) }
+        .ignoresSafeArea()
     }
 }

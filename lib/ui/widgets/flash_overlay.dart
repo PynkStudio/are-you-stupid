@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
+import 'balanced_text.dart';
 
 /// Full-screen state feedback. This is the moment people screenshot.
 class FlashOverlay extends StatelessWidget {
@@ -43,13 +44,9 @@ class FlashOverlay extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  message,
-                  textAlign: TextAlign.center,
-                  style: Ays.title(72).copyWith(color: textColor),
-                ),
+              BalancedText(
+                message,
+                style: Ays.title(72).copyWith(color: textColor),
               ),
               if (note != null) ...[
                 const SizedBox(height: 12),

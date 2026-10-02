@@ -10,6 +10,7 @@ import '../../services/share_manager.dart';
 import '../../services/purchases/purchase_manager.dart';
 import '../theme.dart';
 import '../widgets/ays_button.dart';
+import '../widgets/balanced_text.dart';
 
 /// Sentinel returned by the language dialog for "follow the system
 /// language", distinct from `null` (dialog dismissed without a choice).
@@ -52,7 +53,10 @@ class SettingsScreen extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(t('ui.settings.title'), style: Ays.title(48)),
+                    BalancedText(t('ui.settings.title'),
+                        style: Ays.title(48),
+                        maxLines: 1,
+                        textAlign: TextAlign.left),
                     const SizedBox(height: 28),
                     Expanded(
                       child: SingleChildScrollView(

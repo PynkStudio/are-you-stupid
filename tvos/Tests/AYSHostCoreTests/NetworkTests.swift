@@ -21,6 +21,25 @@ final class BonjourServiceTests: XCTestCase {
     func testServiceTypeMatchesTheDocumentedContract() {
         XCTAssertEqual(BonjourService.serviceType, "_ays-party._tcp")
     }
+
+    func testTxtRecordCarriesRoomCardMetadata() {
+        let service = BonjourService(
+            roomCode: "7f4k", displayName: "Living Room TV",
+            playerCount: 3, maxPlayers: 8, state: "lobby"
+        )
+        var fields: [String] = []
+        var index = service.txtRecord.startIndex
+        while index < service.txtRecord.endIndex {
+            let length = Int(service.txtRecord[index])
+            index = service.txtRecord.index(after: index)
+            let end = service.txtRecord.index(index, offsetBy: length)
+            fields.append(String(decoding: service.txtRecord[index..<end], as: UTF8.self))
+            index = end
+        }
+        XCTAssertEqual(fields, [
+            "max=8", "name=Living Room TV", "players=3", "room=7F4K", "state=lobby",
+        ])
+    }
 }
 
 /// Every real-socket test in this file is gated behind this env var, checked

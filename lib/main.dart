@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,6 +15,9 @@ import 'services/purchases/iap_purchase_provider.dart';
 import 'services/purchases/mock_purchase_provider.dart';
 import 'services/purchases/purchase_provider.dart';
 import 'ui/screens/home_screen.dart';
+import 'ui/screens/multiplayer/mp_common.dart';
+import 'ui/screens/multiplayer/mp_home_screen.dart';
+import 'ui/screens/multiplayer/mp_join_screen.dart';
 import 'ui/screens/splash_screen.dart';
 import 'ui/theme.dart';
 
@@ -52,13 +57,100 @@ class AreYouStupidApp extends StatefulWidget {
 
 class _AreYouStupidAppState extends State<AreYouStupidApp> {
   AppServices? _services;
+  final _navigatorKey = GlobalKey<NavigatorState>();
+  StreamSubscription<Uri>? _appLinksSubscription;
+  String? _pendingRoomCode;
+  bool _openingDeepLink = false;
+  String? _lastAppLink;
+  DateTime? _lastAppLinkAt;
 
   @override
   void initState() {
     super.initState();
     _services = widget.services;
+    if (Platform.isAndroid || Platform.isIOS) {
+      _listenForAppLinks();
+    }
     if (_services == null) {
       _boot();
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _openPendingDeepLink(),
+      );
+    }
+  }
+
+  Future<void> _listenForAppLinks() async {
+    final appLinks = AppLinks();
+    _appLinksSubscription = appLinks.uriLinkStream.listen(
+      _receiveAppLink,
+      onError: (Object _) {},
+    );
+    try {
+      final initialLink = await appLinks.getInitialLink();
+      if (initialLink != null) _receiveAppLink(initialLink);
+    } on Object {
+      // A malformed or unavailable platform link must never block app boot.
+    }
+  }
+
+  void _receiveAppLink(Uri uri) {
+    final now = DateTime.now();
+    if (_lastAppLink == uri.toString() &&
+        _lastAppLinkAt != null &&
+        now.difference(_lastAppLinkAt!) < const Duration(seconds: 2)) {
+      return;
+    }
+    _lastAppLink = uri.toString();
+    _lastAppLinkAt = now;
+    final roomCode = roomCodeFromScannedValue(uri.toString());
+    if (roomCode == null) return;
+    _pendingRoomCode = roomCode;
+    _openPendingDeepLink();
+  }
+
+  Future<void> _openPendingDeepLink() async {
+    if (_openingDeepLink || _services == null || _pendingRoomCode == null) {
+      return;
+    }
+    final context = _navigatorKey.currentContext;
+    if (context == null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _openPendingDeepLink(),
+      );
+      return;
+    }
+
+    _openingDeepLink = true;
+    final roomCode = _pendingRoomCode!;
+    _pendingRoomCode = null;
+    final services = _services!;
+    final profile = services.multiplayerProfile;
+
+    if (!profile.permissionsPrimerSeen) {
+      final accepted = await showMpPermissionsPrimer(
+        context,
+        services.settings.locale,
+      );
+      if (!mounted) return;
+      if (!accepted) {
+        _openingDeepLink = false;
+        return;
+      }
+      await profile.markPermissionsPrimerSeen();
+      if (!mounted) return;
+      // Keep the system Local Network prompt immediately after our primer,
+      // just like the in-app MULTIPLAYER entry point.
+      await services.localNetwork.status();
+      if (!mounted) return;
+    }
+
+    await _navigatorKey.currentState?.push(
+      MaterialPageRoute<void>(builder: (_) => MpJoinScreen(roomCode: roomCode)),
+    );
+    _openingDeepLink = false;
+    if (_pendingRoomCode != null) {
+      _openPendingDeepLink();
     }
   }
 
@@ -77,12 +169,19 @@ class _AreYouStupidAppState extends State<AreYouStupidApp> {
     );
     if (!mounted) return;
     setState(() => _services = services);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _openPendingDeepLink());
     // After the first frame of the real UI, so the consent form and the ATT
     // prompt are shown over an active app (iOS drops ATT requests made
     // while the app is still launching).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) services.startAds().catchError((Object _) {});
     });
+  }
+
+  @override
+  void dispose() {
+    _appLinksSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -103,6 +202,7 @@ class _AreYouStupidAppState extends State<AreYouStupidApp> {
     return ServicesScope(
       services: services,
       child: MaterialApp(
+        navigatorKey: _navigatorKey,
         title: Strings.t(services.settings.locale, 'app.title'),
         debugShowCheckedModeBanner: false,
         theme: Ays.theme(),

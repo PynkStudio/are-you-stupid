@@ -22,6 +22,7 @@ import '../../widgets/ays_button.dart';
 import 'mp_common.dart';
 import 'mp_disconnect_view.dart';
 import 'mp_lobby_screen.dart';
+import '../../widgets/balanced_text.dart';
 
 /// Informational only (`HELLO.appVersion`) — the host never gates on it, so
 /// this isn't wired to `pubspec.yaml`'s version on purpose.
@@ -373,7 +374,7 @@ class _MpJoinScreenState extends State<MpJoinScreen>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Spacer(flex: 2),
-            Text(t('app.title'), style: Ays.title(36), textAlign: TextAlign.center),
+            BalancedText(t('app.title'), style: Ays.title(36)),
             const SizedBox(height: 8),
             if (hostName.isNotEmpty)
               Text(

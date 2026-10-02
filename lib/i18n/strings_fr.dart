@@ -249,6 +249,11 @@ const Map<String, String> kStringsFr = {
   'ui.mp.home.scan': 'SCANNER LE QR',
   'ui.mp.home.enter_code': 'ENTRER LE CODE',
   'ui.mp.home.back': 'RETOUR',
+  'ui.mp.home.nearby': 'PRÊTES À PROXIMITÉ',
+  'ui.mp.home.searching': 'RECHERCHE D’UNE PARTIE SUR CE WI-FI…',
+  'ui.mp.home.players': '{n}/{max} JOUEURS',
+  'ui.mp.home.join': 'REJOINDRE',
+  'ui.mp.home.in_progress': 'EN COURS',
 
   'ui.mp.enter_code.title': 'CODE DE SALON',
   'ui.mp.enter_code.hint': 'EX. 7F4K',
