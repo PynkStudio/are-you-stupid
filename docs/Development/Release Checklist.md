@@ -61,21 +61,30 @@ already registered against them ([[Decision Log]]).
 
 - [ ] Apple Developer Program active; distribution certificate available
       (automatic signing, team `G48384PHQK`)
-- [ ] One app record, bundle id `com.ays.areYouStupid`, with **iOS, tvOS
-      and macOS** platforms added
-- [ ] In-app purchase `ays_remove_ads` (non-consumable) created with
-      price, review screenshot and notes, and **attached to the first iOS
+- [x] One app record (Apple ID 6809188487, "ARE YOU STUPID?! - party
+      game"), bundle id `com.ays.areYouStupid`, with **iOS, tvOS and macOS**
+      platforms; subtitle, categories (Games › Word, Casual + Entertainment),
+      free in all 175 regions, Game Center off (2026-10-02)
+- [ ] In-app purchase `ays_remove_ads` (non-consumable): created, priced,
+      review notes in. **Still needs the review screenshot** (Settings with
+      the REMOVE ADS row) and must be **attached to the first iOS
       submission** — otherwise review can't find it
-- [ ] App Privacy: **Data used to track you** — Device ID (IDFA),
+- [x] App Privacy published 2026-10-02: **Data used to track you** — Device ID (IDFA),
       Advertising Data, Product Interaction, Coarse Location, Diagnostics
       (all from the Google Mobile Ads SDK). *Not* "no data collected"
-- [ ] Privacy Policy URL `https://pynkstudio.eu/it/lavori/are-you-stupid/privacy`;
+- [x] Privacy Policy URL `https://pynkstudio.eu/it/lavori/are-you-stupid/privacy`;
       Support/Marketing URL the `/en` game page
-- [ ] Age rating questionnaire: frequent crude humor/profanity → expect 12+
-- [ ] Review notes: multiplayer needs the Apple TV / Mac host on the same
+- [x] Age rating questionnaire: frequent profanity/crude humor, ads →
+      **13+** (12+ in Vietnam/Korea)
+- [x] Description, promo text, keywords, support/marketing URLs, review
+      notes and contact filled for iOS, tvOS and macOS versions (party-game
+      positioning; no claims about features not shipped, e.g. on-screen AI
+      commentary or online leaderboards)
+- [x] Review notes: multiplayer needs the Apple TV / Mac host on the same
       Wi-Fi; Apple Intelligence features need an iOS 26 eligible device and
       fall back to scripted challenges otherwise
-- [ ] Screenshots: iPhone 6.9", iPad 13", Apple TV (1920×1080), Mac
+- [ ] Screenshots: iPhone has 4 (6.5") from an older build — refresh with
+      party-mode shots; still missing iPad 13", Apple TV (1920×1080), Mac
       (≥1280×800). Suggested phone set: instruction frame, green flash, red
       roast, Game Over card
 
