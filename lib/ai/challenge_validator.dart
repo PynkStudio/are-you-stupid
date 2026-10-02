@@ -114,8 +114,9 @@ class ValidationContext {
   /// (via [Difficulty.speedForLevel]) exactly like scripted challenges.
   final int level;
 
-  /// The player's language — the fail line must exist for it, and (v1) it is
-  /// the language the model was asked in.
+  /// The player's language — the fail line must exist for it, it is the
+  /// language the model was asked to write in, and it picks the text
+  /// allowlist, word cap and imperative verbs.
   final AppLocale locale;
 
   /// Mirror of [Difficulty.allowsTricks] at [level].
@@ -158,13 +159,52 @@ const Set<String> kForbiddenTokens = {
 /// caught. Retryable: regeneration can reword it.
 const Set<String> kMetaAiTokens = {'ai', 'model', 'generated', 'machine'};
 
+/// Player-facing text in a non-English locale (instruction, labels, fail
+/// line, commentary) may use any Latin-script letter (accents, `ß`, `ç`),
+/// the typographic apostrophe and Spanish opening marks — nothing else.
+/// Ids and enum names stay [kAsciiAllowlist] in every locale.
+final RegExp kLatinAllowlist =
+    RegExp(r"^[\p{Script=Latin}0-9 ,.!?¡¿\-_`'’]+$", unicode: true);
+
+/// The allowlist for player-facing text in [locale].
+RegExp textAllowlistFor(AppLocale locale) =>
+    locale == AppLocale.en ? kAsciiAllowlist : kLatinAllowlist;
+
+/// Extra bans for the non-English locales, kept unambiguous on purpose (no
+/// colour or timing words that a reflex game legitimately uses).
+const Set<String> kForbiddenTokensLocalized = {
+  'suicid',
+  'suizid',
+  'frocio',
+  'maricón',
+  'schwuchtel',
+};
+
+/// "The AI made this" in the six game languages.
+const Set<String> kMetaAiTokensLocalized = {
+  'ia',
+  'ki',
+  'modello',
+  'modèle',
+  'modelo',
+  'modell',
+  'generato',
+  'généré',
+  'generado',
+  'gerado',
+  'generiert',
+};
+
+/// Unicode-aware word split for the tone checks (`è`, `ß` stay inside words).
+final RegExp _kNonWord = RegExp(r"[^\p{L}']+", unicode: true);
+
 class ChallengeValidator {
   const ChallengeValidator();
 
   /// First-failing verdict in check order; [VerdictValid] when nothing fails.
   ChallengeVerdict validate(ChallengeProposal p, ValidationContext ctx) {
     final v = _envelope(p, ctx) ??
-        _instruction(p) ??
+        _instruction(p, ctx) ??
         _mechanicContract(p, ctx) ??
         _elementBounds(p) ??
         _timeFloor(p, ctx) ??
@@ -198,10 +238,20 @@ class ChallengeValidator {
     if (line.trim().isEmpty) {
       return const VerdictInvalid('envelope.failLine');
     }
-    // ASCII allowlist on every string field.
-    final strings = <String>[
+    // Player-facing text: the locale's allowlist (Latin script outside
+    // English); ids and enum names: strict ASCII everywhere.
+    final text = textAllowlistFor(ctx.locale);
+    final texts = <String>[
       p.instruction,
       ...p.failLine.values,
+      for (final e in p.elements) e.label,
+    ];
+    for (final s in texts) {
+      if (!text.hasMatch(s)) {
+        return const VerdictInvalid('envelope.ascii');
+      }
+    }
+    final strings = <String>[
       p.mechanic.move,
       p.mechanic.action,
       p.mechanic.kind,
@@ -209,7 +259,6 @@ class ChallengeValidator {
     ];
     for (final e in p.elements) {
       strings.add(e.id);
-      strings.add(e.label);
       strings.add(e.colorName);
       strings.add(e.shapeName);
     }
@@ -223,18 +272,20 @@ class ChallengeValidator {
 
   // 2. Instruction rule -----------------------------------------------------
 
-  ChallengeVerdict? _instruction(ChallengeProposal p) {
+  ChallengeVerdict? _instruction(ChallengeProposal p, ValidationContext ctx) {
     final words = p.instruction.trim().split(RegExp(r'\s+'));
-    if (words.length >= 8) {
-      return const VerdictRetryableForcedExit(); // under 8 words is the law
+    // Under 8 words is the law in English; wordier languages get up to 10
+    // and extra time for it ([localeTimeBonusMs]).
+    if (words.length > instructionMaxWords(ctx.locale)) {
+      return const VerdictRetryableForcedExit();
     }
-    if (p.instruction.contains(RegExp(r'[a-z]'))) {
+    if (p.instruction.contains(RegExp(r'\p{Ll}', unicode: true))) {
       return const VerdictRetryableForcedExit(); // uppercase on screen
     }
     final contract = p.mechanicContract;
     if (contract != null) {
       final upper = p.instruction.toUpperCase();
-      if (!contract.action.imperativeVerbs.any(upper.contains)) {
+      if (!contract.action.imperativeVerbsFor(ctx.locale).any(upper.contains)) {
         return VerdictInvalid('instruction.verb');
       }
     }
@@ -375,11 +426,11 @@ class ChallengeValidator {
       ...p.failLine.values,
       for (final e in p.elements) e.label,
     ].map((s) => s.toLowerCase()).join(' ');
-    for (final f in kForbiddenTokens) {
+    for (final f in {...kForbiddenTokens, ...kForbiddenTokensLocalized}) {
       if (text.contains(f)) return const VerdictFailureExit();
     }
-    final words = text.split(RegExp(r"[^a-z']+"));
-    for (final t in kMetaAiTokens) {
+    final words = text.split(_kNonWord);
+    for (final t in {...kMetaAiTokens, ...kMetaAiTokensLocalized}) {
       if (words.contains(t)) return const VerdictInvalid('tone.metaAi');
     }
     return null;

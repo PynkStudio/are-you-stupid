@@ -17,7 +17,13 @@
 //  The model is asked for plain text, not a `@Generable` schema — a single
 //  short line has nothing worth constraining beyond what
 //  `lib/ai/commentary.dart`'s `isCommentaryLineValid` already re-checks on
-//  the Dart side (ASCII, length, tone, one sentence). Every proposal-style
+//  the Dart side (charset, length, tone, one sentence).
+//
+//  Commentary is written in the player's language (en/it/fr/es/pt/de — all
+//  supported by the on-device model); challenge generation stays English
+//  (docs/AI/Localization and Language.md). The prompt carries the moment's
+//  facts from the Dart `context` map (e.g. the Game Over verdict's level,
+//  best and the instruction that ended the run). Every proposal-style
 //  `@Generable` struct stays in ChallengeProposal.swift; this file never
 //  invents a second schema for the same concept.
 //
@@ -57,7 +63,7 @@ enum AYSCommentaryService {
         let session = LanguageModelSession(
             model: SystemLanguageModel.default,
             tools: [],
-            instructions: instructions(for: kind)
+            instructions: instructions(locale: locale, context: context)
         )
         // 0.9: high-temperature invention, matching every other
         // commentary/challenge call ([[Dynamic Profiles and Tool Calling]]).
@@ -65,7 +71,8 @@ enum AYSCommentaryService {
         // for the model to ramble past one sentence.
         let options = GenerationOptions(temperature: 0.9, maximumResponseTokens: 40)
         do {
-            let response = try await session.respond(to: prompt(for: kind, context: context), options: options)
+            let response = try await session.respond(
+                to: prompt(for: kind, context: context), options: options)
             return ["ok": true, "text": response.content]
         } catch let error as LanguageModelSession.GenerationError {
             return AYSAppleAIResponse.error(
@@ -77,26 +84,60 @@ enum AYSCommentaryService {
         }
     }
 
-    /// English-only, compiled-in system prompt per
-    /// [[Dynamic Profiles and Tool Calling]] — v1 model output stays
-    /// English regardless of [locale] ([[Localization and Language]]); the
-    /// bridge caller (`lib/ai/commentary.dart`) never calls this for a
-    /// non-English locale in the first place.
+    /// Compiled-in system prompt per [[Dynamic Profiles and Tool Calling]].
+    /// The prompt itself stays English; only the requested *output*
+    /// language follows [locale].
     @available(iOS 26.0, macOS 26.0, *)
-    private static func instructions(for kind: String) -> String {
-        """
+    private static func instructions(locale: String, context: [String: Any]) -> String {
+        let language = aysLanguageName(for: locale)
+        let charset = locale == "en"
+            ? "plain ASCII only"
+            : "plain text in \(language) (accented letters are fine)"
+        let tone = (context["spicy"] as? Bool) == false
+            ? "Keep it gentle: light teasing only, no insults."
+            : "The tone is playful teasing, never actual cruelty."
+        return """
         You write exactly one short, deadpan line of commentary for a \
-        hyper-casual reflex game called ARE YOU STUPID?. The tone is playful \
-        teasing, never actual cruelty, never a slur, never a reference to a \
-        real person. Reply with exactly one sentence, plain ASCII only, no \
-        emoji, no markdown, and never mention that you are an AI, a model, \
-        or that you were generated.
+        hyper-casual reflex game called ARE YOU STUPID?, where the player gets \
+        a stupidly simple instruction and fails on something stupid. \
+        \(tone) Never a slur, never a reference to a real person. \
+        Write the line in \(language). Reply with exactly one sentence, \
+        \(charset), no emoji, no markdown, no quotation marks, and never \
+        mention that you are an AI, a model, or that you were generated.
         """
     }
 
     @available(iOS 26.0, macOS 26.0, *)
     private static func prompt(for kind: String, context: [String: Any]) -> String {
-        "The moment to comment on is: \(kind)."
+        var lines = ["The moment to comment on is: \(kind)."]
+        if let guidance = kindGuidance[kind] {
+            lines.append(guidance)
+        }
+        let maxWords = (kind == "correct" || kind == "streak") ? 6 : 12
+        lines.append("Use at most \(maxWords) words.")
+        let facts = context
+            .filter { $0.key != "recentLines" && $0.key != "spicy" }
+            .sorted { $0.key < $1.key }
+            .map { "- \($0.key): \($0.value)" }
+        if !facts.isEmpty {
+            lines.append("Facts about this moment:")
+            lines.append(contentsOf: facts)
+        }
+        if let recent = context["recentLines"] as? [String], !recent.isEmpty {
+            lines.append("Do not repeat any of these lines:")
+            lines.append(contentsOf: recent.map { "- \($0)" })
+        }
+        return lines.joined(separator: "\n")
     }
+
+    private static let kindGuidance: [String: String] = [
+        "wrong": "The player just failed a stupidly simple instruction. Tease the mistake.",
+        "gameOver": "The player's run just ended. Give a verdict on the whole run, "
+            + "using the facts (the level they reached, their best, the instruction "
+            + "that beat them). A new personal best deserves backhanded praise.",
+        "correct": "The player got it right. Dry, grudging praise.",
+        "streak": "The player is on a fast streak. Escalate the grudging praise.",
+    ]
+
     #endif
 }

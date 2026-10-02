@@ -1,6 +1,6 @@
 ---
 tags: [ai, development, roadmap]
-updated: 2026-09-15
+updated: 2026-10-02
 ---
 
 # Development Plan
@@ -83,7 +83,7 @@ own (`ai/dynamic-director` on `PynkStudio/are-you-stupid`).
   Settings UI screen stays in Phase 9's slot below. See the 2026-09-11
   [[Decision Log]] entry.
 
-### Phase 4 — Commentary  ✅ done, not wired into live gameplay yet
+### Phase 4 — Commentary  ✅ done (single-player live since 2026-10-02, see below)
 - Commentary kinds + per-kind contracts ([[AI Commentary]]); AI service
   `requestCommentary`; static-bank-first ladder.
 - `lib/ai/commentary.dart` (`CommentaryKind`, `isCommentaryLineValid`,
@@ -171,6 +171,19 @@ own (`ai/dynamic-director` on `PynkStudio/are-you-stupid`).
   Apple-Intelligence-capable hardware is available in this environment,
   the same limitation every phase since Phase 2 has carried forward
   honestly rather than glossed over.
+
+### Single-player commentary + Game Over redesign (2026-10-02, after Phase 10)  ✅ done
+- `lib/ai/solo_commentary.dart` (`SoloCommentator`, `RunSummary`) wired in
+  `game_screen.dart`: a prefetched `wrong` aside on the red flash and the
+  `gameOver` verdict as the Game Over headline ([[AI Commentary]]).
+- Commentary **and challenge generation** in all six locales
+  ([[Localization and Language]]): per-locale validation, hand-written fail
+  lines per locale, up to 10 words + 1–2 s outside English. Multiplayer
+  stays English.
+- `GameOverView` redesigned for every player, AI or not: verdict headline,
+  score card with count-up / best / streak chip, and a "KILLED BY" card with
+  the instruction that ended the run ([[Virality and Sharing]]).
+- Still unverified on real Apple Intelligence hardware, like every phase.
 
 ## Dependencies
 

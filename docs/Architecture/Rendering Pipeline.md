@@ -1,6 +1,6 @@
 ---
 tags: [architecture, ui]
-updated: 2026-09-05
+updated: 2026-10-02
 ---
 
 # Rendering Pipeline
@@ -52,7 +52,9 @@ Labels use `FittedBox` so a long word never overflows or wraps badly.
 
 - neutral: near-black background, `Ays.ink` text
 - correct: green full-screen flash
-- incorrect: red full-screen flash
+- incorrect: red full-screen flash; headline = the challenge's fail line,
+  optional italic `aside` under it (single-player AI aside,
+  [[AI Commentary]])
 - warning: yellow (timer running out, personal best, counters)
 
 Full-screen flashes are what makes the game readable in a 9:16 clip — see

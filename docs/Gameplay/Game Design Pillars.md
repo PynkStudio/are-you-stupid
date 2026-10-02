@@ -1,6 +1,6 @@
 ---
 tags: [design, pillars]
-updated: 2026-09-06
+updated: 2026-10-02
 ---
 
 # Game Design Pillars
@@ -21,6 +21,10 @@ Everything in this repo is judged against that sentence.
    player. If a challenge cannot be understood *after* losing, it is a bad
    challenge. See [[Challenge Catalog]].
 2. **Under 8 words** per instruction. Enforced by a test in [[Testing]].
+   One owner-approved exception: AI-generated challenges in a non-English
+   language may use up to 10 words and get +1–2 s to read them
+   ([[Localization and Language]]). Scripted instructions keep the rule in
+   every language.
 3. **Zero downtime.** Correct answer → 240 ms green flash → next challenge.
    Mistake → 2.85 s red flash with the roast (long enough to actually read
    it — tap it to skip straight to Game Over if you already know why you

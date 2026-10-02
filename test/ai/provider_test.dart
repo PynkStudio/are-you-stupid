@@ -61,17 +61,16 @@ void main() {
       expect(service.calls.containsKey('requestChallenge'), isFalse);
     });
 
-    test('an unsupported locale never touches the bridge', () async {
+    test('every game locale asks the model, in that locale', () async {
       final flags = await _flags();
       final service = MockAppleAIService();
       final provider = await _provider(service: service, flags: flags);
 
-      expect(
-        provider.next(const ChallengeContext(level: 1, locale: AppLocale.it)),
-        isNull,
-      );
+      provider.next(const ChallengeContext(level: 5, locale: AppLocale.it));
       await _settle();
-      expect(service.calls.containsKey('requestChallenge'), isFalse);
+
+      final call = service.calls['requestChallenge']!.single;
+      expect(call['locale'], 'it');
     });
 
     test('model unavailable is a cache miss, not a crash', () async {

@@ -9,6 +9,7 @@ class FlashOverlay extends StatelessWidget {
     required this.correct,
     required this.message,
     this.note,
+    this.aside,
     this.onSkip,
     this.skipHint,
   });
@@ -16,6 +17,11 @@ class FlashOverlay extends StatelessWidget {
   final bool correct;
   final String message;
   final String? note;
+
+  /// Optional extra beat under [message] (the single-player AI aside on the
+  /// wrong flash). [message] stays the headline: it is the challenge's own
+  /// fail line.
+  final String? aside;
 
   /// When set, tapping anywhere on the overlay calls this instead of waiting
   /// out the flash — see `GameEngine.skipWrongFlash`.
@@ -53,6 +59,17 @@ class FlashOverlay extends StatelessWidget {
                     26,
                     color: correct ? Ays.bg.withValues(alpha: 0.7) : Ays.ink,
                   ),
+                ),
+              ],
+              if (aside != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  aside!,
+                  textAlign: TextAlign.center,
+                  style: Ays.label(
+                    20,
+                    color: textColor.withValues(alpha: 0.82),
+                  ).copyWith(fontStyle: FontStyle.italic),
                 ),
               ],
               if (onSkip != null && skipHint != null) ...[

@@ -105,8 +105,11 @@ public struct AYSChallengeProposal: Sendable {
     @Guide(description: "unique id", .pattern(try! Regex("ai\\.[a-z0-9]{5}")))
     public var id: String
     public var mechanic: AYSMechanicRef
-    @Guide(description: "the on-screen instruction: at most 8 words, uppercase only",
-           .pattern(try! Regex("[A-Z0-9'\\-]+( [A-Z0-9'\\-]+){0,7}")))
+    // Uppercase incl. the accented capitals of it/fr/es/pt/de; up to 10
+    // words (English is held to under 8 by the Dart validator, the other
+    // languages get 10 plus extra time — docs/AI/Localization and Language.md).
+    @Guide(description: "the on-screen instruction: very short, uppercase only",
+           .pattern(try! Regex("[A-Z0-9ÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜß'’\\-]+( [A-Z0-9ÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜß'’\\-]+){0,9}")))
     public var instruction: String
     @Guide(description: "the tappable elements on screen", .count(2...6))
     public var elements: [AYSElement]

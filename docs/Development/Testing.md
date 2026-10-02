@@ -101,6 +101,12 @@ no widget-level test yet, see [[Multiplayer Development]] for that gap:
   `NSNetServiceBrowser` plumbing `nsd` wraps.
 - `mp_home_screen_test.dart` — `roomCodeFromScannedValue` parses the
   `areyoustupid://join?room=XXXX` QR payload, rejects anything else.
+- `mp_permissions_test.dart` — the permissions UX with a fake
+  `LocalNetworkPermission`: the primer shows on first visit and nothing
+  probes the network before CONTINUE; NOT NOW backs out without storing or
+  probing; later visits skip the primer; a denied status shows the OPEN
+  SETTINGS notice, which opens Settings and clears itself on resume once
+  access is back ([[Multiplayer Client (Mobile)]] "Permissions").
 - `multiplayer_profile_test.dart` — `MultiplayerProfileManager` persistence
   (name/emoji trimmed, `bestStanding` only ever improves, listeners notified).
 - `socket_integration_test.dart` — the closest thing to an end-to-end proof
@@ -237,7 +243,15 @@ its colored fill renders at its real 8 px height, not the zero-height layout
 bug fixed in [[Difficulty Curve]] — that it's *still* visible (same height
 check) after a full Game Over → RETRY cycle, and that tapping the wrong
 flash calls `GameEngine.skipWrongFlash()` and reaches Game Over well before
-`wrongFlash` would have elapsed on its own.
+`wrongFlash` would have elapsed on its own. The Game Over assertions include
+the redesigned card's `GAME OVER` tag and `KILLED BY` card.
+
+### `test/game_over_view_test.dart` — the Game Over card alone
+`GameOverView` under a real `ServicesScope`: the run recap (level, best,
+streak chip, killed-by instruction + fail line), no killed-by card without
+an instruction, an AI verdict ready at appearance becoming the headline, and
+the swap rule — a verdict arriving inside the 600 ms input lock swaps in, one
+arriving after it never moves the headline ([[AI Commentary]]).
 
 Also covers the Settings screen's external links ("ABOUT THE GAME", "PRIVACY
 POLICY", the "Made by PynkStudio" credit — see [[Services]]): a
@@ -293,6 +307,19 @@ Evaluation]]). One file per layer:
   postures.
 - `commentary_test.dart` — `isCommentaryLineValid` and
   `CommentaryProvider`'s static-bank-first ladder.
+- `challenge_validator_test.dart` also has a "localized challenges" group:
+  an Italian proposal with accents/Italian verbs is valid, 10 words pass and
+  11 don't outside English, accented lowercase fails, an English verb fails
+  in Italian, ids stay ASCII, localized meta-AI tokens are rejected, English
+  keeps its cap. `provider_test.dart` checks a non-English context asks the
+  bridge in that locale; `generated_challenge_runtime_test.dart` checks the
+  +1 s bonus.
+- `solo_commentary_test.dart` — localized validation (Latin charset for
+  non-English, strict ASCII for English, localized meta-AI tokens, quote
+  stripping), `CommentaryProvider.aiLine`'s null-on-failure contract and
+  locale/spicy payload, and `SoloCommentator`: the wrong-aside ring (cold
+  miss, pop-once, locale-change invalidation, flag off → no bridge traffic)
+  and the `gameOver` verdict's run-facts context.
 - `prefetch_loop_test.dart` — the generic `PrefetchLoop<T>` primitive: pop,
   single-in-flight, ring-full no-op, stale-fetch discard on `invalidate()`.
 - `provider_test.dart` — `AIChallengeProvider`: cold start, flag/locale/

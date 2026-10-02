@@ -21,15 +21,32 @@ Never add UI chrome that steals space from those three.
 ## The Game Over card
 
 ```
-ARE YOU STUPID?
-COME ON.
-I REACHED
-LEVEL 27
-NEW PERSONAL BEST!   (or BEST: LEVEL 31)
-CAN YOU BEAT ME?
+ARE YOU STUPID?                     GAME OVER
+COME ON.                     ← verdict headline
+┌───────────────────────────────┐
+│ I REACHED                     │
+│ LEVEL 27        (counts up)   │
+│ [NEW PERSONAL BEST!] [🔥 STREAK 5] │  (or BEST: LEVEL 31)
+└───────────────────────────────┘
+┌ KILLED BY ────────────────────┐
+│ “TAP THE RED ONE”             │
+│ IT WAS ORANGE.                │
+└───────────────────────────────┘
+[TRY AGAIN] [CONTINUE] [SHARE] [HOME]
 ```
 
-Designed to survive being cropped to a thumbnail.
+Designed to survive being cropped to a thumbnail. The **KILLED BY** card is
+the joke the screenshot travels on: the stupidly simple instruction that
+beat you, plus the challenge's own fail line. The headline is the static
+Game Over roast, or — with AI on and the model ready — a verdict written
+from the run's facts ([[AI Commentary]] → `gameOver`), indistinguishable in
+form. The old "CAN YOU BEAT ME?" + invented viral stat ("most people die at
+level 14") was dropped from the card and deliberately left empty — see
+[[Decision Log]]. The streak chip only shows from 3 up (same threshold as the in-game
+🔥). The whole middle block sits in one `FittedBox(scaleDown)`, so long
+headlines or fail lines shrink on short screens instead of overflowing; the
+entrance (fade-up beats + level count-up) finishes inside the 600 ms input
+lock.
 
 ## Share text
 

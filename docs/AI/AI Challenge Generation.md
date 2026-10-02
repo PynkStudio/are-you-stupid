@@ -1,6 +1,6 @@
 ---
 tags: [ai, gameplay, challenges]
-updated: 2026-09-11
+updated: 2026-10-02
 ---
 
 # AI Challenge Generation
@@ -97,14 +97,18 @@ Rules that hold regardless of the mechanic:
   maps onto that judging (a few needed real interpretation calls, since the
   proposal schema is thinner than some of the scripted templates it stands
   in for).
-- **`instruction` is under 8 words and in the player's locale.** Hard rule,
-  validated ([[AI Challenge Validator]]). V1 ships English-only model output;
-  everything else falls back ([[Localization and Language]]).
+- **`instruction` is short, uppercase and in the player's locale.** Hard
+  rule, validated ([[AI Challenge Validator]]): under 8 words in English, up
+  to 10 in the other five languages, which get +1 s (+2 s past 7 words) on
+  top of `timeLimitMs` (`localeTimeBonusMs`). Element labels are in the
+  player's language too ([[Localization and Language]]). Multiplayer still
+  generates English.
 - **`correctAnswer` is exact.** A generated challenge that cannot name *the*
   winning input is rejected outright.
 - **`failLine` is per-locale, one sentence, and always present.** The
   challenge's own fail line is what [[Game Design Pillars]] demands every
-  failure be explainable with.
+  failure be explainable with. It is hand-written per mechanic per locale
+  (`kCanonicalFailLines`, Swift), never generated.
 - **`timeLimitMs` respects the difficulty floors** — a flow / continuity
   check, never a suggestion.
 - **`trickType`** is a closed enum (`none | swap | fake_button | sequence |

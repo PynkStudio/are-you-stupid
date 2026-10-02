@@ -1,6 +1,6 @@
 ---
 tags: [ai, architecture, overview]
-updated: 2026-09-07
+updated: 2026-10-02
 ---
 
 # Dynamic AI Director
@@ -33,8 +33,8 @@ engine stays the floor underneath everything.
   ([[Player Telemetry and Adaptive Difficulty]]) and picks/adjusts what you
   play. Not a new difficulty slider — difficulty becomes invisible.
 - **Fresh humor.** AI-generated commentary and roasts on top of the existing
-  static pools ([[Humor and Roasts]]), first in English only, AI-localized
-  later ([[Localization and Language]]).
+  static pools ([[Humor and Roasts]]), written in the player's language
+  ([[Localization and Language]]).
 - **Modern *unplayable-by-design* moments.** New joke mechanics that are too
   local to the player to hand-author (e.g. a challenge that quotes the
   player's *own* failure patterns back at them).

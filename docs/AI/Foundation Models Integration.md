@@ -1,6 +1,6 @@
 ---
 tags: [ai, architecture, ios, swift]
-updated: 2026-09-11
+updated: 2026-10-02
 ---
 
 # Foundation Models Integration
@@ -162,7 +162,7 @@ Dart never sees the session.
 |---|---|---|
 | `available` | none | `{ state: "available"\|"unavailable", reason?: string }` |
 | `requestChallenge` | `{ unitId, locale, profile }` | `{ ok: bool, proposal?: challengeJson, error?: { code, retryable } }` |
-| `requestCommentary` | `{ unitId, locale, kind, context }` | `{ ok: bool, text?: string, error?: ... }` |
+| `requestCommentary` | `{ unitId, locale, kind, context }` — `locale` is the output language; `context` carries the moment's facts plus `spicy` and `recentLines` ([[AI Commentary]]) | `{ ok: bool, text?: string, error?: ... }` |
 | `requestFinalRound` / `requestMultiplayerHost` | profiles + per-spec context | same `ok/proposal` shape |
 | `cancelUnit` | `{ unitId }` | `true` (best-effort; generation is a single await that completes or is discarded) |
 | `feedback` | `{ sentiment, issue, excerpt }` | `true` (best-effort; nothing depends on it) |
@@ -175,7 +175,8 @@ calls a real, `@Guide`-constrained `AYSChallengeProposal` generation with
 three snapshot-backed tools through `AYSChallengeGenerationService`
 (`ChallengeGenerationProfile.swift`/`GenerationTools.swift`); its wire dict
 is hand-built (confirmed `@Generable` gives no `Encodable` conformance) and
-`failLine` comes from a canonical per-mechanic table. Both are verified
+`failLine` comes from a canonical per-mechanic, per-locale table
+(`kCanonicalFailLines`, keyed by the request's `locale`). Both are verified
 against the real iPhoneOS 26.5 SDK (`tool/swiftc_ai_gate.sh`) and a real
 `flutter build ios --simulator` linking them into the app target, though
 not against a real device (none available in this environment) —

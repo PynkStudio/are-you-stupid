@@ -6,14 +6,11 @@
 /// blocks, [[Quality Neutrality and Guardrails]] → every category has a
 /// scripted fallback).
 ///
-/// **Scope note (Phase 4 vs Phase 5):** [CommentaryProvider.line] is
-/// `async` on purpose — it awaits the model — so nothing here is wired into
-/// `GameEngine.fail()`/`.pass()` yet: those must stay synchronous (the game
-/// loop never awaits a model, [[Performance and Resource Budgets]]). Real
-/// wiring into the live flash slots is [[Development Plan]] Phase 5's job,
-/// once a pre-generation cache exists to serve an already-fetched line
-/// synchronously. This file is the ladder logic + the real bridge call;
-/// Phase 5 makes it actually reach the player without ever waiting on it.
+/// [CommentaryProvider.line] is `async` on purpose — it awaits the model —
+/// so `GameEngine.fail()`/`.pass()` never call it (the game loop never
+/// awaits a model, [[Performance and Resource Budgets]]). Single-player
+/// reaches the player through `solo_commentary.dart`'s prefetched ring;
+/// multiplayer through `PartyAiDirector`.
 ///
 /// This file is PURE DART except for the same `AppleAIService` bridge every
 /// other `lib/ai/` file already depends on.
@@ -24,7 +21,13 @@ import 'dart:math';
 import '../data/roasts.dart';
 import '../i18n/app_locale.dart';
 import 'apple_ai_service.dart';
-import 'challenge_validator.dart' show kAsciiAllowlist, kForbiddenTokens, kMetaAiTokens;
+import 'challenge_validator.dart'
+    show
+        kForbiddenTokens,
+        kForbiddenTokensLocalized,
+        kMetaAiTokens,
+        kMetaAiTokensLocalized,
+        textAllowlistFor;
 import 'feature_flags.dart';
 
 /// The closed vocabulary of commentary moments ([[AI Commentary]] →
@@ -39,7 +42,11 @@ enum CommentaryKind {
   winner,
   loser,
   closeMatch,
-  instantFailure;
+  instantFailure,
+
+  /// Single-player run end: the verdict headline on the Game Over card,
+  /// written from the run's own facts (level, best, what killed it).
+  gameOver;
 
   /// Wire name sent to `requestCommentary`'s `kind` argument.
   String get wire => name;
@@ -55,26 +62,46 @@ enum CommentaryKind {
       };
 }
 
-/// Runs the same neutrality/tone/ASCII checks
+/// Strips what models habitually wrap a line in (quotes, guillemets,
+/// surrounding whitespace) before validation, so a good line isn't rejected
+/// for its packaging.
+String normalizeCommentaryLine(String text) {
+  var s = text.trim();
+  const wrappers = '"“”«»„';
+  while (s.isNotEmpty && wrappers.contains(s[0])) {
+    s = s.substring(1).trimLeft();
+  }
+  while (s.isNotEmpty && wrappers.contains(s[s.length - 1])) {
+    s = s.substring(0, s.length - 1).trimRight();
+  }
+  return s;
+}
+
+/// Runs the same neutrality/tone checks
 /// [ChallengeValidator][../ai/challenge_validator.dart] applies to a full
-/// proposal, narrowed to a single line of text: ASCII allowlist, forbidden
-/// tokens, no meta-AI references, under the kind's word cap, and at most one
+/// proposal, narrowed to a single line of text: character allowlist (strict
+/// ASCII for English, Latin script for the other locales), forbidden tokens,
+/// no meta-AI references, under the kind's word cap, and at most one
 /// sentence terminator (`.`/`!`/`?`) — [[AI Commentary]]'s "always one
 /// sentence" rule.
-bool isCommentaryLineValid(String text, CommentaryKind kind) {
+bool isCommentaryLineValid(
+  String text,
+  CommentaryKind kind, {
+  AppLocale locale = AppLocale.en,
+}) {
   final trimmed = text.trim();
   if (trimmed.isEmpty) return false;
-  if (!kAsciiAllowlist.hasMatch(trimmed)) return false;
+  if (!textAllowlistFor(locale).hasMatch(trimmed)) return false;
 
   final words = trimmed.split(RegExp(r'\s+'));
   if (words.length > kind.maxWords) return false;
 
   final lower = trimmed.toLowerCase();
-  for (final forbidden in kForbiddenTokens) {
+  for (final forbidden in {...kForbiddenTokens, ...kForbiddenTokensLocalized}) {
     if (lower.contains(forbidden)) return false;
   }
-  final tokens = lower.split(RegExp(r"[^a-z']+"));
-  for (final meta in kMetaAiTokens) {
+  final tokens = lower.split(RegExp(r"[^\p{L}']+", unicode: true));
+  for (final meta in {...kMetaAiTokens, ...kMetaAiTokensLocalized}) {
     if (tokens.contains(meta)) return false;
   }
 
@@ -117,23 +144,46 @@ class CommentaryProvider {
   }) async {
     final fallback = staticFallback ??
         () => _defaultStaticFallback(kind, rng: _rng, allowSpicy: allowSpicy, locale: locale);
+    return await aiLine(
+          kind: kind,
+          locale: locale,
+          context: context,
+          allowSpicy: allowSpicy,
+        ) ??
+        fallback();
+  }
 
-    if (!_flags.aiCommentaryEnabled) return fallback();
+  /// The AI rung alone: a validated, not-recently-used model line, or
+  /// `null` for every failure mode (flag off, model unavailable, refused,
+  /// invalid, duplicate). For call sites that show *nothing extra* rather
+  /// than a static line when the model has nothing — the single-player
+  /// wrong-flash aside ([[AI Commentary]] → Where the lines land).
+  Future<String?> aiLine({
+    required CommentaryKind kind,
+    required AppLocale locale,
+    Map<String, Object?> context = const {},
+    bool allowSpicy = true,
+  }) async {
+    if (!_flags.aiCommentaryEnabled) return null;
 
     final availability = await _service.available();
-    if (!availability.isAvailable) return fallback();
+    if (!availability.isAvailable) return null;
 
     final result = await _service.requestCommentary(
       unitId: 'commentary-${DateTime.now().microsecondsSinceEpoch}',
       locale: locale,
       kind: kind.wire,
-      context: {...context, 'recentLines': List<String>.from(_recentLines)},
+      context: {
+        ...context,
+        'spicy': allowSpicy,
+        'recentLines': List<String>.from(_recentLines),
+      },
     );
-    if (!result.ok || result.text == null) return fallback();
+    if (!result.ok || result.text == null) return null;
 
-    final text = result.text!;
-    if (!isCommentaryLineValid(text, kind)) return fallback();
-    if (_recentLines.contains(text)) return fallback();
+    final text = normalizeCommentaryLine(result.text!);
+    if (!isCommentaryLineValid(text, kind, locale: locale)) return null;
+    if (_recentLines.contains(text)) return null;
 
     _remember(text);
     return text;
@@ -172,5 +222,7 @@ String _defaultStaticFallback(
     case CommentaryKind.elimination:
     case CommentaryKind.loser:
       return Roasts.forMistake(rng: rng, allowSpicy: allowSpicy, locale: locale);
+    case CommentaryKind.gameOver:
+      return Roasts.gameOver(rng: rng, allowSpicy: allowSpicy, locale: locale);
   }
 }

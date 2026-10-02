@@ -2706,3 +2706,107 @@ the next resume. A device with *Settings → Privacy → Tracking → Allow Apps
 to Request to Track* off, or a status already answered by an earlier
 install of the same bundle id, legitimately shows no prompt.
 
+### 2026-10-02 — Local Network permission: primer first, probe natively, deep-link to Settings
+
+The iOS Local Network prompt used to appear whenever discovery first ran,
+with no context. Now the first visit to MULTIPLAYER shows an in-app primer
+(Local Network + optional Camera) and only CONTINUE lets anything touch the
+network; NOT NOW leaves multiplayer and asks again next time — we never
+burn the one-shot system prompt on a player who hasn't read why.
+
+iOS offers no API to *read* this permission, so the status is probed with a
+short `NWBrowser` (Apple TN3179) behind a new `ays/permissions` channel,
+rather than adding a permissions package: the only packages that "support"
+it use the same trick, and we already own a native channel pattern. The
+catch is that `PolicyDenied` is reported while the alert is still on screen,
+so the probe waits for the app to become active again before trusting it.
+Android's NSD needs no runtime permission, so the channel just answers
+`granted` there and only provides the Settings deep link.
+
+A denied/revoked permission is shown where it matters — the multiplayer
+menu and the join screen's "room not found" — with OPEN SETTINGS, and
+re-checked on resume so the notice clears itself. Unknown status never
+nags. Debug builds can still show the prompt at launch (Flutter's VM
+service advertises over Bonjour); release builds don't.
+
+### 2026-10-02 — Single-player AI commentary goes live, in every language; Game Over redesigned
+
+**What.** With AI on, single-player now shows commentary: an italic aside
+under the red flash (prefetched `wrong` line, `SoloCommentator`'s size-1
+ring) and an AI verdict as the Game Over headline (new `gameOver` kind,
+requested at the fail with the run's facts). Commentary is written in the
+player's language (all six locales); AI *challenges* stay English. The Game
+Over card was redesigned for everyone: verdict headline, a score card with
+count-up / best / streak chip, and a **KILLED BY** card with the instruction
+that ended the run and its fail line.
+
+**Why the aside sits *under* the fail line instead of replacing it.** The
+challenge's own fail line is the one-line explanation the pillars require
+([[Game Design Pillars]]); an AI quip is flavour, never the explanation.
+
+**Why the verdict is requested at the fail, not prefetched.** It is only
+worth anything if it's about *this* run (level, best, what killed it), which
+isn't known until the fail. The 2.85 s wrong flash is a natural latency
+budget. Late arrivals may swap in only during the card's 600 ms input lock,
+so a line never changes under a reading/tapping player; otherwise the static
+roast stays. Nothing on the card says "AI" (no AI wallpaper).
+
+**Why commentary, not challenges, graduated from English-only.** Product
+call (asked and answered in-session): the user plays in Italian and saw no
+AI at all. A one-sentence line always has the static bank behind it and is
+cheap to validate (Latin-script charset, caps, one sentence, localized
+meta-AI tokens); generated challenges carry ASCII-validated labels and rules
+and are much harder to judge without native playtests. Multiplayer still
+asks for English commentary, so the wire stays ASCII.
+
+**Why KILLED BY.** The screenshot's joke is the stupidly simple instruction
+you failed — the old card showed only a number. Same three-beat clip
+structure ([[Virality and Sharing]]).
+
+Unverified on real Apple Intelligence hardware, like every AI phase; the
+Swift side builds (`flutter build ios --simulator`).
+
+### 2026-10-02 — Game Over shows the player's real numbers, not invented stats
+
+The card's "CAN YOU BEAT ME?" + random `ViralPrompts` line was dropped: those
+lines state population "facts" ("most people die at level 14") the game has
+no data for — it's offline, there is no population. Replaced by a strip built
+only from local history (`ScoreManager`): this run vs the player's average
+(`+3 VS YOUR AVERAGE`, green/red/neutral), the attempt number and the
+average. The history is snapshotted at the fail, before `recordRun`, so the
+comparison is against the *previous* average; it needs 3+ earlier attempts
+and is skipped on a continued run (that run was already counted). The
+`ui.game_over.can_you_beat_me` key was removed; the share text keeps its own
+"Can you beat me?". `ViralPrompts` still appears in-game every 12 levels —
+unchanged here.
+
+**Same day, revised:** the real-numbers strip was tried on the simulator and
+rejected by the owner — it didn't read well either. The slot is now
+deliberately **empty**: no replacement line on the Game Over card for now
+(strings and widget removed). Revisit with a better idea rather than filler.
+
+### 2026-10-02 — AI challenges generated in all six languages; wordier languages get 10 words and +1–2 s
+
+The owner asked whether English-only was an Apple Intelligence limit. It
+wasn't: the on-device model supports en/it/fr/es/pt/de. The limit was
+ours: a locale gate (`aiSupportedLocales`), an ASCII-only validator, an
+English imperative-verb check, an ASCII `@Guide` pattern on `instruction`,
+and English-only canonical fail lines. All five now handle every locale:
+
+- `aiSupportedLocales` → every locale (kept as a seam).
+- Validator: Latin-script text outside English (ids/enums stay ASCII),
+  Unicode uppercase check, `imperativeVerbsFor(locale)` built from the
+  scripted bank's own verbs, localized tone tokens.
+- **Word cap 7 in English, 10 elsewhere, plus `localeTimeBonusMs`** (+1 s,
+  +2 s past 7 words). The owner's words: if a language can't do it in under
+  8 words that's the language's problem, give it a second or two to
+  compensate. This is the one exception to the 8-word pillar, recorded in
+  [[Game Design Pillars]] and CLAUDE.md; scripted instructions are unchanged.
+- **Fail lines stay hand-written** (one per mechanic per locale in Swift),
+  not generated, so the one-line failure explanation is predictable even
+  when the model's text isn't.
+- Multiplayer still generates English for the whole room (one proposal,
+  many phones, mixed locales) — unchanged.
+
+Unverified on real hardware. A too-strict verb list or cap can only cause a
+rejection → scripted fallback, never a broken round.

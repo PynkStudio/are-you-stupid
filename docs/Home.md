@@ -86,8 +86,10 @@ the pre-generation cache wired into `game_screen.dart`, and the full
 multiplayer AI Director: election, a single-slot proposal relay, failover
 (`RoomHost.swift`), and `lib/multiplayer/ai/party_ai_director.dart`, the
 elected phone's own generation loop, wired into production
-`mp_join_screen.dart`. Commentary display in the UI is the one deliberate
-gap left in both single- and multiplayer (captured, not shown). **All ten
+`mp_join_screen.dart`. Single-player now **shows** AI commentary (a
+wrong-flash aside + the Game Over verdict) and AI challenges are generated
+in all six languages (multiplayer stays English); multiplayer commentary is
+still captured, not shown. **All ten
 planned phases have landed**, including Phase 10's full-run integration
 test (`test/ai/full_run_with_mock_bridge_test.dart`) exercising the real
 production provider composition end to end. Real generation is unverified
@@ -134,7 +136,7 @@ Implementation phases are tracked in [[Development Plan]].
 | Target | State |
 |---|---|
 | `flutter analyze` | clean |
-| `flutter test` | 303/303 passing (2026-10-02, audit fixes included) — see [[Testing]] |
+| `flutter test` | 331/331 passing (2026-10-02, audit fixes + multiplayer permissions primer + single-player AI commentary & Game Over redesign) — see [[Testing]] |
 | `swift test` (from `tvos/`) | 83 cases (29 protocol + 54 host core), all green; 4 real-socket cases skip by default (`AYS_RUN_NETWORK_TESTS=1` to run for real) — see [[Testing]] |
 | Android debug APK | builds |
 | Android release APK | builds, signed with a real upload key (not debug) — see [[Release Checklist]] |

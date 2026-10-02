@@ -62,7 +62,76 @@ enum AiAction {
         AiAction.tapUntilStop => const ['TAP'],
         AiAction.colorPick => const ['TAP', 'SELECT', 'PICK'],
       };
+
+  /// [imperativeVerbs] in the player's language: AI challenges are written
+  /// in every game locale ([[Localization and Language]]). Verbs follow the
+  /// scripted bank's own wording (`TOCCA`, `TOUCHE`, `TOCA`, `TOQUE`,
+  /// `TIPPE`…). Substring match, uppercase, accents included.
+  List<String> imperativeVerbsFor(AppLocale locale) {
+    if (locale == AppLocale.en) return imperativeVerbs;
+    final tap = _kTapVerbs[locale]!;
+    final extra = switch (this) {
+      AiAction.tap || AiAction.tapUntilStop => const <String>[],
+      AiAction.tapMany => _kEveryWords[locale]!,
+      AiAction.hold => _kHoldVerbs[locale]!,
+      AiAction.doNotTap => _kNegationWords[locale]!,
+      AiAction.tapSequence => _kSequenceWords[locale]!,
+      AiAction.colorPick => _kPickVerbs[locale]!,
+    };
+    return switch (this) {
+      AiAction.hold || AiAction.doNotTap => extra,
+      _ => [...tap, ...extra],
+    };
+  }
 }
+
+const Map<AppLocale, List<String>> _kTapVerbs = {
+  AppLocale.it: ['TOCCA', 'PREMI'],
+  AppLocale.fr: ['TOUCHE', 'TAPE', 'APPUIE'],
+  AppLocale.es: ['TOCA', 'PULSA', 'TOQUE'],
+  AppLocale.pt: ['TOQUE', 'TOCA', 'APERTE'],
+  AppLocale.de: ['TIPPE', 'TIPP', 'DRÜCK'],
+};
+
+const Map<AppLocale, List<String>> _kEveryWords = {
+  AppLocale.it: ['OGNI', 'TUTTI', 'TUTTE'],
+  AppLocale.fr: ['CHAQUE', 'TOUS', 'TOUTES'],
+  AppLocale.es: ['CADA', 'TODOS', 'TODAS'],
+  AppLocale.pt: ['CADA', 'TODOS', 'TODAS'],
+  AppLocale.de: ['JEDE', 'JEDES', 'JEDEN', 'ALLE'],
+};
+
+const Map<AppLocale, List<String>> _kHoldVerbs = {
+  AppLocale.it: ['TIENI'],
+  AppLocale.fr: ['MAINTIENS', 'RESTE APPUYÉ', 'GARDE'],
+  AppLocale.es: ['MANTÉN', 'MANTEN', 'SOSTÉN', 'SOSTEN'],
+  AppLocale.pt: ['SEGURE', 'MANTENHA'],
+  AppLocale.de: ['HALTE', 'HALT', 'GEDRÜCKT'],
+};
+
+const Map<AppLocale, List<String>> _kNegationWords = {
+  AppLocale.it: ['NON', 'EVITA'],
+  AppLocale.fr: ['NE ', 'PAS', 'ÉVITE', 'EVITE'],
+  AppLocale.es: ['NO ', 'EVITA'],
+  AppLocale.pt: ['NÃO', 'NAO', 'EVITE'],
+  AppLocale.de: ['NICHT', 'KEIN', 'VERMEIDE'],
+};
+
+const Map<AppLocale, List<String>> _kSequenceWords = {
+  AppLocale.it: ['RIPETI', 'ORDINE', 'SEQUENZA'],
+  AppLocale.fr: ['RÉPÈTE', 'REPETE', 'ORDRE', 'SÉQUENCE', 'SEQUENCE'],
+  AppLocale.es: ['REPITE', 'ORDEN', 'SECUENCIA'],
+  AppLocale.pt: ['REPITA', 'ORDEM', 'SEQUÊNCIA', 'SEQUENCIA'],
+  AppLocale.de: ['WIEDERHOLE', 'REIHENFOLGE', 'FOLGE'],
+};
+
+const Map<AppLocale, List<String>> _kPickVerbs = {
+  AppLocale.it: ['SCEGLI'],
+  AppLocale.fr: ['CHOISIS'],
+  AppLocale.es: ['ELIGE'],
+  AppLocale.pt: ['ESCOLHA'],
+  AppLocale.de: ['WÄHLE', 'WAEHLE'],
+};
 
 /// The kind of play a mechanic produces. Closed set, descriptive — proposals
 /// must name one and it must match the mechanic's registered kind.
@@ -416,7 +485,24 @@ List<String> availableMechanicMoves({required bool allowTricks}) => [
         if (!m.requiresTrick || allowTricks) m.move,
     ];
 
-/// Whether the player rounding on this context is even in a locale the model
-/// may output for. V1 ships English-only model output; every other locale
-/// falls back to scripted ([[Localization and Language]]).
-bool aiSupportedLocales(AppLocale locale) => locale == AppLocale.en;
+/// Whether the model may write challenges in [locale]. Every game locale
+/// is on since 2026-10-02 — the on-device model supports all six
+/// ([[Localization and Language]]). Kept as a seam for a future locale the
+/// model can't write.
+bool aiSupportedLocales(AppLocale locale) => true;
+
+/// Most words an AI instruction may have in [locale]. English keeps the
+/// game's "under 8 words" law; the other languages are wordier for the same
+/// sentence, so they get up to 10 and pay for it in time
+/// ([localeTimeBonusMs]).
+int instructionMaxWords(AppLocale locale) => locale == AppLocale.en ? 7 : 10;
+
+/// Extra reading time for an AI challenge in a non-English [locale]: +1 s,
+/// +2 s when [instruction] runs past English's 7-word cap. Added on top of
+/// the model's `timeLimitMs` when the challenge is built, never validated
+/// against (the time floor checks the model's own number).
+int localeTimeBonusMs(AppLocale locale, String instruction) {
+  if (locale == AppLocale.en) return 0;
+  final words = instruction.trim().split(RegExp(r'\s+')).length;
+  return words > 7 ? 2000 : 1000;
+}

@@ -78,8 +78,10 @@ void main() {
     expect(find.text('TRY AGAIN'), findsOneWidget);
     expect(find.text('SHARE RESULT'), findsOneWidget);
     expect(find.text('I REACHED'), findsOneWidget);
-    expect(find.text('CAN YOU BEAT ME?'), findsOneWidget);
     expect(find.text('NEW PERSONAL BEST!'), findsOneWidget);
+    // The redesigned card names the instruction that ended the run.
+    expect(find.text('GAME OVER'), findsOneWidget);
+    expect(find.text('KILLED BY'), findsOneWidget);
 
     await tester.tap(find.text('TRY AGAIN'));
     await tester.pump();

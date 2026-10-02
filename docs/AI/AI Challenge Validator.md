@@ -1,6 +1,6 @@
 ---
 tags: [ai, validation, safety]
-updated: 2026-09-07
+updated: 2026-10-02
 ---
 
 # AI Challenge Validator
@@ -46,17 +46,25 @@ multiplayer host/phones agree on a bad round ([[Multiplayer AI Director]]).
 
 - Non-empty `id`, `instruction`, exactly one `correctAnswer`, `source` set.
 - `id` matches `^ai\\.[a-z0-9]{5}$` (so scripted ids never collide).
-- No control characters, no emoji, no non-latin punctuation — any string
-  field (instruction, fail lines, labels, hooks) accepts ASCII letters,
-  digits `` `',.!?-_` `` and spaces only. (This is also the "no AI-ASCII
-  embedding" guardrail — see [[Quality Neutrality and Guardrails]].)
+- No control characters, no emoji, no non-latin punctuation. Ids and enum
+  names accept ASCII letters, digits `` `',.!?-_` `` and spaces only, in
+  every locale. Player-facing text (instruction, fail lines, labels) uses
+  the same ASCII set in English and `kLatinAllowlist` (any Latin-script
+  letter, `’`, `¡¿`) in the other locales (`textAllowlistFor`). (This is
+  also the "no AI-ASCII embedding" guardrail — see [[Quality Neutrality and
+  Guardrails]].)
 
 ### 2. Instruction rule
 
-- Under **8 words** (tokenized on spaces) and **uppercase** on screen —
-  enforced, the [[Game Design Pillars]] rule.
-- Exactly one imperative *action* verb (the mechanic's `action`), not a
-  paragraph of instructions.
+- Under **8 words** in English, **up to 10** in it/fr/es/pt/de
+  (`instructionMaxWords`; tokenized on spaces), and **uppercase** on screen
+  (Unicode-aware: `ù` fails like `u`) — the [[Game Design Pillars]] rule,
+  with the wordier-language exception from [[Localization and Language]].
+- Exactly one imperative *action* verb (the mechanic's `action`), in the
+  player's language (`AiAction.imperativeVerbsFor`), not a paragraph of
+  instructions.
+- Tone checks tokenize Unicode words and include a few localized
+  forbidden / meta-AI tokens (`modello`, `KI`, …).
 
 ### 3. Mechanic contract
 

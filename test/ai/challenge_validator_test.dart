@@ -407,6 +407,77 @@ void main() {
       expect(verdictOf(p), isA<VerdictValid>());
     });
   });
+
+  group('localized challenges (non-English locales)', () {
+    Map<String, Object?> italian({
+      String instruction = "TOCCA L'UNICO BLU",
+      Map<String, String>? failLine,
+    }) {
+      final m = baseProposal(
+        instruction: instruction,
+        failLine: failLine ?? {'it': 'IL BLU ERA IL PRIMO.'},
+      );
+      for (final e in (m['elements'] as List).cast<Map<String, Object?>>()) {
+        e['label'] = e['label'] == 'BLUE' ? 'BLU' : 'ROSSO';
+      }
+      return m;
+    }
+
+    ValidationContext it() => ctx(locale: AppLocale.it);
+
+    test('an Italian proposal with accents and Italian verbs is valid', () {
+      expect(
+        validator.validate(
+            pbp(() => italian(instruction: 'TOCCA IL BLU, PERCHÉ SÌ')), it()),
+        isA<VerdictValid>(),
+      );
+    });
+
+    test('non-English instructions may run to 10 words, not 11', () {
+      const ten = 'TOCCA SOLO IL BLU E NON IL ROSSO PER FAVORE';
+      const eleven = 'TOCCA SOLO IL BLU E NON IL ROSSO PER FAVORE ORA';
+      expect(validator.validate(pbp(() => italian(instruction: ten)), it()),
+          isA<VerdictValid>());
+      expect(validator.validate(pbp(() => italian(instruction: eleven)), it()),
+          isA<VerdictRetryableForcedExit>());
+    });
+
+    test('accented lowercase still breaks the uppercase law', () {
+      expect(
+        validator.validate(pbp(() => italian(instruction: 'TOCCA IL BLù')), it()),
+        isA<VerdictRetryableForcedExit>(),
+      );
+    });
+
+    test('the instruction must carry an imperative in the player language', () {
+      expect(
+        validator.validate(pbp(() => italian(instruction: 'TAP THE BLUE')), it()),
+        hasReason('instruction.verb'),
+      );
+    });
+
+    test('ids and enum names stay strict ASCII even outside English', () {
+      final m = italian();
+      final elements = (m['elements'] as List).cast<Map<String, Object?>>();
+      elements.first['id'] = 'é1';
+      m['correctAnswer'] = {'elementId': 'é1', 'startsCorrect': false};
+      expect(validator.validate(pbp(() => m), it()), hasReason('envelope.ascii'));
+    });
+
+    test('a localized meta-AI reference is rejected', () {
+      expect(
+        validator.validate(
+            pbp(() => italian(instruction: 'TOCCA IL MODELLO BLU')), it()),
+        hasReason('tone.metaAi'),
+      );
+    });
+
+    test('English keeps its under-8-words law', () {
+      const eight = 'TAP THE ONLY BLUE ONE RIGHT NOW PLEASE';
+      expect(verdictOf(pbp(() => baseProposal(instruction: eight))),
+          isA<VerdictRetryableForcedExit>());
+    });
+  });
 }
 
 // --- helpers ---------------------------------------------------------------

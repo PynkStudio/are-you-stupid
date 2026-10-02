@@ -12,8 +12,10 @@ import '../../i18n/app_locale.dart';
 import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
 import '../../ai/apple_ai_service.dart';
+import '../../ai/commentary.dart';
 import '../../ai/feature_flags.dart';
 import '../../ai/providers.dart';
+import '../../ai/solo_commentary.dart';
 import '../../ai/telemetry.dart';
 import '../theme.dart';
 import '../widgets/challenge_renderer.dart';
@@ -40,7 +42,18 @@ class _GameScreenState extends State<GameScreen>
   TelemetryCollector? _telemetry;
   AdaptiveChallengeProvider? _adaptive;
   AiFeatureFlags? _aiFlags;
+  SoloCommentator? _commentator;
   Duration _lastTick = Duration.zero;
+
+  /// AI aside for the current wrong flash (null → plain scripted flash).
+  String? _wrongAside;
+
+  /// AI Game Over verdict for the run that just ended, once it arrives.
+  String? _aiVerdict;
+
+  /// Bumped on every fail so a verdict for an earlier fail (before a
+  /// rewarded continue) can't land on a later Game Over.
+  int _verdictToken = 0;
   bool _recorded = false;
   bool _isRecord = false;
   bool _continuedRun = false;
@@ -52,8 +65,14 @@ class _GameScreenState extends State<GameScreen>
     // this screen's own adaptive-difficulty gating below — a single
     // `SharedPreferences` round trip, not two ([[Development Plan]] Phase 5).
     final flagsFuture = AiFeatureFlags.load();
+    final aiService = AppleAiMethodChannel();
     flagsFuture.then((flags) {
-      if (mounted) _aiFlags = flags;
+      if (!mounted) return;
+      _aiFlags = flags;
+      _commentator = SoloCommentator(
+        provider: CommentaryProvider(service: aiService, flags: flags),
+      );
+      _warmCommentary();
     });
 
     final adaptive = AdaptiveChallengeProvider(
@@ -62,7 +81,7 @@ class _GameScreenState extends State<GameScreen>
           generator: ChallengeGenerator(templates: kChallengeTemplates),
         ),
         ai: AIChallengeProvider(
-          service: AppleAiMethodChannel(),
+          service: aiService,
           loadFlags: () => flagsFuture,
           profileSnapshot: () => _telemetry?.profile,
         ),
@@ -103,6 +122,46 @@ class _GameScreenState extends State<GameScreen>
     adaptive.setProfile(
       _aiFlags?.aiAdaptiveDifficultyEnabled ?? false ? telemetry.profile : null,
     );
+  }
+
+  /// Keeps one wrong-flash aside ready for the current settings/level.
+  /// Fire-and-forget: a no-op when the ring is already full.
+  void _warmCommentary() {
+    final services = _services;
+    if (services == null) return;
+    _commentator?.warm(
+      locale: services.settings.locale,
+      allowSpicy: services.settings.roastsEnabled,
+      level: _engine.state.level,
+    );
+  }
+
+  /// Asks for the Game Over verdict the moment the run fails: the wrong
+  /// flash is its latency budget ([[AI Commentary]]).
+  void _requestVerdict(GameState state) {
+    final services = _services;
+    final commentator = _commentator;
+    _aiVerdict = null;
+    final token = ++_verdictToken;
+    if (services == null || commentator == null) return;
+    final best = services.scores.bestLevel;
+    commentator
+        .verdict(
+          locale: services.settings.locale,
+          allowSpicy: services.settings.roastsEnabled,
+          run: RunSummary(
+            level: state.level,
+            best: best,
+            newBest: state.level > best,
+            bestStreak: state.bestFastStreak,
+            failedInstruction: state.challenge?.view.instruction,
+            failReason: state.flashMessage,
+          ),
+        )
+        .then((line) {
+      if (!mounted || line == null || token != _verdictToken) return;
+      setState(() => _aiVerdict = line);
+    });
   }
 
   @override
@@ -159,6 +218,8 @@ class _GameScreenState extends State<GameScreen>
         services.sound.wrong();
         services.haptics.wrong();
         _syncAdaptiveProfile();
+        _wrongAside = _commentator?.takeWrongAside()?.toUpperCase();
+        _requestVerdict(state);
       case GameEvent.gameOver:
         _recordRun(state);
         _telemetry?.persist();
@@ -167,6 +228,7 @@ class _GameScreenState extends State<GameScreen>
         _isRecord = false;
         _continuedRun = false;
       case GameEvent.levelStarted:
+        _warmCommentary();
       case GameEvent.continued:
         break;
     }
@@ -272,14 +334,22 @@ class _GameScreenState extends State<GameScreen>
                     correct: false,
                     message: state.flashMessage ??
                         Strings.t(locale, 'ui.game.default_wrong'),
+                    aside: _wrongAside,
                     onSkip: _engine.skipWrongFlash,
                     skipHint: Strings.t(locale, 'ui.game.tap_to_skip'),
                   ),
                 if (state.phase == GamePhase.gameOver)
                   GameOverView(
+                    // A fresh card per fail, so a continued run's second
+                    // Game Over re-rolls its roast and replays its entrance.
+                    key: ValueKey(_verdictToken),
                     level: state.level,
                     best: _services?.scores.bestLevel ?? 0,
                     isRecord: _isRecord,
+                    bestStreak: state.bestFastStreak,
+                    failedInstruction: state.challenge?.view.instruction,
+                    failReason: state.flashMessage,
+                    aiVerdict: _aiVerdict,
                     canContinue: !state.continueUsed &&
                         (_services?.ads.isRewardedContinueReady ?? false),
                     onRetry: _retry,

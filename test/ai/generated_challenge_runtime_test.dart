@@ -30,6 +30,16 @@ class _RecordingHost implements ChallengeHost {
 
 void main() {
   group('buildFromProposal', () {
+    test('non-English locales get +1 s, +2 s past 7 words', () {
+      final p = _proposal(action: 'tap');
+      final base = p.difficulty.timeLimitMs;
+      expect(buildFromProposal(p).challenge.duration.inMilliseconds, base);
+      expect(
+        buildFromProposal(p, locale: AppLocale.it).challenge.duration.inMilliseconds,
+        base + 1000,
+      );
+    });
+
     test('wraps the runtime with ai provenance', () {
       final generated = buildFromProposal(_proposal(action: 'tap'));
       expect(generated.source, 'ai');

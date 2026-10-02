@@ -1,6 +1,6 @@
 ---
 tags: [ai, architecture, foundationmodels]
-updated: 2026-09-11
+updated: 2026-10-02
 ---
 
 # Dynamic Profiles and Tool Calling
@@ -39,8 +39,13 @@ for one Director job — the Swift side has one function per profile
 | `MultiplayerHostProfile` | party host | one round for a room (stats + a theme) | 0.6 | GetCurrentScoresTool, GetAvailableMechanicsTool, GetRecentChallengesTool |
 
 Prompts are **English system prompts, compiled into the binary** (no remote
-configuration — see [[Feature Flags]]). The player's language never flows into
-v1 generation ([[Localization and Language]]).
+configuration — see [[Feature Flags]]). Both `ChallengeGenerationProfile`
+(instruction + labels) and `CommentaryProfile` name the player's language as
+the *output* language (`aysLanguageName`); `CommentaryProfile` also
+lists the Dart `context` facts in the prompt, with per-kind guidance
+(`wrong`, `gameOver`, `correct`, `streak`) and the kind's word cap
+([[Localization and Language]], [[AI Commentary]]). It still uses no tools —
+everything it needs arrives in `context`.
 
 ## Tools
 

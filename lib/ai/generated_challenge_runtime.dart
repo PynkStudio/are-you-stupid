@@ -61,7 +61,12 @@ class GeneratedChallengeRuntime extends BaseChallenge {
           params,
           id: proposal.id,
           tag: proposal.mechanicContract?.tag ?? ChallengeTag.trick,
-          duration: Duration(milliseconds: proposal.difficulty.timeLimitMs),
+          // Wordier languages read longer instructions: +1/+2 s outside
+          // English ([localeTimeBonusMs], [[Localization and Language]]).
+          duration: Duration(
+            milliseconds: proposal.difficulty.timeLimitMs +
+                localeTimeBonusMs(params.locale, proposal.instruction),
+          ),
         ) {
     instruction = proposal.instruction;
     layout = _layoutFor(proposal.elements.length);
@@ -119,8 +124,8 @@ class GeneratedChallengeRuntime extends BaseChallenge {
   }
 
   /// The proposal's own fail line, in [ChallengeParams.locale] — keyed by
-  /// ISO code (`"en"`), matching every existing `ChallengeProposal.failLine`
-  /// fixture and the v1 English-only generation path ([[AI Challenge
+  /// ISO code (`"en"`, `"it"`…), matching every `ChallengeProposal.failLine`
+  /// fixture and the Swift side's per-locale canonical table ([[AI Challenge
   /// Generation]]). Falls back to the native display name (in case a future
   /// proposal ships that shape instead), then whatever the proposal shipped,
   /// then the scripted generic line.

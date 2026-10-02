@@ -1,67 +1,78 @@
 ---
 tags: [ai, localization, language]
-updated: 2026-09-07
+updated: 2026-10-02
 ---
 
 # Localization and Language
 
 The AI feature's relationship with the game's supported languages
-([[Localization]]). The rule is deliberately boring:
+([[Localization]]).
 
-> **v1 model output is English-only.** Every other locale plays the AI modes
-> with the static, fully-localized scripted bank — *never* machine-translated
-> or English-locale content.
+> **The AI speaks the player's language — challenges and commentary, in all
+> six locales** (en/it/fr/es/pt/de). Model text is written directly in that
+> language, *never* machine-translated English. Multiplayer is the one
+> exception: the Director still writes English for the whole room.
 
-## Why
-
-- The model's `supportedLanguages` and output quality are **English-first**;
-  shipping non-English AI output in v1 would ship the riskiest part of a
-  quality-neutral feature ([[Quality Neutrality and Guardrails]] → no
-  degradation) in exactly the places we cannot test ([[Testing and Evaluation]] → no device-language playtesting on a team's simulator).
-- All system prompts, `GenerationSchema` descriptions, tool argument docs,
-  and guardrail lists are **compiled-in English**. The API surface does not
-  translate: the prompt language and the game's UI language are separate
-  concerns.
-- A player's language **never flows into generation** in v1. `locale` is the
-  *enabled/disabled* signal, not a prompt input.
+**History.** v1 was English-only for every AI unit. On 2026-10-02 the owner
+opened it up — first commentary, then challenge generation — because a
+non-English player saw no AI at all ([[Decision Log]]). The on-device model
+supports all six languages; the limit was ours, not Apple Intelligence's.
 
 ## What each locale sees
 
-| Locale | AI challenge generation | AI commentary | Scripted tuning |
-|---|---|---|---|
-| `en` | generated (validated, [[AI Challenge Generation]]) | generated per kind ([[AI Commentary]]) | unchanged |
-| any supported non-`en` locale ([[Localization]]) | scripted (the whole AI unit marks `localeNotSupported` → scripted, [[Foundation Models Integration]] error mapping) | static bank (fully localized [[Humor and Roasts]]) | unchanged |
+| Locale | AI challenge generation | AI commentary |
+|---|---|---|
+| `en` | generated, instruction **under 8 words**, strict ASCII | generated, ASCII |
+| it/fr/es/pt/de | generated **in that language**, instruction **up to 10 words**, Latin script, **+1 s** (+2 s past 7 words) | generated in that language, Latin script |
+| multiplayer (any) | English (the Director asks in `en` for everyone) | English, ASCII on the wire |
 
-So for a non-English player the game is exactly today's game — which is the
-safest possible posture for a feature that localizes later.
+Anything the model gets wrong still lands on the fully-localized scripted
+bank / static roasts — the fallback ladder is unchanged.
 
-## The localizable seams that *are* the feature
+## How it works
 
-A handful of strings are player-facing and must be in the full locale set:
+- **Prompts stay English**, compiled in. They name the *output* language
+  (`aysLanguageName`, Swift) — instruction and element labels for
+  challenges, the line for commentary
+  ([[Dynamic Profiles and Tool Calling]]).
+- **Fail lines are hand-written, not generated:** `kCanonicalFailLines` in
+  `ChallengeGenerationProfile.swift` has one line per mechanic per locale,
+  so the one-line failure explanation the pillars require
+  ([[Game Design Pillars]]) stays predictable even when the model's text is
+  off.
+- **Validation per locale** ([[AI Challenge Validator]]): player-facing text
+  (instruction, labels, fail line, commentary) uses `kLatinAllowlist`
+  outside English, `kAsciiAllowlist` in English; ids and enum names are ASCII
+  everywhere. Word cap `instructionMaxWords` (7 en / 10 others), uppercase
+  check is Unicode-aware, the imperative-verb check uses the locale's verbs
+  (`AiAction.imperativeVerbsFor`, matching the scripted bank's `TOCCA`,
+  `TOUCHE`, `TOCA`, `TOQUE`, `TIPPE`…), and the tone lists carry a few
+  localized forbidden/meta-AI tokens.
+- **Time compensation:** `localeTimeBonusMs` adds +1 s to a non-English AI
+  challenge, +2 s when its instruction is longer than English's cap. Added
+  when the challenge is built (`buildFromProposal`), on top of the model's
+  `timeLimitMs`; the time floor still checks the model's own number.
 
-- **Settings AI section copy** (modes, availability states, one-line
-  explanations — [[Error States and Failure Communication]])
-- **Countdown hint in the couch phone UI** for multiplayer AI rounds
-  ([[Multiplayer AI Director]])
-- **The generic "scripted fallback" explanation line** used wherever the AI
-  path silently degrades ([[Error States and Failure Communication]])
+## Why wordier languages get more words and more time
 
-All of these are ordinary `App` localization entries, not model output; the
-model never writes them.
+The owner's call: if a language can't say it in under 8 words, that's the
+language's problem, not the player's. The same sentence is longer in
+German or French than in English; forcing 7 words there would mostly
+reject good proposals (→ scripted) or produce telegraphic text. The cap is
+10, not unlimited, and the extra second pays for the extra reading. English
+keeps the original law.
 
-## Future
+## Risks still open
 
-When a locale graduates, it enters the same contract as English: model output
-still validated by the same validator rules (ASCII-whitelisted, per-kind
-length, tone), with the *only* difference being that non-English output must
-round-trip through OCR-sanity in playtests ([[Testing and Evaluation]]). The
-guardrail against mixed-language output (an English word sneaking into a
-French line) is the validator's per-kind word list check.
+Quality in each language is **unverified on real hardware** (none here):
+label ambiguity, wordplay that doesn't translate, imperative-verb lists
+that miss a valid phrasing (→ rejection, scripted fallback, never a broken
+round). See [[Testing and Evaluation]].
 
 ## Related
 
 - [[Localization]] — the game's language matrix
-- [[AI Challenge Generation]] / [[AI Commentary]] — English-only generation rules
-- [[AI Challenge Validator]] — the ASCII + tone checks that gate any locale
+- [[AI Challenge Generation]] / [[AI Commentary]]
+- [[AI Challenge Validator]] — the per-locale checks
 - [[Foundation Models Integration]] — `UnsupportedLanguageOrLocale` error
 - [[Feature Flags]] — the mode/full-feature flow per device
