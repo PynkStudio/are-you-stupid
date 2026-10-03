@@ -1,6 +1,6 @@
 ---
 tags: [product, roadmap]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Roadmap
@@ -26,21 +26,26 @@ updated: 2026-10-02
 
 1. **Multiplayer game-show polish** — elimination card, winner animation,
    share card, TV humor lines (Phase 9 in [[Multiplayer Development]]).
-2. **AI commentary on screen** — generated today but not displayed
+2. **Multiplayer Presenter** — prototype the optional online, cache-first
+   charismatic voice host, spoken-name precheck and match-local narrative
+   titles ([[Multiplayer Presenter]]).
+3. **AI commentary on screen** — generated today but not displayed
    ([[AI Commentary]]); real-device evaluation of generation quality
    ([[Testing and Evaluation]]).
-3. **More templates.** The cheapest way to add depth: see [[Adding a Challenge]].
-4. **Daily challenge** — a seeded run everyone gets the same day. Pure virality,
+4. **More templates.** The cheapest way to add depth: see [[Adding a Challenge]].
+5. **Daily challenge** — a seeded run everyone gets the same day. Pure virality,
    still offline (seed = date).
-5. **Replay clip export** — record the last 10 s to camera roll. Highest-effort,
+6. **Replay clip export** — record the last 10 s to camera roll. Highest-effort,
    highest-reward for TikTok.
-6. **Real sound design** — today only the system click exists
-   ([[Services]]); bundled synthesized cues would need a pillar exception.
+7. **Real sound design** — today only the system click exists
+   ([[Services]]); general bundled cues still need a pillar exception beyond
+   the narrowly approved [[Multiplayer Presenter]] fallback bank.
 
 ## Deliberately out of scope
 
-Login, backend, cloud save, online leaderboard, subscriptions, characters, 3D,
-external art. See [[Game Design Pillars]] before proposing any of them.
+Login, general-purpose backend, cloud save, online leaderboard, subscriptions,
+characters, 3D, external art. The narrowly scoped optional presenter backend
+is the documented exception; see [[Multiplayer Presenter]].
 
 Note: the **multiplayer** slice is also explicitly scoped to keep out online
 matchmaking, accounts, cloud saves, global leaderboards, voice/video chat and

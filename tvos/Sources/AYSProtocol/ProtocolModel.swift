@@ -89,16 +89,25 @@ public struct PlayerInfo: Equatable {
     public let playerName: String
     public let emoji: String
     public let ready: Bool
+    public let spokenName: String?
+    public let speechPolicy: String
+    public let personaId: String?
 
-    public init(playerId: String, playerName: String, emoji: String = "", ready: Bool = false) {
+    public init(playerId: String, playerName: String, emoji: String = "", ready: Bool = false, spokenName: String? = nil, speechPolicy: String = "displayOnly", personaId: String? = nil) {
         self.playerId = playerId
         self.playerName = playerName
         self.emoji = emoji
         self.ready = ready
+        self.spokenName = spokenName
+        self.speechPolicy = speechPolicy
+        self.personaId = personaId
     }
 
     public func toWire() -> [String: Any] {
-        ["playerId": playerId, "playerName": playerName, "emoji": emoji, "ready": ready]
+        var wire: [String: Any] = ["playerId": playerId, "playerName": playerName, "emoji": emoji, "ready": ready, "speechPolicy": speechPolicy]
+        if let spokenName { wire["spokenName"] = spokenName }
+        if let personaId { wire["personaId"] = personaId }
+        return wire
     }
 
     public static func fromWire(_ w: [String: Any]) -> PlayerInfo {
@@ -106,7 +115,10 @@ public struct PlayerInfo: Equatable {
             playerId: _str(w, "playerId", ""),
             playerName: _str(w, "playerName", ""),
             emoji: _str(w, "emoji", ""),
-            ready: _bool(w, "ready", false)
+            ready: _bool(w, "ready", false),
+            spokenName: w["spokenName"] as? String,
+            speechPolicy: _str(w, "speechPolicy", "displayOnly"),
+            personaId: w["personaId"] as? String
         )
     }
 }
@@ -319,21 +331,109 @@ public struct JoinRoom: PartyMessage, Equatable {
     public let ts: Int
     public let playerName: String
     public let emoji: String
+    public let noAds: Bool
+    public let partyPack: Bool
+    public let spokenName: String?
+    public let speechPolicy: String
+    public let personaId: String?
     public var type: String { "JOIN_ROOM" }
 
-    public init(playerName: String, emoji: String = "", ts: Int = 0) {
+    public init(playerName: String, emoji: String = "", noAds: Bool = false, partyPack: Bool = false, spokenName: String? = nil, speechPolicy: String = "displayOnly", personaId: String? = nil, ts: Int = 0) {
         self.playerName = playerName
         self.emoji = emoji
+        self.noAds = noAds
+        self.partyPack = partyPack
+        self.spokenName = spokenName
+        self.speechPolicy = speechPolicy
+        self.personaId = personaId
         self.ts = ts
     }
 
     public func toWire() -> [String: Any] {
-        envelope(type, ts, ["playerName": playerName, "emoji": emoji])
+        var body: [String: Any] = ["playerName": playerName, "emoji": emoji, "noAds": noAds, "partyPack": partyPack, "speechPolicy": speechPolicy]
+        if let spokenName { body["spokenName"] = spokenName }
+        if let personaId { body["personaId"] = personaId }
+        return envelope(type, ts, body)
     }
 
     public static func fromWire(_ w: [String: Any], ts: Int) -> JoinRoom {
-        JoinRoom(playerName: _str(w, "playerName", ""), emoji: _str(w, "emoji", ""), ts: ts)
+        JoinRoom(
+            playerName: _str(w, "playerName", ""),
+            emoji: _str(w, "emoji", ""),
+            noAds: _bool(w, "noAds", false),
+            partyPack: _bool(w, "partyPack", false),
+            spokenName: w["spokenName"] as? String,
+            speechPolicy: _str(w, "speechPolicy", "displayOnly"),
+            personaId: w["personaId"] as? String,
+            ts: ts
+        )
     }
+}
+
+public struct RoomPerks: PartyMessage, Equatable {
+    public let ts: Int
+    public let maxPlayers: Int
+    public let partyPackActive: Bool
+    public let adsRemoved: Bool
+    public let activatedByPlayerId: String?
+    public var type: String { "ROOM_PERKS" }
+    public init(maxPlayers: Int, partyPackActive: Bool, adsRemoved: Bool, activatedByPlayerId: String? = nil, ts: Int = 0) {
+        self.maxPlayers = maxPlayers; self.partyPackActive = partyPackActive
+        self.adsRemoved = adsRemoved; self.activatedByPlayerId = activatedByPlayerId; self.ts = ts
+    }
+    public func toWire() -> [String: Any] {
+        var body: [String: Any] = ["maxPlayers": maxPlayers, "partyPackActive": partyPackActive, "adsRemoved": adsRemoved]
+        if let activatedByPlayerId { body["activatedByPlayerId"] = activatedByPlayerId }
+        return envelope(type, ts, body)
+    }
+    public static func fromWire(_ w: [String: Any], ts: Int) -> RoomPerks {
+        RoomPerks(maxPlayers: _int(w, "maxPlayers", 8), partyPackActive: _bool(w, "partyPackActive", false), adsRemoved: _bool(w, "adsRemoved", false), activatedByPlayerId: w["activatedByPlayerId"] as? String, ts: ts)
+    }
+}
+
+public struct RoomEntitlements: PartyMessage, Equatable {
+    public let ts: Int; public let noAds: Bool; public let partyPack: Bool
+    public var type: String { "ROOM_ENTITLEMENTS" }
+    public init(noAds: Bool, partyPack: Bool, ts: Int = 0) { self.noAds = noAds; self.partyPack = partyPack; self.ts = ts }
+    public func toWire() -> [String: Any] { envelope(type, ts, ["noAds": noAds, "partyPack": partyPack]) }
+    public static func fromWire(_ w: [String: Any], ts: Int) -> RoomEntitlements {
+        RoomEntitlements(noAds: _bool(w, "noAds", false), partyPack: _bool(w, "partyPack", false), ts: ts)
+    }
+}
+
+public struct PartyPackNudge: PartyMessage, Equatable {
+    public let ts: Int; public var type: String { "PARTY_PACK_NUDGE" }
+    public init(ts: Int = 0) { self.ts = ts }
+    public func toWire() -> [String: Any] { envelope(type, ts) }
+    public static func fromWire(_ w: [String: Any], ts: Int) -> PartyPackNudge { PartyPackNudge(ts: ts) }
+}
+
+public struct RematchRequest: PartyMessage, Equatable {
+    public let ts: Int; public var type: String { "REMATCH_REQUEST" }
+    public init(ts: Int = 0) { self.ts = ts }
+    public func toWire() -> [String: Any] { envelope(type, ts) }
+    public static func fromWire(_ w: [String: Any], ts: Int) -> RematchRequest { RematchRequest(ts: ts) }
+}
+
+public struct AdBreakStarted: PartyMessage, Equatable {
+    public let ts: Int; public let playerId: String; public var type: String { "AD_BREAK_STARTED" }
+    public init(playerId: String, ts: Int = 0) { self.playerId = playerId; self.ts = ts }
+    public func toWire() -> [String: Any] { envelope(type, ts, ["playerId": playerId]) }
+    public static func fromWire(_ w: [String: Any], ts: Int) -> AdBreakStarted { AdBreakStarted(playerId: _str(w, "playerId", ""), ts: ts) }
+}
+
+public struct AdBreakFinished: PartyMessage, Equatable {
+    public let ts: Int; public var type: String { "AD_BREAK_FINISHED" }
+    public init(ts: Int = 0) { self.ts = ts }
+    public func toWire() -> [String: Any] { envelope(type, ts) }
+    public static func fromWire(_ w: [String: Any], ts: Int) -> AdBreakFinished { AdBreakFinished(ts: ts) }
+}
+
+public struct RematchReady: PartyMessage, Equatable {
+    public let ts: Int; public var type: String { "REMATCH_READY" }
+    public init(ts: Int = 0) { self.ts = ts }
+    public func toWire() -> [String: Any] { envelope(type, ts) }
+    public static func fromWire(_ w: [String: Any], ts: Int) -> RematchReady { RematchReady(ts: ts) }
 }
 
 /// host → client. Full current player list snapshot, incl. self.
@@ -1075,6 +1175,13 @@ public enum PartyProtocol {
         case "PLAYER_LEAVE": return .ok(PlayerLeave.fromWire(wire, ts: ts))
         case "PLAYER_READY": return .ok(PlayerReady.fromWire(wire, ts: ts))
         case "PLAYER_READY_ROSTER": return .ok(PlayerReadyRoster.fromWire(wire, ts: ts))
+        case "ROOM_PERKS": return .ok(RoomPerks.fromWire(wire, ts: ts))
+        case "ROOM_ENTITLEMENTS": return .ok(RoomEntitlements.fromWire(wire, ts: ts))
+        case "PARTY_PACK_NUDGE": return .ok(PartyPackNudge.fromWire(wire, ts: ts))
+        case "REMATCH_REQUEST": return .ok(RematchRequest.fromWire(wire, ts: ts))
+        case "AD_BREAK_STARTED": return .ok(AdBreakStarted.fromWire(wire, ts: ts))
+        case "AD_BREAK_FINISHED": return .ok(AdBreakFinished.fromWire(wire, ts: ts))
+        case "REMATCH_READY": return .ok(RematchReady.fromWire(wire, ts: ts))
         case "START_GAME": return .ok(StartGame.fromWire(wire, ts: ts))
         case "PLAYER_DISCONNECTED": return .ok(PlayerDisconnected.fromWire(wire, ts: ts))
         case "PLAYER_RECONNECTED": return .ok(PlayerReconnected.fromWire(wire, ts: ts))

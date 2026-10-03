@@ -9,7 +9,7 @@ updated: 2026-10-03
 flutter test          # everything
 flutter analyze       # must be clean, zero issues
 dart run tool/gen_protocol_fixtures.dart   # regenerate Swift golden fixtures (protocol change only)
-swift test             # from tvos/ — AYSProtocol (29) + AYSHostCore (55) = 84 cases, 4 skipped by
+swift test             # from tvos/ — AYSProtocol (29) + AYSHostCore (63) = 92 cases, 4 skipped by
                         # default (real-socket tests — see AYS_RUN_NETWORK_TESTS below)
 ```
 
@@ -109,9 +109,12 @@ no widget-level test yet, see [[Multiplayer Development]] for that gap:
   probes the network before CONTINUE; NOT NOW backs out without storing or
   probing; later visits skip the primer; a denied status shows the OPEN
   SETTINGS notice, which opens Settings and clears itself on resume once
-  access is back ([[Multiplayer Client (Mobile)]] "Permissions").
+  access is back; it also verifies that a known off-Wi-Fi state replaces the
+  misleading empty-room search with the specific network roast
+  ([[Multiplayer Client (Mobile)]] "Permissions").
 - `multiplayer_profile_test.dart` — `MultiplayerProfileManager` persistence
-  (name/emoji trimmed, `bestStanding` only ever improves, listeners notified).
+  (name/emoji trimmed, `bestStanding` only ever improves, listeners notified),
+  exact-name spoken-verdict reuse/invalidation and stable anonymous persona.
 - `socket_integration_test.dart` — the closest thing to an end-to-end proof
   without a widget test: two real `SocketPartyTransport` clients connect to
   a `PartyHostReference` over an actual loopback socket, join, ready up,
@@ -235,6 +238,14 @@ visible one, and asserts it paints at full opacity immediately — no leftover
 animation state from the disposed instance. Passes; the real-device report
 itself is still open, see [[Decision Log]].
 
+### `test/balanced_text_test.dart` — headline line breaking
+Pins the three rules of `BalancedText` ([[Rendering Pipeline]]): a single
+long word (`IMPOSTAZIONI`) shrinks instead of breaking, a short title keeps
+its size, `CONGRATULATIONS, I GUESS` balances to `CONGRATULATIONS, / I GUESS`,
+no line ever splits a word, and the widget renders in a narrow column
+without overflow. The test font is Ahem (every glyph a square), so the
+assertions are about the break points, not real pixel widths.
+
 ### `test/app_flow_test.dart` — the real widget tree
 Menu → PLAY → LEVEL 1 → timeout → Game Over → TRY AGAIN, stats recording, and
 the settings toggles. Note: `pumpAndSettle()` never settles on the game screen
@@ -347,6 +358,27 @@ Swift mirror (`tvos/Tests/AYSHostCoreTests/AIDirectorTests.swift`,
 The one hard rule from the original spec still applies: Phase 1's
 `ChallengeProvider` refactor kept every pre-existing suite in this file
 green *unchanged*, and `flutter analyze` stays zero-issue at each phase.
+
+### Party Pack and rematch ads
+
+Room lifecycle coverage locks the free-cap error/nudge and proves one Party
+Pack owner expands a shared host to 16 seats. Protocol codec coverage keeps
+Dart and Swift models mirrored for room entitlements, perks and the rematch
+ad-break handshake. Real-device release testing still needs a ninth join, one
+16-seat stress session, store restore, no-fill rematch and mixed Remove Ads /
+Party Pack ownership.
+
+### Multiplayer presenter
+
+`PresenterEngineTests` lock the versioned offline manifest, cue expiry,
+homonym labels and Savage-only negative-title threshold. Dart's
+`spoken_identity_test.dart` covers plain, decorated, display-only and blocked
+names; `PresenterCareerStoreTests` cover cross-instance persistence and the
+shorter negative-title expiry; protocol codec coverage keeps optional join
+identity fields tolerant.
+The macOS host target builds with the AVFoundation/backend/cache controller.
+Still manual: real TTS latency, weak-network expiry, voice quality, tvOS audio
+routing and the final bundled voice pack.
 
 ## Writing tests for a new challenge
 

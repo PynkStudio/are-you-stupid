@@ -73,26 +73,38 @@ class PlayerInfo {
     required this.playerName,
     this.emoji = '',
     this.ready = false,
+    this.spokenName,
+    this.speechPolicy = 'displayOnly',
+    this.personaId,
   });
 
   final String playerId;
   final String playerName;
   final String emoji;
   final bool ready;
+  final String? spokenName;
+  final String speechPolicy;
+  final String? personaId;
 
   Map<String, Object?> toWire() => {
-        'playerId': playerId,
-        'playerName': playerName,
-        'emoji': emoji,
-        'ready': ready,
-      };
+    'playerId': playerId,
+    'playerName': playerName,
+    'emoji': emoji,
+    'ready': ready,
+    if (spokenName != null) 'spokenName': spokenName,
+    'speechPolicy': speechPolicy,
+    if (personaId != null) 'personaId': personaId,
+  };
 
   static PlayerInfo fromWire(Map<String, Object?> w) => PlayerInfo(
-        playerId: w['playerId'] as String? ?? '',
-        playerName: w['playerName'] as String? ?? '',
-        emoji: w['emoji'] as String? ?? '',
-        ready: w['ready'] as bool? ?? false,
-      );
+    playerId: w['playerId'] as String? ?? '',
+    playerName: w['playerName'] as String? ?? '',
+    emoji: w['emoji'] as String? ?? '',
+    ready: w['ready'] as bool? ?? false,
+    spokenName: w['spokenName'] as String?,
+    speechPolicy: w['speechPolicy'] as String? ?? 'displayOnly',
+    personaId: w['personaId'] as String?,
+  );
 }
 
 /// One player's outcome inside `ROUND_RESULTS.results[]`.
@@ -112,14 +124,15 @@ class PlayerRoundResult {
   final int? reactionMs;
 
   Map<String, Object?> toWire() => {
-        'playerId': playerId,
-        'correct': correct,
-        if (reason.isNotEmpty) 'reason': reason,
-        'scoreDelta': scoreDelta,
-        if (reactionMs != null) 'reactionMs': reactionMs,
-      };
+    'playerId': playerId,
+    'correct': correct,
+    if (reason.isNotEmpty) 'reason': reason,
+    'scoreDelta': scoreDelta,
+    if (reactionMs != null) 'reactionMs': reactionMs,
+  };
 
-  static PlayerRoundResult fromWire(Map<String, Object?> w) => PlayerRoundResult(
+  static PlayerRoundResult fromWire(Map<String, Object?> w) =>
+      PlayerRoundResult(
         playerId: w['playerId'] as String? ?? '',
         correct: w['correct'] as bool? ?? false,
         reason: w['reason'] as String? ?? '',
@@ -143,18 +156,18 @@ class GameResultEntry {
   final int standing;
 
   Map<String, Object?> toWire() => {
-        'playerId': playerId,
-        'score': score,
-        if (lives != null) 'lives': lives,
-        'standing': standing,
-      };
+    'playerId': playerId,
+    'score': score,
+    if (lives != null) 'lives': lives,
+    'standing': standing,
+  };
 
   static GameResultEntry fromWire(Map<String, Object?> w) => GameResultEntry(
-        playerId: w['playerId'] as String? ?? '',
-        score: w['score'] as int? ?? 0,
-        lives: w['lives'] as int?,
-        standing: w['standing'] as int? ?? 0,
-      );
+    playerId: w['playerId'] as String? ?? '',
+    score: w['score'] as int? ?? 0,
+    lives: w['lives'] as int?,
+    standing: w['standing'] as int? ?? 0,
+  );
 }
 
 /// The input a client submits in a `PLAYER_ACTION`.
@@ -183,16 +196,13 @@ class GameResultEntry {
 /// is answered `DUPLICATE_ACTION`) is why counting is committed as a count,
 /// not replayed as repeated taps.
 class PartyAction {
-  const PartyAction.tap({
-    this.targetId,
-    this.index,
-    this.kind = 'tap',
-  }) : count = null;
+  const PartyAction.tap({this.targetId, this.index, this.kind = 'tap'})
+    : count = null;
 
   const PartyAction.count(this.count)
-      : targetId = null,
-        index = null,
-        kind = 'count';
+    : targetId = null,
+      index = null,
+      kind = 'count';
 
   final String kind;
 
@@ -240,10 +250,10 @@ abstract class PartyMessage {
 
   /// Full JSON object, envelope included: `{ protocolVersion, type, ts, ... }`.
   Map<String, Object?> toWire() => {
-        'protocolVersion': kProtocolVersion,
-        'type': type,
-        'ts': ts,
-      };
+    'protocolVersion': kProtocolVersion,
+    'type': type,
+    'ts': ts,
+  };
 }
 
 // ----------------------------------------------------------------- Lifecycle
@@ -251,7 +261,7 @@ abstract class PartyMessage {
 /// client → host. First message after TCP connect.
 class Hello extends PartyMessage {
   const Hello({required this.appName, required this.appVersion, int ts = 0})
-      : super(ts);
+    : super(ts);
 
   final String appName;
   final String appVersion;
@@ -261,16 +271,16 @@ class Hello extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'appName': appName,
-        'appVersion': appVersion,
-      };
+    ...super.toWire(),
+    'appName': appName,
+    'appVersion': appVersion,
+  };
 
   static Hello fromWire(Map<String, Object?> w, {int ts = 0}) => Hello(
-        appName: w['appName'] as String? ?? '',
-        appVersion: w['appVersion'] as String? ?? '',
-        ts: ts,
-      );
+    appName: w['appName'] as String? ?? '',
+    appVersion: w['appVersion'] as String? ?? '',
+    ts: ts,
+  );
 }
 
 /// host → client. Greets; on version mismatch send [Rejected] instead.
@@ -293,23 +303,23 @@ class HostHello extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'hostName': hostName,
-        'roomCode': roomCode,
-        'maxPlayers': maxPlayers,
-        'protocolFeatures': protocolFeatures,
-      };
+    ...super.toWire(),
+    'hostName': hostName,
+    'roomCode': roomCode,
+    'maxPlayers': maxPlayers,
+    'protocolFeatures': protocolFeatures,
+  };
 
   static HostHello fromWire(Map<String, Object?> w, {int ts = 0}) => HostHello(
-        hostName: w['hostName'] as String? ?? '',
-        roomCode: w['roomCode'] as String? ?? '',
-        maxPlayers: w['maxPlayers'] as int? ?? 8,
-protocolFeatures: [
+    hostName: w['hostName'] as String? ?? '',
+    roomCode: w['roomCode'] as String? ?? '',
+    maxPlayers: w['maxPlayers'] as int? ?? 8,
+    protocolFeatures: [
       for (final f in (w['protocolFeatures'] as List? ?? const []))
         if (f is String) f,
     ],
-        ts: ts,
-      );
+    ts: ts,
+  );
 }
 
 /// either → either. Version or policy mismatch; connection should close.
@@ -322,40 +332,167 @@ class Rejected extends PartyMessage {
   String get type => 'REJECTED';
 
   @override
-  Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'reason': reason,
-      };
+  Map<String, Object?> toWire() => {...super.toWire(), 'reason': reason};
 
-  static Rejected fromWire(Map<String, Object?> w, {int ts = 0}) => Rejected(
-        reason: w['reason'] as String? ?? '',
-        ts: ts,
-      );
+  static Rejected fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      Rejected(reason: w['reason'] as String? ?? '', ts: ts);
 }
 
 /// client → host. Request to join; host replies [PlayerJoined] or [PartyError].
 class JoinRoom extends PartyMessage {
-  const JoinRoom({required this.playerName, this.emoji = '', int ts = 0})
-      : super(ts);
+  const JoinRoom({
+    required this.playerName,
+    this.emoji = '',
+    this.noAds = false,
+    this.partyPack = false,
+    this.personaId,
+    this.spokenName,
+    this.speechPolicy = 'displayOnly',
+    int ts = 0,
+  }) : super(ts);
 
   final String playerName;
   final String emoji;
+  final bool noAds;
+  final bool partyPack;
+  final String? personaId;
+  final String? spokenName;
+  final String speechPolicy;
 
   @override
   String get type => 'JOIN_ROOM';
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'playerName': playerName,
-        'emoji': emoji,
-      };
+    ...super.toWire(),
+    'playerName': playerName,
+    'emoji': emoji,
+    'noAds': noAds,
+    'partyPack': partyPack,
+    if (personaId != null) 'personaId': personaId,
+    if (spokenName != null) 'spokenName': spokenName,
+    'speechPolicy': speechPolicy,
+  };
 
   static JoinRoom fromWire(Map<String, Object?> w, {int ts = 0}) => JoinRoom(
-        playerName: w['playerName'] as String? ?? '',
-        emoji: w['emoji'] as String? ?? '',
+    playerName: w['playerName'] as String? ?? '',
+    emoji: w['emoji'] as String? ?? '',
+    noAds: w['noAds'] as bool? ?? false,
+    partyPack: w['partyPack'] as bool? ?? false,
+    personaId: w['personaId'] as String?,
+    spokenName: w['spokenName'] as String?,
+    speechPolicy: w['speechPolicy'] as String? ?? 'displayOnly',
+    ts: ts,
+  );
+}
+
+/// host → clients. Sticky room-wide purchase benefits for this room session.
+class RoomPerks extends PartyMessage {
+  const RoomPerks({
+    required this.maxPlayers,
+    required this.partyPackActive,
+    required this.adsRemoved,
+    this.activatedByPlayerId,
+    int ts = 0,
+  }) : super(ts);
+
+  final int maxPlayers;
+  final bool partyPackActive;
+  final bool adsRemoved;
+  final String? activatedByPlayerId;
+
+  @override
+  String get type => 'ROOM_PERKS';
+
+  @override
+  Map<String, Object?> toWire() => {
+    ...super.toWire(),
+    'maxPlayers': maxPlayers,
+    'partyPackActive': partyPackActive,
+    'adsRemoved': adsRemoved,
+    if (activatedByPlayerId != null) 'activatedByPlayerId': activatedByPlayerId,
+  };
+
+  static RoomPerks fromWire(Map<String, Object?> w, {int ts = 0}) => RoomPerks(
+    maxPlayers: w['maxPlayers'] as int? ?? 8,
+    partyPackActive: w['partyPackActive'] as bool? ?? false,
+    adsRemoved: w['adsRemoved'] as bool? ?? false,
+    activatedByPlayerId: w['activatedByPlayerId'] as String?,
+    ts: ts,
+  );
+}
+
+/// client → host. Store-confirmed entitlement update after an in-lobby buy.
+class RoomEntitlements extends PartyMessage {
+  const RoomEntitlements({
+    required this.noAds,
+    required this.partyPack,
+    int ts = 0,
+  }) : super(ts);
+  final bool noAds;
+  final bool partyPack;
+  @override
+  String get type => 'ROOM_ENTITLEMENTS';
+  @override
+  Map<String, Object?> toWire() => {
+    ...super.toWire(),
+    'noAds': noAds,
+    'partyPack': partyPack,
+  };
+  static RoomEntitlements fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      RoomEntitlements(
+        noAds: w['noAds'] as bool? ?? false,
+        partyPack: w['partyPack'] as bool? ?? false,
         ts: ts,
       );
+}
+
+/// host → clients. A ninth join was blocked; animate the shared upgrade CTA.
+class PartyPackNudge extends PartyMessage {
+  const PartyPackNudge({int ts = 0}) : super(ts);
+  @override
+  String get type => 'PARTY_PACK_NUDGE';
+  static PartyPackNudge fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      PartyPackNudge(ts: ts);
+}
+
+/// client → host. Explicit result-screen request to return to the lobby.
+class RematchRequest extends PartyMessage {
+  const RematchRequest({int ts = 0}) : super(ts);
+  @override
+  String get type => 'REMATCH_REQUEST';
+  static RematchRequest fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      RematchRequest(ts: ts);
+}
+
+/// host → clients/board. One requesting phone is currently showing the ad.
+class AdBreakStarted extends PartyMessage {
+  const AdBreakStarted({required this.playerId, int ts = 0}) : super(ts);
+  final String playerId;
+  @override
+  String get type => 'AD_BREAK_STARTED';
+  @override
+  Map<String, Object?> toWire() => {...super.toWire(), 'playerId': playerId};
+  static AdBreakStarted fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      AdBreakStarted(playerId: w['playerId'] as String? ?? '', ts: ts);
+}
+
+/// requesting client → host after dismissal, failure, offline, or no fill.
+class AdBreakFinished extends PartyMessage {
+  const AdBreakFinished({int ts = 0}) : super(ts);
+  @override
+  String get type => 'AD_BREAK_FINISHED';
+  static AdBreakFinished fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      AdBreakFinished(ts: ts);
+}
+
+/// host → clients. The room has returned to the same lobby for a rematch.
+class RematchReady extends PartyMessage {
+  const RematchReady({int ts = 0}) : super(ts);
+  @override
+  String get type => 'REMATCH_READY';
+  static RematchReady fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      RematchReady(ts: ts);
 }
 
 /// host → client. Full current player list snapshot, incl. self.
@@ -376,11 +513,11 @@ class PlayerJoined extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'selfClientId': selfClientId,
-        'roomId': roomId,
-        'players': [for (final p in players) p.toWire()],
-      };
+    ...super.toWire(),
+    'selfClientId': selfClientId,
+    'roomId': roomId,
+    'players': [for (final p in players) p.toWire()],
+  };
 
   static PlayerJoined fromWire(Map<String, Object?> w, {int ts = 0}) =>
       PlayerJoined(
@@ -407,11 +544,8 @@ class LeaveRoom extends PartyMessage {
 
 /// host → clients. Removes a seat from the lobby/roster.
 class PlayerLeave extends PartyMessage {
-  const PlayerLeave({
-    required this.playerId,
-    this.reason = 'left',
-    int ts = 0,
-  }) : super(ts);
+  const PlayerLeave({required this.playerId, this.reason = 'left', int ts = 0})
+    : super(ts);
 
   final String playerId;
 
@@ -423,10 +557,10 @@ class PlayerLeave extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'playerId': playerId,
-        'reason': reason,
-      };
+    ...super.toWire(),
+    'playerId': playerId,
+    'reason': reason,
+  };
 
   static PlayerLeave fromWire(Map<String, Object?> w, {int ts = 0}) =>
       PlayerLeave(
@@ -438,11 +572,8 @@ class PlayerLeave extends PartyMessage {
 
 /// client ↔ host. Toggle ready state.
 class PlayerReady extends PartyMessage {
-  const PlayerReady({
-    required this.playerId,
-    required this.ready,
-    int ts = 0,
-  }) : super(ts);
+  const PlayerReady({required this.playerId, required this.ready, int ts = 0})
+    : super(ts);
 
   final String playerId;
   final bool ready;
@@ -452,10 +583,10 @@ class PlayerReady extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'playerId': playerId,
-        'ready': ready,
-      };
+    ...super.toWire(),
+    'playerId': playerId,
+    'ready': ready,
+  };
 
   static PlayerReady fromWire(Map<String, Object?> w, {int ts = 0}) =>
       PlayerReady(
@@ -476,9 +607,9 @@ class PlayerReadyRoster extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'players': [for (final p in players) p.toWire()],
-      };
+    ...super.toWire(),
+    'players': [for (final p in players) p.toWire()],
+  };
 
   static PlayerReadyRoster fromWire(Map<String, Object?> w, {int ts = 0}) =>
       PlayerReadyRoster(
@@ -492,11 +623,8 @@ class PlayerReadyRoster extends PartyMessage {
 
 /// host → clients. Only sent when ≥2 ready.
 class StartGame extends PartyMessage {
-  const StartGame({
-    required this.mode,
-    this.config = const {},
-    int ts = 0,
-  }) : super(ts);
+  const StartGame({required this.mode, this.config = const {}, int ts = 0})
+    : super(ts);
 
   final GameMode mode;
   final Map<String, Object?> config;
@@ -506,16 +634,16 @@ class StartGame extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'mode': mode.wire,
-        'config': config,
-      };
+    ...super.toWire(),
+    'mode': mode.wire,
+    'config': config,
+  };
 
   static StartGame fromWire(Map<String, Object?> w, {int ts = 0}) => StartGame(
-        mode: GameMode.fromWire(w['mode'] as String?),
-        config: (w['config'] as Map?)?.cast<String, Object?>() ?? const {},
-        ts: ts,
-      );
+    mode: GameMode.fromWire(w['mode'] as String?),
+    config: (w['config'] as Map?)?.cast<String, Object?>() ?? const {},
+    ts: ts,
+  );
 }
 
 /// host → clients. In-match disconnect; grace window applies.
@@ -528,16 +656,10 @@ class PlayerDisconnected extends PartyMessage {
   String get type => 'PLAYER_DISCONNECTED';
 
   @override
-  Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'playerId': playerId,
-      };
+  Map<String, Object?> toWire() => {...super.toWire(), 'playerId': playerId};
 
   static PlayerDisconnected fromWire(Map<String, Object?> w, {int ts = 0}) =>
-      PlayerDisconnected(
-        playerId: w['playerId'] as String? ?? '',
-        ts: ts,
-      );
+      PlayerDisconnected(playerId: w['playerId'] as String? ?? '', ts: ts);
 }
 
 /// host → clients. Grace-window reconnect restored state.
@@ -550,16 +672,10 @@ class PlayerReconnected extends PartyMessage {
   String get type => 'PLAYER_RECONNECTED';
 
   @override
-  Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'playerId': playerId,
-      };
+  Map<String, Object?> toWire() => {...super.toWire(), 'playerId': playerId};
 
   static PlayerReconnected fromWire(Map<String, Object?> w, {int ts = 0}) =>
-      PlayerReconnected(
-        playerId: w['playerId'] as String? ?? '',
-        ts: ts,
-      );
+      PlayerReconnected(playerId: w['playerId'] as String? ?? '', ts: ts);
 }
 
 /// host → clients. Final; clients render result + share.
@@ -580,21 +696,21 @@ class GameEnd extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'mode': mode.wire,
-        'results': [for (final r in results) r.toWire()],
-        if (winnerId != null) 'winnerId': winnerId,
-      };
+    ...super.toWire(),
+    'mode': mode.wire,
+    'results': [for (final r in results) r.toWire()],
+    if (winnerId != null) 'winnerId': winnerId,
+  };
 
   static GameEnd fromWire(Map<String, Object?> w, {int ts = 0}) => GameEnd(
-        mode: GameMode.fromWire(w['mode'] as String?),
-        results: [
-          for (final r in w['results'] as List? ?? const [])
-            if (r is Map<String, Object?>) GameResultEntry.fromWire(r),
-        ],
-        winnerId: w['winnerId'] as String?,
-        ts: ts,
-      );
+    mode: GameMode.fromWire(w['mode'] as String?),
+    results: [
+      for (final r in w['results'] as List? ?? const [])
+        if (r is Map<String, Object?>) GameResultEntry.fromWire(r),
+    ],
+    winnerId: w['winnerId'] as String?,
+    ts: ts,
+  );
 }
 
 // ------------------------------------------------------------------ Rounds
@@ -628,14 +744,14 @@ class RoundStart extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'roundId': roundId,
-        'challengeId': challengeId,
-        'seed': seed,
-        'startAt': startAt,
-        'durationMs': durationMs,
-        'config': config,
-      };
+    ...super.toWire(),
+    'roundId': roundId,
+    'challengeId': challengeId,
+    'seed': seed,
+    'startAt': startAt,
+    'durationMs': durationMs,
+    'config': config,
+  };
 
   static RoundStart fromWire(Map<String, Object?> w, {int ts = 0}) =>
       RoundStart(
@@ -667,11 +783,11 @@ class RoundCountdown extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'roundId': roundId,
-        'atMs': atMs,
-        'state': state,
-      };
+    ...super.toWire(),
+    'roundId': roundId,
+    'atMs': atMs,
+    'state': state,
+  };
 
   static RoundCountdown fromWire(Map<String, Object?> w, {int ts = 0}) =>
       RoundCountdown(
@@ -722,22 +838,23 @@ class PlayerAction extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'playerId': playerId,
-        'roundId': roundId,
-        'action': action.toWire(),
-        'correct': correct,
-        if (reason != null) 'reason': reason,
-        if (note != null) 'note': note,
-        'clientTimestampMs': clientTimestampMs,
-      };
+    ...super.toWire(),
+    'playerId': playerId,
+    'roundId': roundId,
+    'action': action.toWire(),
+    'correct': correct,
+    if (reason != null) 'reason': reason,
+    if (note != null) 'note': note,
+    'clientTimestampMs': clientTimestampMs,
+  };
 
   static PlayerAction fromWire(Map<String, Object?> w, {int ts = 0}) =>
       PlayerAction(
         playerId: w['playerId'] as String? ?? '',
         roundId: w['roundId'] as String? ?? '',
         action: PartyAction.fromWire(
-            (w['action'] as Map?)?.cast<String, Object?>() ?? const {}),
+          (w['action'] as Map?)?.cast<String, Object?>() ?? const {},
+        ),
         correct: w['correct'] as bool? ?? false,
         reason: w['reason'] as String?,
         note: w['note'] as String?,
@@ -768,13 +885,13 @@ class RoundResult extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'roundId': roundId,
-        'correct': correct,
-        if (reason.isNotEmpty) 'reason': reason,
-        'scoreDelta': scoreDelta,
-        if (actionReceivedMs != null) 'actionReceivedMs': actionReceivedMs,
-      };
+    ...super.toWire(),
+    'roundId': roundId,
+    'correct': correct,
+    if (reason.isNotEmpty) 'reason': reason,
+    'scoreDelta': scoreDelta,
+    if (actionReceivedMs != null) 'actionReceivedMs': actionReceivedMs,
+  };
 
   static RoundResult fromWire(Map<String, Object?> w, {int ts = 0}) =>
       RoundResult(
@@ -789,11 +906,8 @@ class RoundResult extends PartyMessage {
 
 /// host → clients. Aggregated reveal for the TV + cross-phone standings.
 class RoundResults extends PartyMessage {
-  const RoundResults({
-    required this.roundId,
-    required this.results,
-    int ts = 0,
-  }) : super(ts);
+  const RoundResults({required this.roundId, required this.results, int ts = 0})
+    : super(ts);
 
   final String roundId;
   final List<PlayerRoundResult> results;
@@ -803,10 +917,10 @@ class RoundResults extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'roundId': roundId,
-        'results': [for (final r in results) r.toWire()],
-      };
+    ...super.toWire(),
+    'roundId': roundId,
+    'results': [for (final r in results) r.toWire()],
+  };
 
   static RoundResults fromWire(Map<String, Object?> w, {int ts = 0}) =>
       RoundResults(
@@ -829,15 +943,10 @@ class RoundEnd extends PartyMessage {
   String get type => 'ROUND_END';
 
   @override
-  Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'roundId': roundId,
-      };
+  Map<String, Object?> toWire() => {...super.toWire(), 'roundId': roundId};
 
-  static RoundEnd fromWire(Map<String, Object?> w, {int ts = 0}) => RoundEnd(
-        roundId: w['roundId'] as String? ?? '',
-        ts: ts,
-      );
+  static RoundEnd fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      RoundEnd(roundId: w['roundId'] as String? ?? '', ts: ts);
 }
 
 /// host → clients. Broadcast on reaching 0 lives.
@@ -858,11 +967,11 @@ class PlayerEliminated extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'roundId': roundId,
-        'playerId': playerId,
-        'livesLeft': livesLeft,
-      };
+    ...super.toWire(),
+    'roundId': roundId,
+    'playerId': playerId,
+    'livesLeft': livesLeft,
+  };
 
   static PlayerEliminated fromWire(Map<String, Object?> w, {int ts = 0}) =>
       PlayerEliminated(
@@ -897,13 +1006,13 @@ class PlayerScore extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'playerId': playerId,
-        'mode': mode.wire,
-        'score': score,
-        if (lives != null) 'lives': lives,
-        'standing': standing,
-      };
+    ...super.toWire(),
+    'playerId': playerId,
+    'mode': mode.wire,
+    'score': score,
+    if (lives != null) 'lives': lives,
+    'standing': standing,
+  };
 
   static PlayerScore fromWire(Map<String, Object?> w, {int ts = 0}) =>
       PlayerScore(
@@ -922,7 +1031,7 @@ class PlayerScore extends PartyMessage {
 /// `DUPLICATE_ACTION`, `BAD_MESSAGE`, ...; `detail` is the readable why.
 class PartyError extends PartyMessage {
   const PartyError({required this.code, this.detail = '', int ts = 0})
-      : super(ts);
+    : super(ts);
 
   final String code;
   final String detail;
@@ -932,10 +1041,10 @@ class PartyError extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'code': code,
-        'detail': detail,
-      };
+    ...super.toWire(),
+    'code': code,
+    'detail': detail,
+  };
 
   static PartyError fromWire(Map<String, Object?> w, {int ts = 0}) =>
       PartyError(
@@ -978,11 +1087,11 @@ class AiCapabilities extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'aiAvailable': aiAvailable,
-        'computeRank': computeRank,
-        'batteryPercent': batteryPercent,
-      };
+    ...super.toWire(),
+    'aiAvailable': aiAvailable,
+    'computeRank': computeRank,
+    'batteryPercent': batteryPercent,
+  };
 
   static AiCapabilities fromWire(Map<String, Object?> w, {int ts = 0}) =>
       AiCapabilities(
@@ -1005,9 +1114,9 @@ class AiDirectorAssignment extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        if (directorPeerId != null) 'directorPeerId': directorPeerId,
-      };
+    ...super.toWire(),
+    if (directorPeerId != null) 'directorPeerId': directorPeerId,
+  };
 
   static AiDirectorAssignment fromWire(Map<String, Object?> w, {int ts = 0}) =>
       AiDirectorAssignment(
@@ -1034,10 +1143,10 @@ class AiRoundProposal extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'roundId': roundId,
-        'proposal': proposal,
-      };
+    ...super.toWire(),
+    'roundId': roundId,
+    'proposal': proposal,
+  };
 
   static AiRoundProposal fromWire(Map<String, Object?> w, {int ts = 0}) =>
       AiRoundProposal(
@@ -1071,12 +1180,12 @@ class AiChallengeRound extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'roundId': roundId,
-        'proposal': proposal,
-        'startAt': startAt,
-        'durationMs': durationMs,
-      };
+    ...super.toWire(),
+    'roundId': roundId,
+    'proposal': proposal,
+    'startAt': startAt,
+    'durationMs': durationMs,
+  };
 
   static AiChallengeRound fromWire(Map<String, Object?> w, {int ts = 0}) =>
       AiChallengeRound(
@@ -1107,11 +1216,11 @@ class AiCommentaryProposal extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'kind': kind,
-        'roundId': roundId,
-        'text': text,
-      };
+    ...super.toWire(),
+    'kind': kind,
+    'roundId': roundId,
+    'text': text,
+  };
 
   static AiCommentaryProposal fromWire(Map<String, Object?> w, {int ts = 0}) =>
       AiCommentaryProposal(
@@ -1140,11 +1249,11 @@ class AiCommentary extends PartyMessage {
 
   @override
   Map<String, Object?> toWire() => {
-        ...super.toWire(),
-        'kind': kind,
-        'roundId': roundId,
-        'text': text,
-      };
+    ...super.toWire(),
+    'kind': kind,
+    'roundId': roundId,
+    'text': text,
+  };
 
   static AiCommentary fromWire(Map<String, Object?> w, {int ts = 0}) =>
       AiCommentary(
@@ -1199,6 +1308,20 @@ abstract final class PartyProtocol {
         return DecodedOk(PlayerReady.fromWire(wire, ts: ts));
       case 'PLAYER_READY_ROSTER':
         return DecodedOk(PlayerReadyRoster.fromWire(wire, ts: ts));
+      case 'ROOM_PERKS':
+        return DecodedOk(RoomPerks.fromWire(wire, ts: ts));
+      case 'ROOM_ENTITLEMENTS':
+        return DecodedOk(RoomEntitlements.fromWire(wire, ts: ts));
+      case 'PARTY_PACK_NUDGE':
+        return DecodedOk(PartyPackNudge.fromWire(wire, ts: ts));
+      case 'REMATCH_REQUEST':
+        return DecodedOk(RematchRequest.fromWire(wire, ts: ts));
+      case 'AD_BREAK_STARTED':
+        return DecodedOk(AdBreakStarted.fromWire(wire, ts: ts));
+      case 'AD_BREAK_FINISHED':
+        return DecodedOk(AdBreakFinished.fromWire(wire, ts: ts));
+      case 'REMATCH_READY':
+        return DecodedOk(RematchReady.fromWire(wire, ts: ts));
       case 'START_GAME':
         return DecodedOk(StartGame.fromWire(wire, ts: ts));
       case 'PLAYER_DISCONNECTED':

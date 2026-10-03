@@ -60,8 +60,9 @@ Dart one). That single contract is the only coupling between the two ends.
   scoreboard, elimination cards, winner animation, humor lines
   ([[Multiplayer Gameplay]]).
 
-It deliberately does **not** do: ad serving, account/profile, any persistence
-beyond trivial local settings/match stats ([[Multiplayer Product]]).
+It deliberately does **not** do: ad serving, accounts, cloud profiles or
+identity lookup. It only persists local settings/match stats and the bounded
+anonymous presenter-career cache described below ([[Multiplayer Product]]).
 
 ## Structure (Swift)
 
@@ -307,11 +308,46 @@ string, rendered into a SwiftUI image. This satisfies the zero-external-assets
 pillar ([[Game Design Pillars]]) — no bundled QR asset, and the code stays
 human-readable under the QR as a fallback.
 
+## Room perks and commercial break
+
+`RoomHost` begins at 8 seats. A joined phone's store-confirmed Party Pack
+claim raises `maxPlayers` to 16 but does not change ads. Remove Ads only sets
+the room-wide ad flag; Party Bundle arrives as both claims and activates both.
+Benefits remain until the host room
+closes. A ninth free join emits `PARTY_PACK_NUDGE` before returning
+`ROOM_FULL_UPGRADABLE`.
+
+After `GAME_END`, the first `REMATCH_REQUEST` either broadcasts
+`REMATCH_READY` immediately or starts a single-client `AD_BREAK_STARTED` /
+`AD_BREAK_FINISHED` handshake. Apple TV and Mac never load an ad. Their game
+end view shows troll sponsor copy during the break; Party Pack activation adds
+a generated high-energy lobby banner. Dedicated activation audio is a future
+sound-design task, not shipped behavior.
+
+## Presenter runtime
+
+`PresenterEngine` is pure Swift and turns verified round/game facts into
+versioned cues, deduplicated universal lines and earned titles. The UI-side
+`PresenterAudioController` resolves bundle → disk cache → configured shared
+backend, then checks semantic expiry before playback. Results expire with
+their round; final verdicts remain eligible while Game End is visible.
+
+`PresenterCareerStore` records at most 64 earned careers by opaque `personaId`
+in board `UserDefaults`. A known persona gets one return cue per lobby. Winner
+careers become `IL KING INDISCUSSO`; other earned titles can also carry over.
+Positive titles expire after 90 days and negative performance jokes after 7.
+
+The shared backend route lives in the PynkStudio Menuary repository at
+`src/app/api/ays/presenter/route.ts`; it uses OpenAI speech and a private
+Supabase bucket. Production still needs endpoint/token build settings and the
+licensed bundled `PresenterPack`; system TTS is only the development fallback.
+See [[Multiplayer Presenter]].
+
 ## Local persistence
 
 Only `UserDefaults`-backed settings relevant to hosting: last-used host name,
-optionally per-room match history. No cloud, no account ([[Multiplayer
-Product]]).
+optional match history and the bounded presenter-career cache. No cloud, no
+account ([[Multiplayer Product]]).
 
 ## Testability story
 

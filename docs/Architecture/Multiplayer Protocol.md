@@ -86,16 +86,29 @@ Message := { "protocolVersion": int,
 | `HELLO` | client → host | `{ protocolVersion, appName, appVersion }` | first message after TCP connect |
 | `HOST_HELLO` | host → client | `{ protocolVersion, hostName, roomCode, maxPlayers, protocolFeatures[] }` | host greets; on mismatch send `REJECTED` instead |
 | `REJECTED` | either → | `{ reason, protocolVersion }` | version or policy mismatch; connection should close |
-| `JOIN_ROOM` | client → host | `{ playerName, emoji }` | request to join; host replies `PLAYER_JOINED` or `ERROR` |
+| `JOIN_ROOM` | client → host | `{ playerName, emoji, noAds, partyPack, personaId?, spokenName?, speechPolicy }` | request to join + anonymous returning-persona key, locally validated presenter identity and store-confirmed entitlements; host replies `PLAYER_JOINED` or `ERROR` |
 | `PLAYER_JOINED` | host → client | `{ selfClientId, roomId, players[] }` | full current player list snapshot, incl. self |
 | `LEAVE_ROOM` | client → host | `{}` | explicit leave; host then broadcasts `PLAYER_LEAVE` |
 | `PLAYER_LEAVE` | host → clients | `{ playerId, reason }` | `left` or `disconnected`; removes from lobby/roster |
 | `PLAYER_READY` | client ↔ host | `{ playerId, ready }` | toggle ready state |
 | `PLAYER_READY_ROSTER` | host → clients | `{ players[] }` | ready-state broadcast (lobby refresh) |
+| `ROOM_ENTITLEMENTS` | client → host | `{ noAds, partyPack }` | store-confirmed update after an in-lobby/result purchase; Party Bundle maps to both booleans |
+| `ROOM_PERKS` | host → clients | `{ maxPlayers, partyPackActive, adsRemoved, activatedByPlayerId? }` | sticky room-wide benefits; one owner covers everyone |
+| `PARTY_PACK_NUDGE` | host → clients | `{}` | ninth join hit the free cap; animate/haptic the lobby CTA |
 | `START_GAME` | host → clients | `{ mode, config }` | only sent when ≥2 ready |
 | `PLAYER_DISCONNECTED` | host → clients | `{ playerId }` | in-match disconnect, grace window applies (below) |
 | `PLAYER_RECONNECTED` | host → clients | `{ playerId }` | grace-window reconnect restored state |
 | `GAME_END` | host → clients | `{ mode, results[], winnerId }` | final; clients render result + share |
+| `REMATCH_REQUEST` | client → host | `{}` | explicit result-screen tap; first request wins |
+| `AD_BREAK_STARTED` | host → clients | `{ playerId }` | requesting phone alone shows the ad; peers/board show troll copy |
+| `AD_BREAK_FINISHED` | requesting client → host | `{}` | dismissal, failure, offline or no-fill all complete the break |
+| `REMATCH_READY` | host → clients | `{}` | return the connected room to lobby without rescanning |
+
+Each `players[]` entry may mirror `personaId`, `spokenName` and `speechPolicy`
+so every board roster snapshot retains presenter identity. `personaId` is an
+opaque random value created and stored by the phone: it is not an account,
+must not encode the display name and must never be forwarded to the online
+speech backend.
 
 ### Rounds
 
@@ -165,7 +178,7 @@ Message := { "protocolVersion": int,
 Keep messages under ~256 bytes in the happy path. `ROUND_START` includes the
 challenge `config`, which is the only larger message and is still under
 a few hundred bytes for a 4-button grid. `players[]` arrays scale with room
-size — capped at 8, so never big. If a message is big, compress later, not now
+size — capped at 16, so never big. If a message is big, compress later, not now
 ([[Decision Log]]).
 
 ## Compatibility notes

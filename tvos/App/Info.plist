@@ -26,6 +26,10 @@
 	<string>public.app-category.games</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>AYSPresenterBackendURL</key>
+	<string>$(AYS_PRESENTER_BACKEND_URL)</string>
+	<key>AYSPresenterAPIToken</key>
+	<string>$(AYS_PRESENTER_API_TOKEN)</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleInfoDictionaryVersion</key>

@@ -1,6 +1,6 @@
 ---
 tags: [design, pillars]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Game Design Pillars
@@ -31,16 +31,25 @@ Everything in this repo is judged against that sentence.
    lost) → Game Over. No loading, no route changes.
 4. **One hand, one thumb.** Everything is a tap or a hold. No swipes, no
    multi-touch, no precision dragging.
-5. **Offline first.** No account, no network, no backend. The one deliberate
-   exception is ads: they need a round trip by nature, but the game itself
-   must stay fully playable with zero connectivity, and no ad-gated action
-   (continue, extra life, etc.) may ever be offered when no ad is actually
-   available. See [[State and Persistence]] and [[Monetization and Ads]].
-6. **No external assets.** Every visual is generated from native widgets, shapes,
-   gradients and text. Audio uses platform system sounds. This keeps the binary
-   tiny and the load instant.
+5. **Offline first.** Single-player needs no account, network or backend.
+   Multiplayer core play is also LAN-local and offline-capable; its optional
+   [[Multiplayer Presenter]] may use an online cache/TTS backend but can only
+   enrich the show. Ads also need a round trip. Neither service may gate play,
+   and no ad-gated action may be offered when no ad is available. See
+   [[State and Persistence]] and [[Monetization and Ads]].
+6. **No external visual assets.** Visuals are generated from native widgets,
+   shapes, gradients and text. Single-player audio uses platform sounds. The
+   only approved audio-asset exception is the future presenter's small bundled
+   fallback bank; most presenter audio stays cached/generated and optional
+   ([[Multiplayer Presenter]]). This keeps core load and binary size small.
 7. **9:16 first.** The screen must read well in a vertical screen recording —
    large type, huge targets, strong color states. See [[Virality and Sharing]].
+8. **Words never break; headlines are balanced.** Every title and big
+   headline renders through `BalancedText`: a word is never split across
+   lines (it shrinks instead), and multi-word headlines wrap into even lines
+   (`CONGRATULATIONS, / I GUESS`, never `CONGRATULATIONS, I / GUESS`). Six
+   locales have very different word lengths; this keeps every screen
+   symmetric without hand-placed line breaks. See [[Rendering Pipeline]].
 
 ## Session shape
 

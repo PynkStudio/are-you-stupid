@@ -5,13 +5,19 @@ updated: 2026-10-03
 
 # Multiplayer Architecture
 
-The party mode that turns the iPhone/iPad Flutter game into a 2–8 player,
+The party mode that turns the iPhone/iPad Flutter game into a 2–16 player
+(8 free, 16 with one room-wide Party Pack owner),
 controller-led, TV-hosted party game. This is a **new vertical slice** over the
 existing single-player app — the single-player experience is untouched.
 
 The board can be an **Apple TV** or a **Mac** — the macOS build is board-only
 (host + display, no direct play) with an AirPlay mirror button
 ([[Multiplayer Host (tvOS)]], [[Multiplayer Product]]).
+
+Core play is LAN-local and offline-capable. A future optional
+[[Multiplayer Presenter]] is a separate online show layer: it may resolve
+cached/generated audio but has no authority over room state, timing, judging,
+scores or winner selection.
 
 ```
    APPLE TV (native SwiftUI)      macOS (board-only SwiftUI, + AirPlay mirror)
@@ -141,3 +147,4 @@ many fake clients against one host in a single test process
 - [[Multiplayer Challenges]] — deterministic, synchronized challenge seeding
 - [[Multiplayer Product]] — the player-facing concept and scope
 - [[Multiplayer Development]] — phases, testing, simulation harness
+- [[Multiplayer Presenter]] — optional backend boundary and fallback ladder

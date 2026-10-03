@@ -83,6 +83,10 @@ latest round-scoped AI Director line may appear as `HOST SAYS`. The final board
 frames the winner as breaking news, calls the ranking `FINAL DAMAGE`, and uses
 a single short spring reveal (disabled by Reduce Motion).
 
+A future optional [[Multiplayer Presenter]] may voice these safe comedy beats,
+use validated spoken names and build room-local titles/rivalries from real
+match facts. It never speaks over active input and never delays the round.
+
 - `ROUND 14` → `GET READY…` → `3 2 1 GO` (countdown driven by the host's
   deadline).
 - In-round: live player states `✓ / ✕ / 💀`, correctness against the reveal.
@@ -119,8 +123,11 @@ future pass ([[Localization]]-style, [[Decision Log]]).
 ## Winner + rematch
 
 `GAME_END` → winner animation + shareable result card (text + screenshot-style
-graphic), then instant **rematch** back into the lobby
-([[Multiplayer Product]]). Fast rematch is a hard goal.
+graphic). A player requests **rematch** from their phone. The room either
+returns immediately to the lobby (any room-wide no-ads entitlement) or waits
+for the requesting phone's single interstitial while every other surface runs
+the synchronized comedy beat. No-fill/offline is immediate; fast rematch
+remains the hard goal ([[Multiplayer Product]]).
 
 ## Related
 
@@ -128,4 +135,5 @@ graphic), then instant **rematch** back into the lobby
 - [[Multiplayer Architecture]] — host authority + timing
 - [[Multiplayer Challenges]] — the seeded, synchronized challenge set
 - [[Multiplayer Product]] — scope, ads, sharing, disconnect handling
+- [[Multiplayer Presenter]] — voice, identity and narrative continuity
 - [[Challenge Catalog]] — the single-player templates this reuses

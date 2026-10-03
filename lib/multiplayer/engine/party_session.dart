@@ -22,10 +22,10 @@ class PartySession {
     required PartyTransport transport,
     required this.appName,
     required this.appVersion,
-  })  : _transport = transport,
-        state = PartyState(),
-        _events = StreamController<PartyEvent>.broadcast(sync: true),
-        _stateStream = StreamController<PartyState>.broadcast(sync: true) {
+  }) : _transport = transport,
+       state = PartyState(),
+       _events = StreamController<PartyEvent>.broadcast(sync: true),
+       _stateStream = StreamController<PartyState>.broadcast(sync: true) {
     _sub = _transport.inbound.listen(_onLine, onDone: _onTransportDone);
   }
 
@@ -58,7 +58,8 @@ class PartySession {
 
   void _emitState() => _stateStream.add(state);
 
-  void _send(PartyMessage message) => _transport.send(PartyProtocol.encode(message));
+  void _send(PartyMessage message) =>
+      _transport.send(PartyProtocol.encode(message));
 
   /// Handshake; idempotent so a reconnected session can call it again.
   void connect() {
@@ -67,9 +68,32 @@ class PartySession {
     _send(Hello(appName: appName, appVersion: appVersion));
   }
 
-  void joinRoom({required String playerName, required String emoji}) {
-    _send(JoinRoom(playerName: playerName, emoji: emoji));
+  void joinRoom({
+    required String playerName,
+    required String emoji,
+    bool noAds = false,
+    bool partyPack = false,
+    String? personaId,
+    String? spokenName,
+    String speechPolicy = 'displayOnly',
+  }) {
+    _send(
+      JoinRoom(
+        playerName: playerName,
+        emoji: emoji,
+        noAds: noAds,
+        partyPack: partyPack,
+        personaId: personaId,
+        spokenName: spokenName,
+        speechPolicy: speechPolicy,
+      ),
+    );
   }
+
+  void requestRematch() => _send(const RematchRequest());
+  void finishAdBreak() => _send(const AdBreakFinished());
+  void updateRoomEntitlements({required bool noAds, required bool partyPack}) =>
+      _send(RoomEntitlements(noAds: noAds, partyPack: partyPack));
 
   void setReady(bool ready) {
     _send(PlayerReady(playerId: state.selfClientId, ready: ready));
@@ -89,11 +113,13 @@ class PartySession {
     int computeRank = 0,
     int batteryPercent = 100,
   }) {
-    _send(AiCapabilities(
-      aiAvailable: aiAvailable,
-      computeRank: computeRank,
-      batteryPercent: batteryPercent,
-    ));
+    _send(
+      AiCapabilities(
+        aiAvailable: aiAvailable,
+        computeRank: computeRank,
+        batteryPercent: batteryPercent,
+      ),
+    );
   }
 
   /// Sends a validated AI-authored round for the host to relay, when this
@@ -205,7 +231,10 @@ class PartySession {
       case DecodedOk(:final message):
         _apply(message);
       case DecodedMalformed(:final reason):
-        state.lastError = PartyError(code: 'BAD_MESSAGE', detail: 'malformed: $reason');
+        state.lastError = PartyError(
+          code: 'BAD_MESSAGE',
+          detail: 'malformed: $reason',
+        );
         _emitState();
         _events.add(PartyErrorEvent(state.lastError!));
       case DecodedUnknownType():
@@ -217,6 +246,7 @@ class PartySession {
     switch (message) {
       case HostHello():
         state.host = message;
+        state.maxPlayers = message.maxPlayers;
         state.phase = PartyPhase.lobby;
         _emitState();
         _events.add(PartyHandshakeEvent(message));
@@ -235,7 +265,9 @@ class PartySession {
         _events.add(PartyJoinedEvent(message));
 
       case PlayerLeave():
-        state.players = state.players.where((p) => p.playerId != message.playerId).toList();
+        state.players = state.players
+            .where((p) => p.playerId != message.playerId)
+            .toList();
         _emitState();
         _events.add(PartyPlayerLeftEvent(message));
 
@@ -243,6 +275,34 @@ class PartySession {
         state.players = message.players;
         _emitState();
         _events.add(PartyRosterEvent(message));
+
+      case RoomPerks():
+        state.maxPlayers = message.maxPlayers;
+        state.partyPackActive = message.partyPackActive;
+        state.roomAdsRemoved = message.adsRemoved;
+        state.partyPackActivatedByPlayerId = message.activatedByPlayerId;
+        _emitState();
+        _events.add(PartyRoomPerksEvent(message));
+
+      case PartyPackNudge():
+        state.partyPackNudgeSerial += 1;
+        _emitState();
+        _events.add(PartyPackNudgeEvent(message));
+
+      case AdBreakStarted():
+        state.adBreakPlayerId = message.playerId;
+        _emitState();
+        _events.add(PartyAdBreakStartedEvent(message));
+
+      case RematchReady():
+        state.phase = PartyPhase.lobby;
+        state.gameEnd = null;
+        state.adBreakPlayerId = null;
+        _emitState();
+        _events.add(PartyRematchReadyEvent(message));
+
+      case RematchRequest() || AdBreakFinished() || RoomEntitlements():
+        break;
 
       case StartGame():
         state.mode = message.mode;
@@ -389,8 +449,8 @@ class PartySession {
   }
 
   static PlayerCountdown _parseCountdown(String state) => switch (state) {
-        'READY' => PlayerCountdown.ready,
-        'GO' => PlayerCountdown.go,
-        _ => PlayerCountdown.waiting,
-      };
+    'READY' => PlayerCountdown.ready,
+    'GO' => PlayerCountdown.go,
+    _ => PlayerCountdown.waiting,
+  };
 }

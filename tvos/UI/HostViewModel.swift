@@ -34,6 +34,9 @@ final class HostViewModel: ObservableObject {
     @Published private(set) var countdownState: String?
     @Published private(set) var networkStatus = "STARTING…"
     @Published private(set) var lastError: String?
+    @Published private(set) var maxPlayers = 8
+    @Published private(set) var partyPackActive = false
+    @Published private(set) var adBreakPlayerName: String?
 
     /// The elected AI Director's display name, or `nil` when no capable
     /// phone is connected — the match plays 100% scripted either way
@@ -62,6 +65,10 @@ final class HostViewModel: ObservableObject {
     private let host: RoomHost
     private let server = NWListenerServer()
     private let advertisedDeviceName: String
+    private let presenterEngine = PresenterEngine(intensity: .savage)
+    private let presenterAudio = PresenterAudioController()
+    private let presenterCareers = PresenterCareerStore()
+    private var announcedPersonas: Set<String> = []
 
     var readyCount: Int { roster.filter(\.ready).count }
     var canStart: Bool { readyCount >= 2 && screen == .lobby }
@@ -189,7 +196,7 @@ final class HostViewModel: ObservableObject {
             roomCode: roomCode,
             displayName: advertisedDeviceName,
             playerCount: roster.count,
-            maxPlayers: 8,
+            maxPlayers: maxPlayers,
             state: state
         )
     }
@@ -210,7 +217,17 @@ final class HostViewModel: ObservableObject {
         switch message {
         case let m as PlayerReadyRoster:
             roster = m.players
+            announceReturningPlayers(m.players)
             refreshAdvertisement()
+        case let m as RoomPerks:
+            maxPlayers = m.maxPlayers
+            partyPackActive = m.partyPackActive
+            refreshAdvertisement()
+        case let m as AdBreakStarted:
+            adBreakPlayerName = name(for: m.playerId)
+        case is RematchReady:
+            adBreakPlayerName = nil
+            rematch()
         case let m as RoundStart:
             screen = .round(roundId: m.roundId)
             countdownState = nil
@@ -221,6 +238,7 @@ final class HostViewModel: ObservableObject {
             countdownState = m.state
         case let m as RoundResults:
             screen = .results(results: m.results, roundId: m.roundId)
+            presentRoundResults(m)
             scheduleAutoAdvance(afterRoundId: m.roundId)
         case let m as PlayerScore:
             standings[m.playerId] = m
@@ -229,6 +247,13 @@ final class HostViewModel: ObservableObject {
             refreshAdvertisement()
         case let m as GameEnd:
             screen = .gameEnd(m)
+            let winner = roster.first(where: { $0.playerId == m.winnerId }).map(presenterPlayer)
+            if let winnerId = m.winnerId {
+                presenterEngine.crownWinner(winnerId)
+                rememberCareer(playerId: winnerId)
+            }
+            for player in roster where player.playerId != m.winnerId { rememberCareer(playerId: player.playerId) }
+            present(presenterEngine.gameEnd(winner: winner))
         case let m as AiDirectorAssignment:
             directorName = m.directorPeerId.map(name(for:))
         case let m as AiChallengeRound:
@@ -241,6 +266,62 @@ final class HostViewModel: ObservableObject {
             lastAiCommentary = m.text
         default:
             break
+        }
+    }
+
+    private func presenterPlayer(_ player: PlayerInfo) -> PresenterPlayer {
+        PresenterPlayer(id: player.playerId, displayName: player.playerName, spokenName: player.spokenName)
+    }
+
+    private func announceReturningPlayers(_ players: [PlayerInfo]) {
+        guard screen == .lobby else { return }
+        for player in players {
+            guard let personaId = player.personaId,
+                  announcedPersonas.insert(personaId).inserted,
+                  let career = presenterCareers.career(for: personaId) else { continue }
+            present(presenterEngine.returningCue(player: presenterPlayer(player), title: career.title))
+        }
+    }
+
+    private func rememberCareer(playerId: String) {
+        guard let player = roster.first(where: { $0.playerId == playerId }),
+              let personaId = player.personaId,
+              let title = presenterEngine.currentTitle(for: playerId) else { return }
+        presenterCareers.remember(personaId: personaId, title: title)
+    }
+
+    private func presentRoundResults(_ results: RoundResults) {
+        let fact = PresenterRoundFact(
+            roundId: results.roundId,
+            correctPlayerIds: results.results.filter(\.correct).map(\.playerId),
+            wrongPlayerIds: results.results.filter { !$0.correct }.map(\.playerId)
+        )
+        for cue in presenterEngine.roundResult(fact, players: roster.map(presenterPlayer)) {
+            present(cue)
+        }
+    }
+
+    private func present(_ cue: PresenterCue) {
+        presenterAudio.play(cue, intensity: presenterEngine.intensity, stillRelevant: { [weak self] in
+            self?.isRelevant(cue) == true
+        }, onPlayback: { [weak self] in
+            self?.lastAiCommentary = cue.text
+        })
+    }
+
+    private func isRelevant(_ cue: PresenterCue) -> Bool {
+        switch cue.expiry {
+        case .whileLobby:
+            return screen == .lobby
+        case .throughResults(let roundId), .beforeNextRound(let roundId):
+            guard case .results(_, let current) = screen else { return false }
+            return current == roundId
+        case .whileFactIsTrue:
+            if case .results = screen { return true }
+            return false
+        case .whileGameEnd:
+            if case .gameEnd = screen { return true }
+            return false
         }
     }
 

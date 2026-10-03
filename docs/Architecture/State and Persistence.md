@@ -1,6 +1,6 @@
 ---
 tags: [architecture, persistence, offline]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # State and Persistence
@@ -21,6 +21,17 @@ needed. Everything lives in `SharedPreferences` on the device.
 | `ays.locale` | chosen language; absent = follow the device language — see [[Localization]] |
 | `ays.mp.permissionsPrimerSeen` | the multiplayer permissions primer was accepted; until then nothing touches the local network — see [[Multiplayer Client (Mobile)]] |
 | `ays.noAdsPurchased` | the "remove ads" IAP, set by `PurchaseManager` after a store purchase or restore — see [[Monetization and Ads]] |
+| `ays.partyPackPurchased` | Party Pack IAP: 16-player room entitlement only — see [[Multiplayer Product]] |
+| `ays.partyBundlePurchased` | Party Bundle IAP: 16-player room entitlement plus no ads — see [[Multiplayer Product]] |
+| `ays.mp.personaId` | random anonymous multiplayer persona, stable across joins; contains no player name |
+| `ays.mp.verifiedDisplayName` | exact display name for which presenter pronunciation was classified |
+| `ays.mp.spokenName` | cached validated pronunciation/alias for that exact display name |
+| `ays.mp.speechPolicy` | cached presenter speech verdict for that exact display name |
+
+The tvOS/macOS board separately keeps up to 64 presenter careers in its local
+`UserDefaults` key `ays.presenter.careers.v1`, keyed by `personaId`. Positive
+titles expire after 90 days; performance-negative titles after 7. It is not a
+cloud profile and is never sent to the speech backend ([[Multiplayer Presenter]]).
 
 ### AI feature keys (`ayu.*`, spec — [[Feature Flags]], [[Privacy and Offline]])
 
@@ -50,6 +61,7 @@ Settings → RESET STATS wipes the score keys (`ays.best`, `ays.attempts`,
 `ays.levelSum`, `ays.streak`, `ays.runsSinceAd`) via `ScoreManager.reset()`,
 plus the AI keys (`ayu.*`) via the `lib/ai/` reset path
 ([[Privacy and Offline]]). Sound/haptics/roasts/language and
-`ays.noAdsPurchased` are untouched — a purchase is not "progress" and must
+`ays.noAdsPurchased`, `ays.partyPackPurchased` and
+`ays.partyBundlePurchased` are untouched — purchases are not "progress" and must
 survive a stats reset. There is no UI path that removes it short of
 reinstalling and not restoring, and nothing leaves the phone either way.

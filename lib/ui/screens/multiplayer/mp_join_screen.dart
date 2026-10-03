@@ -15,8 +15,10 @@ import '../../../multiplayer/engine/party_session.dart';
 import '../../../multiplayer/engine/party_state.dart';
 import '../../../multiplayer/networking/lan_discovery.dart';
 import '../../../multiplayer/networking/session_socket.dart';
+import '../../../multiplayer/presenter/spoken_identity.dart';
 import '../../../services/app_services.dart';
 import '../../../services/local_network_permission.dart';
+import '../../../services/purchases/purchase_manager.dart';
 import '../../theme.dart';
 import '../../widgets/ays_button.dart';
 import 'mp_common.dart';
@@ -28,7 +30,16 @@ import '../../widgets/balanced_text.dart';
 /// this isn't wired to `pubspec.yaml`'s version on purpose.
 const _kAppVersion = '0.1';
 
-enum _Stage { resolving, notFound, networkDenied, connecting, connectError, form, rejected }
+enum _Stage {
+  resolving,
+  notFound,
+  networkDenied,
+  wifiDisconnected,
+  connecting,
+  connectError,
+  form,
+  rejected,
+}
 
 class MpJoinScreen extends StatefulWidget {
   const MpJoinScreen({super.key, required this.roomCode});
@@ -50,6 +61,8 @@ class _MpJoinScreenState extends State<MpJoinScreen>
   String? _joinError;
   bool _joining = false;
   bool _navigated = false;
+  bool _roomFullUpgradeable = false;
+  PurchaseManager? _purchases;
 
   final _nameController = TextEditingController();
   final _devAddressController = TextEditingController();
@@ -68,7 +81,9 @@ class _MpJoinScreenState extends State<MpJoinScreen>
   /// making the player find TRY AGAIN.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && mounted && _stage == _Stage.networkDenied) {
+    if (state == AppLifecycleState.resumed &&
+        mounted &&
+        (_stage == _Stage.networkDenied || _stage == _Stage.wifiDisconnected)) {
       _connect();
     }
   }
@@ -76,9 +91,28 @@ class _MpJoinScreenState extends State<MpJoinScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final purchases = AppServices.of(context).purchases;
+    if (!identical(_purchases, purchases)) {
+      _purchases?.removeListener(_onPurchaseChanged);
+      _purchases = purchases;
+      purchases.addListener(_onPurchaseChanged);
+    }
     if (!_nameSeeded) {
       _nameSeeded = true;
-      _nameController.text = AppServices.of(context).multiplayerProfile.playerName;
+      _nameController.text = AppServices.of(context)
+          .multiplayerProfile
+          .playerName;
+    }
+  }
+
+  void _onPurchaseChanged() {
+    if (!mounted) return;
+    if (_roomFullUpgradeable &&
+        AppServices.of(context).purchases.isPartyPackPurchased &&
+        !_joining) {
+      _submitJoin();
+    } else {
+      setState(() {});
     }
   }
 
@@ -87,6 +121,7 @@ class _MpJoinScreenState extends State<MpJoinScreen>
     WidgetsBinding.instance.removeObserver(this);
     _statesSub?.cancel();
     _eventsSub?.cancel();
+    _purchases?.removeListener(_onPurchaseChanged);
     // Only dispose here if we never handed the session off to the lobby.
     // Once navigated, `_aiDirector` (like `_session` itself) outlives this
     // widget — it isn't threaded through Lobby/Game/Result the way
@@ -132,13 +167,20 @@ class _MpJoinScreenState extends State<MpJoinScreen>
       // "Not found" is often really "not allowed to look": tell the player
       // the actual cause and how to fix it ([[Multiplayer Client (Mobile)]]
       // "Permissions").
-      final network = devAddress == null
-          ? await AppServices.of(context).localNetwork.status()
-          : LocalNetworkStatus.unknown;
+      final service = AppServices.of(context).localNetwork;
+      final results = devAddress == null
+          ? await Future.wait<Object>([service.status(), service.wifiStatus()])
+          : <Object>[LocalNetworkStatus.unknown, WifiConnectionStatus.unknown];
       if (!mounted) return;
-      setState(() => _stage = network == LocalNetworkStatus.denied
-          ? _Stage.networkDenied
-          : _Stage.notFound);
+      final network = results[0] as LocalNetworkStatus;
+      final wifi = results[1] as WifiConnectionStatus;
+      setState(
+        () => _stage = network == LocalNetworkStatus.denied
+            ? _Stage.networkDenied
+            : wifi == WifiConnectionStatus.disconnected
+            ? _Stage.wifiDisconnected
+            : _Stage.notFound,
+      );
       return;
     }
 
@@ -192,6 +234,7 @@ class _MpJoinScreenState extends State<MpJoinScreen>
       case PartyErrorEvent(:final error):
         setState(() {
           _joining = false;
+          _roomFullUpgradeable = error.code == 'ROOM_FULL_UPGRADABLE';
           _joinError = error.detail.isNotEmpty ? error.detail : error.code;
         });
       default:
@@ -204,10 +247,15 @@ class _MpJoinScreenState extends State<MpJoinScreen>
     _navigated = true;
     final session = _session!;
     final services = AppServices.of(context);
-    unawaited(services.multiplayerProfile.setProfile(
-      playerName: _nameController.text.trim(),
-      emoji: services.multiplayerProfile.emoji,
-    ));
+    unawaited(
+      services.multiplayerProfile.setProfile(
+        playerName: _nameController.text.trim(),
+        emoji: services.multiplayerProfile.emoji,
+        spokenIdentity: services.multiplayerProfile.spokenIdentityFor(
+          _nameController.text,
+        ),
+      ),
+    );
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(builder: (_) => MpLobbyScreen(session: session)),
     );
@@ -221,7 +269,24 @@ class _MpJoinScreenState extends State<MpJoinScreen>
       _joining = true;
       _joinError = null;
     });
-    session.joinRoom(playerName: name, emoji: AppServices.of(context).multiplayerProfile.emoji);
+    final services = AppServices.of(context);
+    final identity = services.multiplayerProfile.spokenIdentityFor(name);
+    if (identity.policy == NameSpeechPolicy.blocked) {
+      setState(() {
+        _joining = false;
+        _joinError = 'BEL TENTATIVO. SCEGLI UN ALTRO NOME.';
+      });
+      return;
+    }
+    session.joinRoom(
+      playerName: name,
+      emoji: services.multiplayerProfile.emoji,
+      noAds: services.settings.adsRemoved,
+      partyPack: services.settings.partyCapacityUnlocked,
+      personaId: services.multiplayerProfile.personaId,
+      spokenName: identity.spokenName,
+      speechPolicy: identity.policy.name,
+    );
   }
 
   @override
@@ -251,6 +316,7 @@ class _MpJoinScreenState extends State<MpJoinScreen>
   }
 
   Widget _buildStage(String Function(String, [Map<String, String>?]) t) {
+    final services = AppServices.of(context);
     switch (_stage) {
       case _Stage.resolving:
       case _Stage.connecting:
@@ -297,6 +363,32 @@ class _MpJoinScreenState extends State<MpJoinScreen>
           ],
         );
 
+      case _Stage.wifiDisconnected:
+        return _Centered(
+          children: [
+            Text(
+              t('ui.mp.network.wifi_disconnected'),
+              textAlign: TextAlign.center,
+              style: Ays.label(18),
+            ),
+            const SizedBox(height: 24),
+            AysButton(
+              label: t('ui.mp.join.retry'),
+              height: 64,
+              fontSize: 22,
+              onTap: () => _connect(),
+            ),
+            const SizedBox(height: 12),
+            AysButton(
+              label: t('ui.mp.home.back'),
+              height: 56,
+              fontSize: 17,
+              outlined: true,
+              onTap: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+
       case _Stage.notFound:
       case _Stage.connectError:
         return _Centered(
@@ -324,8 +416,12 @@ class _MpJoinScreenState extends State<MpJoinScreen>
             if (kDebugMode) ...[
               const SizedBox(height: 28),
               TextButton(
-                onPressed: () => setState(() => _showDevAddress = !_showDevAddress),
-                child: Text(t('ui.mp.join.dev_manual_address'), style: Ays.mono(12)),
+                onPressed: () =>
+                    setState(() => _showDevAddress = !_showDevAddress),
+                child: Text(
+                  t('ui.mp.join.dev_manual_address'),
+                  style: Ays.mono(12),
+                ),
               ),
               if (_showDevAddress) ...[
                 const SizedBox(height: 8),
@@ -341,7 +437,8 @@ class _MpJoinScreenState extends State<MpJoinScreen>
                   height: 52,
                   fontSize: 16,
                   outlined: true,
-                  onTap: () => _connect(devAddress: _devAddressController.text.trim()),
+                  onTap: () =>
+                      _connect(devAddress: _devAddressController.text.trim()),
                 ),
               ],
             ],
@@ -383,7 +480,10 @@ class _MpJoinScreenState extends State<MpJoinScreen>
                 style: Ays.mono(13),
               ),
             const SizedBox(height: 28),
-            Text(t('ui.mp.join.name_label'), style: Ays.label(14, color: Ays.inkDim)),
+            Text(
+              t('ui.mp.join.name_label'),
+              style: Ays.label(14, color: Ays.inkDim),
+            ),
             const SizedBox(height: 8),
             MpTextField(
               controller: _nameController,
@@ -393,11 +493,40 @@ class _MpJoinScreenState extends State<MpJoinScreen>
             ),
             if (_joinError != null) ...[
               const SizedBox(height: 12),
-              Text(_joinError!, textAlign: TextAlign.center, style: Ays.mono(13, color: Ays.wrong)),
+              Text(
+                _roomFullUpgradeable ? t('ui.mp.party.full') : _joinError!,
+                textAlign: TextAlign.center,
+                style: Ays.mono(13, color: Ays.wrong),
+              ),
+            ],
+            if (_roomFullUpgradeable &&
+                services.purchases.partyPackProduct != null) ...[
+              const SizedBox(height: 12),
+              AysButton(
+                label: t('ui.mp.party.buy', {
+                  'price': services.purchases.partyPackProduct!.price,
+                }),
+                height: 56,
+                fontSize: 16,
+                color: Ays.warning,
+                onTap: () {
+                  if (!services.purchases.busy) {
+                    services.purchases.buyPartyPack();
+                  }
+                },
+              ),
+              const SizedBox(height: 6),
+              Text(
+                t('ui.mp.party.one_unlocks'),
+                textAlign: TextAlign.center,
+                style: Ays.mono(11),
+              ),
             ],
             const Spacer(flex: 3),
             AysButton(
-              label: _joining ? t('ui.mp.join.waiting_host') : t('ui.mp.join.join_button'),
+              label: _joining
+                  ? t('ui.mp.join.waiting_host')
+                  : t('ui.mp.join.join_button'),
               height: 78,
               fontSize: 28,
               onTap: _joining ? () {} : _submitJoin,
@@ -422,6 +551,6 @@ class _Centered extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: children),
-      );
+    child: Column(mainAxisSize: MainAxisSize.min, children: children),
+  );
 }

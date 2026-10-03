@@ -26,7 +26,7 @@ The party mode is for a group sitting in front of a shared screen:
   instructions, timing traps, visual tricks and psychological mistakes.
 - The fun is **watching friends fail.**
 
-## Player experience (2-8 players)
+## Player experience (2-16 players; 8 free)
 
 1. Open ARE YOU STUPID? on Apple TV **(or on your Mac — the Mac hosts the
    room board-only, and you play on your phone like everyone else)**.
@@ -42,7 +42,9 @@ The party mode is for a group sitting in front of a shared screen:
 9. The last player standing / highest scorer wins.
 10. Instantly rematch or return to menu.
 
-No account, no cloud, no internet once installed ([[Game Design Pillars]]).
+No account is required. Core room play remains local and works without
+internet. The optional online [[Multiplayer Presenter]] may add generated
+voice commentary; losing it only removes narration, never the match.
 
 ## macOS as the host (board-only, no direct play)
 
@@ -90,6 +92,12 @@ join screen, when a room can't be found) shows:
 Local network access is off. Without it this phone can't find the TV.
 [ OPEN SETTINGS ]
 ```
+If the permission is available but the phone is not using Wi-Fi, the empty
+nearby-room state is replaced immediately with the localized roast: **"NO
+WI-FI. THE TV ISN'T TELEPATHIC. JOIN ITS NETWORK."** The join failure uses the
+same specific explanation. Only a phone already on Wi-Fi gets the generic
+"room not found" result; this keeps a missing host distinct from a missing
+network without reading or displaying the SSID.
 Details in [[Multiplayer Client (Mobile)]] "Permissions".
 
 ### Mobile — join
@@ -121,7 +129,8 @@ PLAYERS
 4 PLAYERS          [ START GAME ]
 ```
 - START GAME is enabled only when **≥2 players** are ready.
-- Up to **8 players**.
+- Up to **8 players** in every free room; **16** when any joined phone owns
+  Party Pack. One owner unlocks the whole room for that room session.
 - The host can remove a disconnected player (roster edit).
 
 ## Avatars (no assets)
@@ -149,17 +158,35 @@ Client (Mobile)]]). Same palette as the app theme ([[Rendering Pipeline]]).
 
 ## Ads
 
-**Never during a live multiplayer match.** A controller NEVER shows an ad
-mid-round — the local party experience is uninterrupted
-([[Multiplayer Client (Mobile)]] callout, carried into [[Monetization and
-Ads]] policy). Ads may appear only:
-- when returning to the main menu,
-- before starting a new match,
-- after a match ends.
+**Never during a live multiplayer match.** After `GAME_END`, a player may tap
+RIVINCITA. If nobody in the room owns Remove Ads or Party Bundle, that requesting
+phone alone receives one interstitial; the board and every other phone show a
+short synchronized troll break. Dismissal, no-fill or offline immediately
+returns everyone to the same lobby. If any joined player owns either no-ads product,
+the whole room skips the break. No timer or automatic placement exists.
+
+During the break, non-requesting phones may show the explicit Remove Ads CTA.
+The board never loads an ad: tvOS/macOS only render the joke/status screen.
 
 Rewarded ads, when offered, may unlock **cosmetic/bonus** perks for the winner
 (or the whole group) — never a competitive gameplay advantage; ads must not
 make the multiplayer game unfair.
+
+## Party Pack
+
+`ays_party_pack` is a non-consumable upgrade that only raises a room from 8 to
+16 seats. `ays_party_bundle` raises the cap and also removes ads. Either
+capacity entitlement activates as soon as its owner joins or completes the
+purchase in the lobby. The room benefit is sticky until the host room closes;
+the buyer leaving or being eliminated never shrinks a live party.
+
+At 8/8 every joined phone shows **SBLOCCA 16 GIOCATORI** and states that one
+purchase unlocks everyone. Party Pack and Party Bundle are offered side by
+side in that lobby banner and in Settings. A blocked ninth join receives the same purchase
+prompt and the host broadcasts `PARTY_PACK_NUDGE`, making existing phones'
+banner shake/haptic. Activation makes the board and phones celebrate with
+generated pomp. A dedicated activation sound is intentionally deferred until
+the later multiplayer sound-design pass; the UI must not claim it exists yet.
 
 ## Sharing
 
@@ -182,17 +209,27 @@ share flow ([[Virality and Sharing]]); no account, no tracking.
 ## Local data
 
 - **Mobile (persisted):** player name, preferred emoji, multiplayer statistics
-  (matches, wins, best finish), settings — via `SharedPreferences`
+  (matches, wins, best finish), settings, anonymous presenter persona and the
+  last exact-name pronunciation verdict — via `SharedPreferences`
   ([[State and Persistence]], [[Multiplayer Client (Mobile)]]).
-- **Board (TV or macOS host):** basic settings + optional local match stats
+- **Board (TV or macOS host):** basic settings, optional local match stats and
+  a bounded/expiring narrative-career cache keyed by anonymous persona
   (`UserDefaults`).
 - No cloud storage.
+
+## Optional online show layer (post-MVP)
+
+Multiplayer deliberately differs from the offline-only single-player product:
+it may use a minimal backend for the cache-first [[Multiplayer Presenter]].
+The board and phones still own the room over LAN. Online services may generate
+or retrieve narration but never judge input, score players or gate play.
 
 ## Explicitly out of scope (MVP)
 
 - Online matchmaking, accounts, cloud saves, global leaderboards.
 - Voice/video chat, complex player profiles, cosmetics marketplace.
-- Anything requiring a backend or internet connection to play.
+- Anything requiring a backend or internet connection **to play or finish a
+  match**. Optional show-layer enrichment may use one with local fallbacks.
 
 ## Success criteria
 
@@ -209,5 +246,6 @@ winner → immediate rematch. Must feel like a polished party game, not a demo.
 - [[Multiplayer Host (tvOS)]] — the TV side
 - [[Multiplayer Client (Mobile)]] — the phone side
 - [[Multiplayer Gameplay]] — modes, rounds, TV presentation
+- [[Multiplayer Presenter]] — optional voiced game-show host
 - [[Monetization and Ads]] — the single-player ad policy this extends
 - [[Virality and Sharing]] — the single-player share flow this mirrors

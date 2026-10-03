@@ -2,6 +2,7 @@
 // state — name/emoji for "join relaxation" and lifetime stats. See
 // [[Multiplayer Client (Mobile)]].
 import 'package:are_you_stupid/services/multiplayer_profile.dart';
+import 'package:are_you_stupid/multiplayer/presenter/spoken_identity.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -39,18 +40,76 @@ void main() {
       expect(reloaded.playerName, 'Sami');
     });
 
-    test('recordMatch increments matchesPlayed and wins only on a win', () async {
-      SharedPreferences.setMockInitialValues({});
-      final profile = await MultiplayerProfileManager.load();
+    test(
+      'spoken-name verification is reused for the exact same display name',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final first = await MultiplayerProfileManager.load();
+        const verified = SpokenIdentity(
+          displayName: 'x_Luca_x',
+          spokenName: 'Luca',
+          policy: NameSpeechPolicy.speakAlias,
+        );
+        await first.setProfile(
+          playerName: 'x_Luca_x',
+          emoji: '',
+          spokenIdentity: verified,
+        );
 
-      await profile.recordMatch(standing: 2, won: false);
-      expect(profile.matchesPlayed, 1);
-      expect(profile.wins, 0);
+        final reloaded = await MultiplayerProfileManager.load();
+        final cached = reloaded.spokenIdentityFor('x_Luca_x');
+        expect(cached.spokenName, 'Luca');
+        expect(cached.policy, NameSpeechPolicy.speakAlias);
+      },
+    );
 
-      await profile.recordMatch(standing: 1, won: true);
-      expect(profile.matchesPlayed, 2);
-      expect(profile.wins, 1);
-    });
+    test(
+      'changing display name invalidates the cached pronunciation',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final profile = await MultiplayerProfileManager.load();
+        const verified = SpokenIdentity(
+          displayName: 'S4M1',
+          spokenName: 'Sami',
+          policy: NameSpeechPolicy.speakAlias,
+        );
+        await profile.setProfile(
+          playerName: 'S4M1',
+          emoji: '',
+          spokenIdentity: verified,
+        );
+
+        expect(profile.spokenIdentityFor('Giulia').spokenName, 'Giulia');
+      },
+    );
+
+    test(
+      'persona id survives reload without containing the player name',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final first = await MultiplayerProfileManager.load();
+        final id = first.personaId;
+        final reloaded = await MultiplayerProfileManager.load();
+        expect(reloaded.personaId, id);
+        expect(id, isNot(contains('Massimo')));
+      },
+    );
+
+    test(
+      'recordMatch increments matchesPlayed and wins only on a win',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final profile = await MultiplayerProfileManager.load();
+
+        await profile.recordMatch(standing: 2, won: false);
+        expect(profile.matchesPlayed, 1);
+        expect(profile.wins, 0);
+
+        await profile.recordMatch(standing: 1, won: true);
+        expect(profile.matchesPlayed, 2);
+        expect(profile.wins, 1);
+      },
+    );
 
     test('bestStanding only ever improves (lower is better)', () async {
       SharedPreferences.setMockInitialValues({});
@@ -60,7 +119,11 @@ void main() {
       expect(profile.bestStanding, 3);
 
       await profile.recordMatch(standing: 5, won: false);
-      expect(profile.bestStanding, 3, reason: 'a worse finish must not overwrite the best');
+      expect(
+        profile.bestStanding,
+        3,
+        reason: 'a worse finish must not overwrite the best',
+      );
 
       await profile.recordMatch(standing: 1, won: true);
       expect(profile.bestStanding, 1);

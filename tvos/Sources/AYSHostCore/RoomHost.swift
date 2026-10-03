@@ -49,7 +49,7 @@ public final class RoomHost {
     ) {
         self.hostName = hostName
         self.roomCode = roomCode
-        self.maxPlayers = maxPlayers
+        self.freeMaxPlayers = maxPlayers
         self.lives = lives
         self.battleRounds = battleRounds
         self.speedBonus = speedBonus
@@ -61,7 +61,8 @@ public final class RoomHost {
 
     public let hostName: String
     public let roomCode: String
-    public let maxPlayers: Int
+    public let freeMaxPlayers: Int
+    public var maxPlayers: Int { partyPackActive ? max(16, freeMaxPlayers) : freeMaxPlayers }
     public let lives: Int
     public let battleRounds: Int
     public let speedBonus: Bool
@@ -81,6 +82,10 @@ public final class RoomHost {
     private var roundIndex = 0
     private var round: RoundState?
     private var lastChallengeId: String?
+    private var partyPackActive = false
+    private var adsRemoved = false
+    private var partyPackActivatedByPlayerId: String?
+    private var pendingAdPlayerId: String?
 
     // MARK: AI Director (Phase 8 — [[Multiplayer AI Director]])
 
@@ -195,6 +200,12 @@ public final class RoomHost {
             onJoin(conn, m)
         case let m as PlayerReady:
             onReady(conn, m)
+        case let m as RoomEntitlements:
+            onRoomEntitlements(conn, m)
+        case is RematchRequest:
+            onRematchRequest(conn)
+        case is AdBreakFinished:
+            onAdBreakFinished(conn)
         case is LeaveRoom:
             onLeave(conn)
         case let m as PlayerAction:
@@ -245,23 +256,72 @@ public final class RoomHost {
             tryReconnect(conn, join)
             return
         }
+        if join.partyPack && !partyPackActive {
+            partyPackActive = true
+        }
         if seats.count >= maxPlayers {
-            send(conn, PartyError(code: "ROOM_FULL", detail: "host is full", ts: nowMs))
+            broadcast(PartyPackNudge(ts: nowMs))
+            send(conn, PartyError(code: "ROOM_FULL_UPGRADABLE", detail: "One Party Pack unlocks 16 players for everyone.", ts: nowMs))
             return
         }
+        if join.noAds { adsRemoved = true }
         let seat = Seat(
             playerId: "p\(nextPlayer)",
             gameName: join.playerName,
             emoji: join.emoji,
             joinOrder: joinOrder.count,
-            lives: lives
+            lives: lives,
+            noAds: join.noAds,
+            partyPack: join.partyPack,
+            spokenName: join.spokenName,
+            speechPolicy: join.speechPolicy,
+            personaId: join.personaId
         )
         nextPlayer += 1
         seat.conn = conn
         seats[seat.playerId] = seat
         joinOrder.append(seat.playerId)
+        if join.partyPack && partyPackActivatedByPlayerId == nil {
+            partyPackActivatedByPlayerId = seat.playerId
+        }
         send(conn, joined(seat))
         broadcastRoster()
+        broadcastRoomPerks()
+    }
+
+    private func onRematchRequest(_ conn: Connection) {
+        guard !inGame, pendingAdPlayerId == nil, let seat = seatFor(conn) else { return }
+        if adsRemoved {
+            completeRematch()
+            return
+        }
+        pendingAdPlayerId = seat.playerId
+        broadcast(AdBreakStarted(playerId: seat.playerId, ts: nowMs))
+    }
+
+    private func onRoomEntitlements(_ conn: Connection, _ entitlements: RoomEntitlements) {
+        guard let seat = seatFor(conn) else { return }
+        if entitlements.partyPack && !partyPackActive {
+            partyPackActive = true
+            partyPackActivatedByPlayerId = seat.playerId
+        }
+        if entitlements.noAds {
+            adsRemoved = true
+        }
+        broadcastRoomPerks()
+    }
+
+    private func onAdBreakFinished(_ conn: Connection) {
+        guard let seat = seatFor(conn), seat.playerId == pendingAdPlayerId else { return }
+        completeRematch()
+    }
+
+    private func completeRematch() {
+        pendingAdPlayerId = nil
+        for seat in seats.values { seat.ready = false }
+        broadcast(RematchReady(ts: nowMs))
+        broadcastRoster()
+        broadcastRoomPerks()
     }
 
     private func tryReconnect(_ conn: Connection, _ join: JoinRoom) {
@@ -716,8 +776,18 @@ public final class RoomHost {
         broadcast(PlayerReadyRoster(players: rosterSnapshot(), ts: nowMs))
     }
 
+    private func broadcastRoomPerks() {
+        broadcast(RoomPerks(
+            maxPlayers: maxPlayers,
+            partyPackActive: partyPackActive,
+            adsRemoved: adsRemoved,
+            activatedByPlayerId: partyPackActivatedByPlayerId,
+            ts: nowMs
+        ))
+    }
+
     private func info(_ seat: Seat) -> PlayerInfo {
-        PlayerInfo(playerId: seat.playerId, playerName: seat.gameName, emoji: seat.emoji, ready: seat.ready)
+        PlayerInfo(playerId: seat.playerId, playerName: seat.gameName, emoji: seat.emoji, ready: seat.ready, spokenName: seat.spokenName, speechPolicy: seat.speechPolicy, personaId: seat.personaId)
     }
 
     /// Join order, not `seats.values`' unspecified Dictionary order — mirrors
@@ -766,17 +836,27 @@ private final class Seat {
     var disconnectedAtMs: Int?
     var pendingAction: PartyAction?
     var actionElapsedMs: Int?
+    let noAds: Bool
+    let partyPack: Bool
+    let spokenName: String?
+    let speechPolicy: String
+    let personaId: String?
 
     /// Set on `AI_CAPABILITIES` — `nil` until this seat announces itself.
     /// Phase 7 only stores this; the election that reads it is Phase 8.
     var aiCapabilities: AiCapabilities?
 
-    init(playerId: String, gameName: String, emoji: String, joinOrder: Int, lives: Int) {
+    init(playerId: String, gameName: String, emoji: String, joinOrder: Int, lives: Int, noAds: Bool = false, partyPack: Bool = false, spokenName: String? = nil, speechPolicy: String = "displayOnly", personaId: String? = nil) {
         self.playerId = playerId
         self.gameName = gameName
         self.emoji = emoji
         self.joinOrder = joinOrder
         self.lives = lives
+        self.noAds = noAds
+        self.partyPack = partyPack
+        self.spokenName = spokenName
+        self.speechPolicy = speechPolicy
+        self.personaId = personaId
     }
 }
 

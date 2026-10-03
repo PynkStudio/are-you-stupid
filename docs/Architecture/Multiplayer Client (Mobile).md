@@ -90,6 +90,14 @@ Single-player never asks for either.
   own when the player comes back with access on. `MpJoinScreen` does the same
   when a room isn't found: if the cause is a denied permission it says so
   instead of "couldn't find the room", and retries by itself on resume.
+- **Off Wi-Fi.** The same native channel checks only whether the active
+  transport is Wi-Fi (never the network name). The landing screen stops its
+  empty-room search and immediately says that the phone must join the TV's
+  network; a failed room-code lookup makes the same distinction before using
+  the generic "room not found" copy. iOS uses `NWPathMonitor`, Android uses
+  `ConnectivityManager`; the iOS simulator reports `unknown` because its Mac
+  bridge is not a truthful model of a phone's Wi-Fi interface. `unknown`
+  remains non-blocking, so unsupported environments never get a false alarm.
 - **Camera denied.** The scanner's error view gains the same OPEN SETTINGS
   button; ENTER ROOM CODE stays the no-camera path.
 
@@ -158,6 +166,8 @@ On mobile, persist locally:
   name; auto-generated avatar if none — colored circle + initial, see
   [[Multiplayer Gameplay]]),
 - **multiplayer statistics** (matches played, wins, best *least-stupid* finish),
+- **anonymous presenter persona** plus the last exact display-name → spoken
+  identity verification,
 - **permissions primer seen** (`ays.mp.permissionsPrimerSeen`, see
   Permissions above),
 - **settings** (reuse `SettingsManager` language/sound/haptics, [[Services]]).
@@ -183,9 +193,31 @@ are never kicked.
 ## Ads policy
 
 Client controllers show **no ads during any live multiplayer match**
-([[Multiplayer Product]] and [[Monetization and Ads]]). Ads may only appear at
-menu-return, before a new match, or after a match ends — and never inside a
-round. The single-player `AdManager` policy is not disturbed.
+([[Multiplayer Product]] and [[Monetization and Ads]]). After `GAME_END`, the
+phone that explicitly requests a rematch is the only device allowed to show an
+interstitial; peers show troll copy plus an optional Remove Ads CTA. A room-wide
+entitlement from any participant skips it. `PartySession` coordinates the
+break; the single-player run counter is not consumed.
+
+At 8/8 the lobby renders Party Pack and Party Bundle CTAs side by side. A ninth blocked join
+receives `ROOM_FULL_UPGRADABLE`; existing phones receive `PARTY_PACK_NUDGE`
+and shake/haptic the banner. A completed purchase sends `ROOM_ENTITLEMENTS`
+without reconnecting, and `ROOM_PERKS` updates the cap to 16 for everyone.
+The bundle is represented on the wire by both existing booleans (`noAds: true`,
+`partyPack: true`); Party Pack sends only `partyPack: true`.
+
+## Spoken presenter identity
+
+Join now derives a conservative `spokenName` locally from the display name
+(`x_$Luca🔥_xX` → `Luca`) and sends it with `speechPolicy`. Plain names pass
+unchanged, decoration is stripped, emoji-only names stay display-only, and
+obvious profanity/contact payloads are rejected before the network. The result
+is cached for the exact display name, reused on a later join, and invalidated
+as soon as the display name changes. A random persistent `personaId` lets the
+same board recognize a returning narrative career without an account or name-
+based matching. This is the deterministic floor; optional on-device-model
+refinement and alias confirmation UI in [[Multiplayer Presenter]] are not
+implemented yet, but their structured verdict uses the same cache.
 
 ## Testability
 

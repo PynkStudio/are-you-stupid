@@ -2873,3 +2873,173 @@ same LAN wastes Bonjour's strongest affordance. TXT metadata makes the
 suggestion useful without speculative TCP sessions or a protocol-v1 change.
 The device name stays LAN-only. **Cost:** occupancy can be briefly stale while
 mDNS propagates; the host still enforces capacity authoritatively on join.
+
+### 2026-10-03 — Room discovery distinguishes off-Wi-Fi from an empty LAN
+
+**Decision.** Extend the existing native `ays/permissions` bridge with a
+coarse active-Wi-Fi check (`NWPathMonitor` on iOS, `ConnectivityManager` on
+Android). Before showing an empty nearby-room search or a generic room-code
+failure, mobile now surfaces the localized roast "NO WI-FI. THE TV ISN'T
+TELEPATHIC. JOIN ITS NETWORK." A denied Local Network permission still wins
+as the more actionable diagnosis. No SSID or BSSID is requested, and an
+unknown result never blocks discovery; the iOS simulator deliberately returns
+unknown because its Mac-backed network path is not representative.
+
+**Why.** "No host exists on this LAN" and "this phone is not on a Wi-Fi LAN"
+need different fixes. Naming the real prerequisite immediately is faster and
+funnier than letting the player retry a discovery operation that cannot work,
+while the coarse transport check preserves the project's local-only privacy
+posture. **Cost:** the app can prove that phone and host both use Wi-Fi, not
+that they share the same SSID; a guest-network/client-isolation problem still
+falls through to the generic room-not-found message.
+
+### 2026-10-03 — Multiplayer monetizes the party boundary, never a live round
+
+**Decision.** Keep live matches ad-free. After `GAME_END`, the first player to
+tap RIVINCITA becomes the sole ad device unless any joined participant owns
+Remove Ads or Party Pack. The board and other phones render synchronized troll
+copy, and no-fill/offline immediately releases the room. Separately, rooms are
+free through 8 seats; one Party Pack owner raises the whole room to 16 and
+suppresses ads for the session. Benefits are sticky until the room closes.
+
+At 8/8 every phone offers **SBLOCCA 16 GIOCATORI** and explicitly says one
+purchase covers everyone. A blocked ninth join nudges that shared CTA. Party
+Pack activation gets generated celebratory board/phone visuals; a dedicated
+sound effect is deferred to the multiplayer sound pass and is documented as
+unshipped.
+
+**Why.** One explicit ad preserves the game's user-initiated policy without
+multiplying the interruption across every phone. The shared entitlement makes
+both purchases socially generous. Eight remains a complete free party; 16 is
+a concrete, testable premium capacity rather than an unsafe “unlimited” claim.
+The additive v1 wire messages are forward-tolerant, and entitlement claims are
+trusted like client-side judging: acceptable for a local in-person game with no
+accounts/backend. See [[Multiplayer Product]], [[Monetization and Ads]],
+[[Multiplayer Protocol]] and [[Multiplayer Host (tvOS)]].
+
+### 2026-10-03 — Multiplayer may use an optional online, cache-first voice presenter
+
+**Decision.** Keep single-player offline-only, while allowing multiplayer an
+optional online show layer for a charismatic spoken presenter. Common anonymous
+lines are curated/synthesized once and cached; named templates are generated
+only on cache miss; fully dynamic speech is reserved for rare story-worthy
+moments. The host falls through bundled audio, disk cache, backend cache, new
+TTS and finally subtitles without ever delaying play. The backend cannot judge,
+score or own room state.
+
+Player identity splits into `displayName` and a validated `spokenName`. Local
+deterministic normalization runs first; an available on-device model may
+extract a pronounceable alias (`x_$Luca🔥_xX` → `Luca`) through a closed
+decision schema. Only the alias may be sent for speech. Unsafe/uncertain names
+use direct second-person lines. Spoken-name collisions deliberately become
+jokes (`THE OTHER LUCA`, `THE REAL LUCA`). Deterministic match facts may also
+earn evolving room-local titles (`THE KING`, then `THE FORMER KING`); AI may
+phrase facts but never invent them. Strong negative titles require the spicy
+setting and may only target demonstrated play.
+
+**Why.** Recorded-only commentary cannot react to the room, while generating
+every line repeats cost and adds latency. The cache-first ladder concentrates
+generation where personalization is audible. Separating spoken identity keeps
+decorated nicknames fun without leaking raw input or forcing the TTS to read
+garbage. Narrative continuity turns isolated jokes into a story players can
+repeat after the match. Core LAN authority plus immediate fallbacks preserve a
+reliable party even with no internet. Full contract: [[Multiplayer Presenter]].
+
+### 2026-10-03 — Presenter fallback ships with the host; lateness is semantic
+
+**Decision.** Ship a versioned universal voice pack and matching line manifest
+inside the tvOS/macOS host app, synchronized by stable IDs with subtitles and
+backend cache entries. Online generation is additive. Each cue owns a relevance
+policy: transient result/elimination audio expires with its visual beat;
+narrative-title introductions may move to the next safe beat while still true;
+lobby and final verdicts may arrive late only while their state remains on
+screen. Gameplay never waits and stale commentary is discarded.
+
+Savage presenter copy should deliberately approach, not merely gesture at, the
+allowed tone boundary. It may be personal, persistent and ruthless about
+observed match performance. The ceiling remains invariant: no protected traits,
+appearance/body, sexuality, health/disability, family/trauma, threats,
+real-world allegations or attacks on human worth. Uncertain lines fail closed.
+
+**Why.** Baseline spoken character must survive a fully offline party, while a
+single global timeout would either kill useful final commentary or play stale
+round jokes. Semantic expiry keeps the show responsive without making every
+late packet worthless. A strong Savage mode only earns its setting if players
+can hear the difference, but its safety contract cannot become probabilistic.
+See [[Multiplayer Presenter]] and [[Humor and Roasts]].
+
+### 2026-10-03 — Presenter speech reuses the PynkStudio platform backend
+
+**Decision.** Host the presenter endpoint inside the existing Menuary/BePork
+Next.js deployment rather than create an AYS-only service. The isolated
+`/api/ays/presenter` route accepts only a short validated cue, authenticates
+with a dedicated bearer token, rate-limits callers, generates MP3 through the
+existing server-side OpenAI account and caches deterministic hashes in a
+private `ays-presenter-cache` Supabase bucket. It imports no tenant UI or
+business module and owns no game state.
+
+**Why.** The platform already provides Vercel, secrets and Supabase operations;
+a second backend would duplicate deployment and monitoring for one narrow API.
+Route and bucket isolation prevent a game feature from leaking into tenant
+logic. **Cost:** presenter availability now shares the platform deployment's
+blast radius, and production requires a storage migration plus coordinated
+host/backend secrets. The game still falls through immediately when it is
+unavailable. See [[Multiplayer Presenter]].
+
+### 2026-10-03 — Titles never break words; multi-line headlines are balanced
+
+**Decision.** Screen titles and big headlines render through one widget,
+`BalancedText`: shrink the font until the longest word fits, cap the line
+count, then narrow the box to the smallest width that keeps that line count
+(the equivalent of CSS `text-wrap: balance`). Single-word titles use
+`maxLines: 1`. Body and label copy stay plain `Text`.
+
+**Why.** Translated strings broke titles mid-word (Italian
+`IMPOSTAZION / I` on Settings) and left orphan words on the Game Over roast
+(`CONGRATULATIONS, I / GUESS`). A bare `FittedBox` fixes the first but forces
+everything onto one tiny line; Flutter's greedy wrapping causes the second.
+Doing it in one place keeps six locales symmetric without per-string manual
+line breaks, which would rot as copy and AI verdicts change. See
+[[Rendering Pipeline]].
+
+### 2026-10-03 — Party Pack capacity and ad removal are separate entitlements
+
+**Decision.** `ays_party_pack` unlocks only the 16-player room cap.
+`ays_party_bundle` unlocks both 16 players and ad removal, while
+`ays_remove_ads` remains the ad-only purchase. The wire protocol keeps its two
+capability booleans: a bundle is sent as both `partyPack` and `noAds`, avoiding
+a product-specific host contract.
+
+**Why.** Separating capabilities keeps the cheaper Party Pack promise precise
+and makes the Bundle's extra value explicit. Capability-based wire messages
+also let future store offers combine the same benefits without another
+protocol migration. This supersedes the earlier decision that Party Pack
+itself suppresses multiplayer ads. See [[Monetization and Ads]] and
+[[Multiplayer Product]].
+
+### 2026-10-03 — Returning presenter careers use an anonymous local persona
+
+**Decision.** Each phone creates a random persistent `personaId` and caches its
+spoken-name verdict against the exact display name. The board uses that opaque
+ID to retain at most 64 narrative careers locally: positive titles expire in
+90 days, while negative performance titles expire in 7. Neither the ID nor the
+career history reaches the speech backend.
+
+**Why.** Exact-name caching avoids repeating future on-device AI work, and a
+stable anonymous key enables callbacks such as `È TORNATO IL KING INDISCUSSO`
+without accounts, fragile name matching or cloud profiles. Short-lived
+negative labels preserve the joke without making one bad night a lasting
+identity. See [[Multiplayer Presenter]] and [[State and Persistence]].
+
+### 2026-10-03 — Personalized speech cache expires 30 days after its last hit
+
+**Decision.** Backend speech is keyed by filtered rendered text plus locale,
+voice/model and delivery style, not by event/cue ID. A cache hit refreshes its
+last-access timestamp. A daily cleanup deletes Supabase audio and metadata
+after 30 inactive days; metadata contains only the digest/object path and
+usage counters, never a plaintext name or sentence.
+
+**Why.** `LUCA, MA CE LA FAI?` should be generated once even if multiple game
+events request it. Sliding retention naturally preserves common name/phrase
+combinations while removing the long tail without an ever-growing database.
+See [[Multiplayer Presenter]].

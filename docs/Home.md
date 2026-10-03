@@ -49,7 +49,7 @@ repository MUST read [[Documentation Rules]] before touching code.**
 - [[Release Checklist]]
 
 ### Multiplayer — Apple TV party mode
-A 2–8 player party mode: tvOS host (or a macOS **board-only** host with AirPlay
+A 2–16 player party mode (8 free; Party Pack room unlock): tvOS host (or a macOS **board-only** host with AirPlay
 mirroring) + phones as controllers over the local network. **Phases 1–3
 landed (Dart determinism, protocol + host reference, Flutter join/lobby/game
 screens); Phase 4's Swift host (`RoomHost`, `Net/`, `QR/`, and now a real
@@ -62,6 +62,8 @@ phase-by-phase detail.
 - [[Multiplayer Product]] — concept, QR joining, ads, sharing, scope
 - [[Multiplayer Gameplay]] — Last Stupid Standing + Stupid Battle, rounds,
   TV presentation, humor
+- [[Multiplayer Presenter]] — optional online voice host, cached speech,
+  spoken identities and narrative titles
 - [[Multiplayer Challenges]] — synchronized seeded challenges + the four
   new families
 - [[Multiplayer Architecture]] — topology and host authority
@@ -136,8 +138,8 @@ Implementation phases are tracked in [[Development Plan]].
 | Target | State |
 |---|---|
 | `flutter analyze` | clean |
-| `flutter test` | 334/334 passing (2026-10-03, nearby-room Bonjour metadata parsing added) — see [[Testing]] |
-| `swift test` (from `tvos/`) | 84 cases (29 protocol + 55 host core), all green; 4 real-socket cases skip by default (`AYS_RUN_NETWORK_TESTS=1` to run for real) — see [[Testing]] |
+| `flutter test` | 350/350 passing (2026-10-03, purchase entitlement coverage included) — see [[Testing]] |
+| `swift test` (from `tvos/`) | 92 cases (29 protocol + 63 host core), all green; 4 real-socket cases skip by default (`AYS_RUN_NETWORK_TESTS=1` to run for real) — see [[Testing]] |
 | Android debug APK | builds |
 | Android release APK | builds, signed with a real upload key (not debug) — see [[Release Checklist]] |
 | iOS simulator | builds and runs via `flutter run`, hot reload included |

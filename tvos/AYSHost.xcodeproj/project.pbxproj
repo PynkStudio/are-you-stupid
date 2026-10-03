@@ -34,6 +34,8 @@
 		CE81C143423B1480E2504231 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4ABEC9F190566FB8763417 /* RootView.swift */; };
 		E7047E13EFD00CEBD0A1A4D1 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4ABEC9F190566FB8763417 /* RootView.swift */; };
 		EA1F6698587F00031B4EE5DF /* AYSHostCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5ACCC349FFB063058B7ABD24 /* AYSHostCore */; };
+		F232FE8460C17F28FD43AAD5 /* PresenterAudioController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97B3339EB7ABAFEC2AC20A43 /* PresenterAudioController.swift */; };
+		F5924BFC3A773CF0505A0688 /* PresenterAudioController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97B3339EB7ABAFEC2AC20A43 /* PresenterAudioController.swift */; };
 		F6DFD645290D446365B04AB2 /* HostViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F49C59B5DE406A1997CD55 /* HostViewModel.swift */; };
 		F70F3CC5516FA70EE5AB8AA7 /* LobbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E063DEA0265C1B604CE7826 /* LobbyView.swift */; };
 		FD5D32DA33BC350E5A34661D /* RoomCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E62B697C82864B8D27724446 /* RoomCode.swift */; };
@@ -51,6 +53,7 @@
 		7091CCD915A6A1EA798D8FE0 /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
 		71DF5E0910424EFB8B0809F6 /* AYSHostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AYSHostApp.swift; sourceTree = "<group>"; };
 		75D43362E01BD1611832026D /* AYSHost-tvOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "AYSHost-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		97B3339EB7ABAFEC2AC20A43 /* PresenterAudioController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenterAudioController.swift; sourceTree = "<group>"; };
 		A473875B419EDFF81262CD76 /* AirPlayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirPlayButton.swift; sourceTree = "<group>"; };
 		A982E2CCBD3B6577896E26EE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B873BDAE5035F6B569631035 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -122,6 +125,7 @@
 				028CFEEAA243F97286D8C2E1 /* GameEndView.swift */,
 				E3F49C59B5DE406A1997CD55 /* HostViewModel.swift */,
 				5E063DEA0265C1B604CE7826 /* LobbyView.swift */,
+				97B3339EB7ABAFEC2AC20A43 /* PresenterAudioController.swift */,
 				7091CCD915A6A1EA798D8FE0 /* ResultsView.swift */,
 				E62B697C82864B8D27724446 /* RoomCode.swift */,
 				FD4ABEC9F190566FB8763417 /* RootView.swift */,
@@ -270,6 +274,7 @@
 				05216C40A2A92AE5A482EA48 /* GameEndView.swift in Sources */,
 				F6DFD645290D446365B04AB2 /* HostViewModel.swift in Sources */,
 				18943F96A442C0667A7174E9 /* LobbyView.swift in Sources */,
+				F5924BFC3A773CF0505A0688 /* PresenterAudioController.swift in Sources */,
 				8227119F196AEF6267F2749C /* ResultsView.swift in Sources */,
 				0117285B5F1DE99420FB612C /* RoomCode.swift in Sources */,
 				E7047E13EFD00CEBD0A1A4D1 /* RootView.swift in Sources */,
@@ -289,6 +294,7 @@
 				15AC360C6702FDF9B020A876 /* GameEndView.swift in Sources */,
 				0F7638905501C0AA65CCB14C /* HostViewModel.swift in Sources */,
 				F70F3CC5516FA70EE5AB8AA7 /* LobbyView.swift in Sources */,
+				F232FE8460C17F28FD43AAD5 /* PresenterAudioController.swift in Sources */,
 				CB10E207ED2577CFA593F30E /* ResultsView.swift in Sources */,
 				FD5D32DA33BC350E5A34661D /* RoomCode.swift in Sources */,
 				CE81C143423B1480E2504231 /* RootView.swift in Sources */,

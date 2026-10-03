@@ -284,6 +284,19 @@ Humour lines ([[Multiplayer Gameplay]]), winner card, share card, rematch.
 discovery reliability, round-lock synchronization across phones, TV
 presentation readability, disconnect/rejoin, rematch speed.
 
+### Phase 11 — Voice presenter
+
+**Status: foundation landed, production assets/config pending.** The client
+derives and sends a spoken alias; the Swift host has the cue/title engine,
+semantic expiry, cache ladder and audio playback. Exact-name verification is
+cached on the phone, while a stable anonymous persona lets the board remember
+bounded, expiring narrative careers and greet returning players. The shared PynkStudio backend
+has the authenticated OpenAI TTS route and private-cache migration. Automated
+logic tests and a macOS host build pass. Remaining: deploy/migrate, configure
+endpoint secrets, populate the licensed offline pack, add on-device AI name
+refinement/settings, validate tvOS audio and tune the narrative catalog on
+real parties. Full contract: [[Multiplayer Presenter]].
+
 ## Test strategy
 
 Same culture as [[Testing]]: core logic headless, then the simulation harness,
@@ -312,7 +325,7 @@ then the live-debug passes.
 ### Simulation harness (host reference)
 
 A single in-process host reference exposes the same protocol messages the
-Swift host will. Tests instantiate **2–8 fake `PartySession` clients** that:
+Swift host will. Tests instantiate **2–16 fake `PartySession` clients** that:
 
 - join with a name/emoji, set READY;
 - receive `ROUND_START` and either answer correctly, incorrectly, or
@@ -332,7 +345,8 @@ Swift app exist, and is the reference the `tvos/` host must pass against.
 
 ### Live runs
 
-Per-Phase manual pass on 2/4/8 real devices; plus the [[Release Checklist]]
+Per-Phase manual pass on 2/4/8 real devices, plus a 9th-seat/16-seat Party Pack
+stress pass; plus the [[Release Checklist]]
 gate (`flutter analyze` clean, `flutter test` green, docs current).
 
 ## Acceptance

@@ -1,6 +1,6 @@
 ---
 tags: [gameplay, tone, copy]
-updated: 2026-09-06
+updated: 2026-10-03
 ---
 
 # Humor and Roasts
@@ -23,6 +23,14 @@ Three pools:
 
 `Roasts.forMistake()` picks neutral ~55 % of the time. With **SAVAGE MODE** off
 in Settings, only the neutral pool is used (`GameEngine.spicyRoasts`).
+
+The future [[Multiplayer Presenter]] uses the same gate for spoken titles and
+callbacks. Savage narration is meant to get genuinely close to the tone limit:
+it can repeatedly weaponize a player's real mistakes, ranking and collapsed
+reputation. The limit itself is absolute — never protected traits, body or
+appearance, sexuality, health/disability, family/trauma, threats, real-world
+allegations or attacks on human worth. It roasts the night's evidence, not the
+person's life.
 
 ## Challenge-specific lines beat random ones
 
@@ -47,3 +55,12 @@ on. See [[Game Design Pillars]].
 Success shows `YES` plus an occasional dry note (`NICE RESTRAINT.`,
 `WOW. YOU DID NOTHING.`, `PARADOX SURVIVED.`). Never enthusiastic. The game is
 not impressed by you.
+
+## Useful system jokes
+
+Setup failures may use the same dry voice only when the joke also names the
+fix. Multiplayer's known off-Wi-Fi state says `NO WI-FI. THE TV ISN'T
+TELEPATHIC. JOIN ITS NETWORK.` (transcreated in every locale) instead of
+pretending that room discovery is still useful. Unknown connectivity and an
+actual empty Wi-Fi LAN keep neutral copy: never roast the player for a cause
+the app cannot prove.
