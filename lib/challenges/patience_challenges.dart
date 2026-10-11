@@ -6,12 +6,12 @@ import 'base.dart';
 /// 19 — DON'T TAP ANYTHING. Then a huge TAP ME button shows up. Obviously.
 class DontTapChallenge extends BaseChallenge {
   DontTapChallenge(ChallengeParams p)
-      : super(
-          p,
-          id: 'dont_tap',
-          tag: ChallengeTag.patience,
-          duration: p.pace(const Duration(milliseconds: 2900), floorMs: 1800),
-        ) {
+    : super(
+        p,
+        id: 'dont_tap',
+        tag: ChallengeTag.patience,
+        duration: p.pace(const Duration(milliseconds: 2900), floorMs: 1800),
+      ) {
     instruction = p.tr('challenge.dont_tap.instruction');
     layout = ChallengeLayout.none;
     _bait = p.tr('challenge.dont_tap.bait');
@@ -54,12 +54,12 @@ class DontTapChallenge extends BaseChallenge {
 /// 20 — DO NOTHING, while the screen does everything it can to make you tap.
 class DoNothingChallenge extends BaseChallenge {
   DoNothingChallenge(ChallengeParams p)
-      : super(
-          p,
-          id: 'do_nothing',
-          tag: ChallengeTag.patience,
-          duration: p.pace(const Duration(milliseconds: 3000), floorMs: 2000),
-        ) {
+    : super(
+        p,
+        id: 'do_nothing',
+        tag: ChallengeTag.patience,
+        duration: p.pace(const Duration(milliseconds: 3000), floorMs: 2000),
+      ) {
     instruction = p.tr('challenge.do_nothing.instruction');
     layout = ChallengeLayout.none;
     note = p.tr('challenge.do_nothing.success');
@@ -92,12 +92,12 @@ class DoNothingChallenge extends BaseChallenge {
 /// 21 — WAIT FOR GREEN. Tapping early is the whole point.
 class WaitForGreenChallenge extends BaseChallenge {
   WaitForGreenChallenge(ChallengeParams p, this._greenAt, Duration window)
-      : super(
-          p,
-          id: 'wait_for_green',
-          tag: ChallengeTag.reaction,
-          duration: _greenAt + window,
-        ) {
+    : super(
+        p,
+        id: 'wait_for_green',
+        tag: ChallengeTag.reaction,
+        duration: _greenAt + window,
+      ) {
     instruction = p.tr('challenge.wait_for_green.instruction');
     layout = ChallengeLayout.single;
     targets = const [
@@ -137,9 +137,7 @@ class WaitForGreenChallenge extends BaseChallenge {
 
   static WaitForGreenChallenge build(ChallengeParams p) {
     final greenAt = Duration(milliseconds: 900 + p.rng.nextInt(1400));
-    final window = Duration(
-      milliseconds: max(420, (750 / p.speed).round()),
-    );
+    final window = Duration(milliseconds: max(420, (750 / p.speed).round()));
     return WaitForGreenChallenge(p, greenAt, window);
   }
 }
@@ -147,12 +145,12 @@ class WaitForGreenChallenge extends BaseChallenge {
 /// 22 — TAP AFTER EXACTLY 2 SECONDS. No countdown. Shows your error.
 class PreciseTimingChallenge extends BaseChallenge {
   PreciseTimingChallenge(ChallengeParams p, this.targetTime, this.tolerance)
-      : super(
-          p,
-          id: 'precise_timing',
-          tag: ChallengeTag.reaction,
-          duration: targetTime + tolerance + const Duration(milliseconds: 260),
-        ) {
+    : super(
+        p,
+        id: 'precise_timing',
+        tag: ChallengeTag.reaction,
+        duration: targetTime + tolerance + const Duration(milliseconds: 260),
+      ) {
     final secs = (targetTime.inMilliseconds / 1000).toStringAsFixed(0);
     instruction = p.tr('challenge.precise_timing.instruction', {'secs': secs});
     layout = ChallengeLayout.none;
@@ -188,9 +186,7 @@ class PreciseTimingChallenge extends BaseChallenge {
 
   static PreciseTimingChallenge build(ChallengeParams p) {
     final seconds = 2 + p.rng.nextInt(2); // 2..3
-    final tol = Duration(
-      milliseconds: max(200, (460 / p.speed).round()),
-    );
+    final tol = Duration(milliseconds: max(200, (460 / p.speed).round()));
     return PreciseTimingChallenge(p, Duration(seconds: seconds), tol);
   }
 }
@@ -198,12 +194,12 @@ class PreciseTimingChallenge extends BaseChallenge {
 /// 23 — HOLD THE BUTTON. Letting go is a fail. So is never pressing.
 class HoldButtonChallenge extends BaseChallenge {
   HoldButtonChallenge(ChallengeParams p)
-      : super(
-          p,
-          id: 'hold_button',
-          tag: ChallengeTag.patience,
-          duration: p.pace(const Duration(milliseconds: 2800), floorMs: 1700),
-        ) {
+    : super(
+        p,
+        id: 'hold_button',
+        tag: ChallengeTag.patience,
+        duration: p.pace(const Duration(milliseconds: 2800), floorMs: 1700),
+      ) {
     instruction = p.tr('challenge.hold_button.instruction');
     _holdingLabel = p.tr('challenge.hold_button.holding');
     layout = ChallengeLayout.single;
@@ -254,14 +250,14 @@ class HoldButtonChallenge extends BaseChallenge {
 /// 24 — the screen says nothing at all. Doing nothing is correct.
 class NoInstructionChallenge extends PatienceChallenge {
   NoInstructionChallenge(ChallengeParams p)
-      : super(
-          p,
-          id: 'no_instruction',
-          tag: ChallengeTag.trick,
-          duration: p.pace(const Duration(milliseconds: 2400), floorMs: 1600),
-          instruction: '',
-          tapReason: p.tr('challenge.no_instruction.tap_reason'),
-        ) {
+    : super(
+        p,
+        id: 'no_instruction',
+        tag: ChallengeTag.trick,
+        duration: p.pace(const Duration(milliseconds: 2400), floorMs: 1600),
+        instruction: '',
+        tapReason: p.tr('challenge.no_instruction.tap_reason'),
+      ) {
     note = p.tr('challenge.no_instruction.success');
   }
 }
@@ -269,12 +265,12 @@ class NoInstructionChallenge extends PatienceChallenge {
 /// 25 — DO NOT FOLLOW THIS INSTRUCTION. Used sparingly, on purpose.
 class DontFollowChallenge extends BaseChallenge {
   DontFollowChallenge(ChallengeParams p)
-      : super(
-          p,
-          id: 'dont_follow',
-          tag: ChallengeTag.trick,
-          duration: p.pace(const Duration(milliseconds: 2800), floorMs: 1900),
-        ) {
+    : super(
+        p,
+        id: 'dont_follow',
+        tag: ChallengeTag.trick,
+        duration: p.pace(const Duration(milliseconds: 2800), floorMs: 1900),
+      ) {
     instruction = p.tr('challenge.dont_follow.instruction');
     layout = ChallengeLayout.single;
     targets = [

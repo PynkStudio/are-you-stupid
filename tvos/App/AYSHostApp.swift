@@ -2,22 +2,20 @@
 //  AYSHostApp.swift
 //  AYSHost
 //
-//  Shared entry point for both the tvOS and macOS targets — one SwiftUI
-//  `App`/`Scene` lifecycle, one `RootView`, per docs/Architecture/Multiplayer
-//  Host (tvOS).md: "The protocol, authority rules, scoring and UI are shared
-//  unchanged between the two targets."
+//  tvOS entry point. The board itself lives in the AYSHostUI package
+//  library, which the macOS Flutter app also embeds (MULTIPLAYER → HOST ON
+//  THIS MAC opens it in its own window) — see docs/Architecture/Multiplayer
+//  Host (tvOS).md.
 //
 
 import SwiftUI
+import AYSHostUI
 
 @main
 struct AYSHostApp: App {
     var body: some Scene {
         WindowGroup {
-            RootView()
-                #if os(macOS)
-                .frame(minWidth: 900, minHeight: 600)
-                #endif
+            AYSHostBoardView()
         }
     }
 }

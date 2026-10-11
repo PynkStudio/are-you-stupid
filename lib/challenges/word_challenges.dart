@@ -7,10 +7,7 @@ import 'base.dart';
 /// point is a plausible-looking set of short button labels.
 TapTargetChallenge buildTapWordButton(ChallengeParams p) {
   final target = p.wordButtonTarget;
-  final words = [
-    target,
-    ...p.shuffled(p.wordButtonDecoys).take(3),
-  ];
+  final words = [target, ...p.shuffled(p.wordButtonDecoys).take(3)];
   final shuffled = p.shuffled(words);
   final targets = wordTargets(shuffled);
   return TapTargetChallenge(
@@ -18,10 +15,9 @@ TapTargetChallenge buildTapWordButton(ChallengeParams p) {
     id: 'tap_word_button',
     tag: ChallengeTag.word,
     duration: p.pace(const Duration(milliseconds: 3000), floorMs: 1300),
-    instruction: p.tr(
-      'challenge.tap_word_button.instruction',
-      {'word': target},
-    ),
+    instruction: p.tr('challenge.tap_word_button.instruction', {
+      'word': target,
+    }),
     targets: targets,
     correctIds: {targets[shuffled.indexOf(target)].id},
     wrongReason: p.tr('challenge.tap_word_button.wrong'),
@@ -40,10 +36,9 @@ TapTargetChallenge buildTapNothingButton(ChallengeParams p) {
     id: 'tap_nothing_button',
     tag: ChallengeTag.trick,
     duration: p.pace(const Duration(milliseconds: 2600), floorMs: 1200),
-    instruction: p.tr(
-      'challenge.tap_nothing_button.instruction',
-      {'word': correctWord},
-    ),
+    instruction: p.tr('challenge.tap_nothing_button.instruction', {
+      'word': correctWord,
+    }),
     targets: targets,
     correctIds: {targets[words.indexOf(correctWord)].id},
     wrongReason: p.tr('challenge.tap_nothing_button.wrong'),
@@ -53,8 +48,11 @@ TapTargetChallenge buildTapNothingButton(ChallengeParams p) {
 
 /// 10 — TAP THE ODD ONE OUT. Three colors and a sandwich.
 TapTargetChallenge buildOddWordOut(ChallengeParams p) {
-  final colors =
-      p.shuffled(kBasicColors).take(3).map((c) => p.colorLabel(c)).toList();
+  final colors = p
+      .shuffled(kBasicColors)
+      .take(3)
+      .map((c) => p.colorLabel(c))
+      .toList();
   final intruder = p.pick(p.oddWordIntruders);
   final words = p.shuffled([...colors, intruder]);
   final targets = wordTargets(words);

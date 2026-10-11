@@ -1,34 +1,48 @@
 ---
 tags: [architecture, multiplayer, tvos, macos, host]
-updated: 2026-10-03
+updated: 2026-10-11
 ---
 
 # Multiplayer Host (tvOS)
 
 The board side of the party mode. A **separate, lightweight native app written
 in Swift + SwiftUI**. It is the game master / display; it owns every piece of
-authoritative state ([[Multiplayer Architecture]]). The same host binary ships
-for **tvOS and macOS** — on the Mac it runs **board-only** (host + display,
-no direct play — see [[Multiplayer Product]] and below).
+authoritative state ([[Multiplayer Architecture]]). The board UI is one
+SwiftUI library (`AYSHostUI`) used by **two shells**: the native tvOS app
+(`AYSHost-tvOS`) and, on the Mac, the **single Flutter macOS app**, which
+opens the board in its own window when the player picks HOST ON THIS MAC
+(see below).
 
-## macOS board host (no direct play) + AirPlay
+## macOS: one app, two roles (2026-10-05)
 
-The **same native host target also runs on macOS**, and that Mac build is the
-user's "big-screen host" when they don't have an Apple TV:
+There is **no separate Mac host app any more**. The Flutter macOS Runner
+(`macos/`) is the only Mac product; it links the `AYSHostUI` package product
+from `../tvos` as a local Swift package. Pressing MULTIPLAYER on macOS shows a
+role chooser (`lib/ui/screens/multiplayer/mp_role_chooser.dart`):
 
-- **Board-only by design**: the Mac hosts rooms, owns the rules, renders the
-  lobby/roster/rounds/results exactly like the TV. The person running the Mac
-  does **not** play on the Mac — they play on their phone like everyone else
-  ([[Multiplayer Product]] → phone-first). This keeps Mac and TV feature-identical
-  with one shared host core (`Host/` Graph — see structure below) instead of a
-  half-baked local controller.
+- **PLAY ON THIS MAC** → the normal Flutter join flow, exactly as on a
+  phone ([[Multiplayer Client (Mobile)]]).
+- **HOST ON THIS MAC** → Dart calls `openHost` on the `ays/host_mode` method
+  channel; `MainFlutterWindow.swift` opens (or re-focuses) a second
+  `NSWindow` hosting `AYSHostBoardView()` — the very same SwiftUI board the
+  Apple TV renders. Closing that window keeps the controller alive
+  (`isReleasedWhenClosed = false`), so reopening returns to the same room.
+
+On every other platform the chooser is skipped and MULTIPLAYER goes straight
+to the join screen.
+
+- **The board stays board-only**: the board window hosts rooms, owns the
+  rules, renders the lobby/roster/rounds/results exactly like the TV; it is
+  not itself a controller. Mac and TV remain feature-identical because they
+  run one shared `AYSHostUI` + `AYSHostCore`.
 - **AirPlay button**: the macOS host shows a mirror button that projects the
   board (the same SwiftUI presentation the TV renders natively) to another
   screen via AirPlay, for groups gathered around a regular monitor or a big
   screen. On tvOS there is no mirror button — the board *is* the primary
   output.
 - The protocol, authority rules, scoring and UI are shared unchanged between
-  the two targets; [[Decision Log]] records the scope call.
+  the tvOS app and the Mac board window; [[Decision Log]] records both the
+  original board-only call and the 2026-10-05 consolidation.
 
 ## Why a separate native app, not Flutter-on-tvOS
 
@@ -49,7 +63,7 @@ Dart one). That single contract is the only coupling between the two ends.
 - Boot a room: generate a random room code, advertise
   `_ays-party._tcp` (Bonjour) with the room code as instance name plus a live
   TXT snapshot (device name, occupancy, capacity, state), listen on TCP.
-- Render the lobby, the join QR (`areyoustupid://join?room=7F4K`), the player
+- Render the lobby, the join QR (`https://pynkstudio.eu/ays/join?room=7F4K`), the player
   roster with ready states, and the START GAME gate (≥2 ready players).
 - Own challenges: pick `challengeId` + `seed`, build the canonical challenge,
   broadcast `ROUND_START`, run the shared countdown.
@@ -66,38 +80,41 @@ anonymous presenter-career cache described below ([[Multiplayer Product]]).
 
 ## Structure (Swift)
 
-Two Swift Package targets inside `tvos/` (`AYSProtocol`, `AYSHostCore`) plus,
-now, an actual generated Xcode project (`AYSHost.xcodeproj`, via
-`xcodegen generate` from `tvos/project.yml`) with two app targets —
-`AYSHost-tvOS` and `AYSHost-macOS` — that both build the same `App/` + `UI/`
-SwiftUI sources against the package as a local dependency. `project.yml` is
-checked in; `AYSHost.xcodeproj` is generated output (regenerate with
-`xcodegen generate` from `tvos/` after touching `project.yml`).
+Three Swift Package library targets inside `tvos/` (`AYSProtocol`,
+`AYSHostCore`, and `AYSHostUI`, whose sources are the `UI/` folder) plus a
+generated Xcode project (`AYSHost.xcodeproj`, via `xcodegen generate` from
+`tvos/project.yml`) with **one** app target, `AYSHost-tvOS`, that is only the
+`App/` entry point linking `AYSHostUI`. The Mac consumes the same
+`AYSHostUI` product from `macos/Runner.xcodeproj` (local package reference
+`../tvos`). `AYSHostBoardView` is the library's single public entry point.
+`project.yml` is checked in; `AYSHost.xcodeproj` is generated output
+(regenerate with `xcodegen generate` from `tvos/` after touching
+`project.yml`).
 
 ```
 tvos/
-├── Package.swift                  AYSProtocol + AYSHostCore targets, platforms: macOS 13 / iOS 16 / tvOS 16
+├── Package.swift                  AYSProtocol + AYSHostCore + AYSHostUI targets, platforms: macOS 13 / iOS 16 / tvOS 16
 │                                  (needed for `#isolation`/checked continuations — see [[Decision Log]])
-├── project.yml                    xcodegen spec — two app targets, one local package dependency
+├── project.yml                    xcodegen spec — the tvOS app target, one local package dependency
 ├── TVResources/
 │   └── Assets.xcassets            "App Icon & Top Shelf Image.brandassets" (App Icon small/large
 │                                  layered imagestacks, Top Shelf Image + Wide); wired into
 │                                  `AYSHost-tvOS` only via `ASSETCATALOG_COMPILER_APPICON_NAME` in
 │                                  `project.yml` — see [[Decision Log]]
 ├── App/
-│   └── AYSHostApp.swift           @main SwiftUI App/Scene, shared by both targets
-├── UI/                            shared SwiftUI board UI (tvOS + macOS, `#if os()` only where they
-│                                  genuinely differ — the AirPlay button, window sizing)
+│   └── AYSHostApp.swift           tvOS @main SwiftUI App/Scene showing AYSHostBoardView
+├── UI/                            the AYSHostUI library: shared SwiftUI board (tvOS app + Mac board
+│                                  window, `#if os()` only where they genuinely differ — the AirPlay button)
 │   ├── HostViewModel.swift        wires RoomHost + NWListenerServer + QRGenerator to SwiftUI via
 │                                  RoomHost.onBroadcast; owns the room code and BoardScreen state
-│   ├── RootView.swift             LOBBY -> ROUND -> RESULTS -> GAME_END, off HostViewModel.screen
+│   ├── RootView.swift             public `AYSHostBoardView`: LOBBY -> ROUND -> RESULTS -> GAME_END
 │   ├── LobbyView.swift            animated game-show lobby: join ticket, live marquee, two-column
 │                                  player cards, mode picker and 2-ready party meter
 │   ├── RoundView.swift            restrained live-show stage: GET READY / GO + compact damage board
 │   ├── ResultsView.swift          reactive comic verdict, per-player reason + score, live standings
 │   ├── GameEndView.swift          animated winner headline, final damage board + REMATCH (same room, per docs/Gameplay/
 │                                  Multiplayer Gameplay.md "instant rematch back into the lobby")
-│   ├── AirPlayButton.swift        macOS-only `AVRoutePickerView` wrapper (board-only Mac host)
+│   ├── AirPlayButton.swift        macOS-only `AVRoutePickerView` wrapper (Mac board window)
 │   ├── RoundDurationProvider.swift  the App target's `ChallengeJudge` — resolves a duration
 │                                  only, now that content judging moved to the client entirely
 │                                  (see "Challenge judging" below); looks up each template's real
@@ -131,7 +148,8 @@ tvos/
                                      and QRGeneratorTests.swift
 ```
 
-**Verified live, this session:** `AYSHost-macOS` builds (`xcodebuild ...
+**Historical (pre-2026-10-05, when a separate `AYSHost-macOS` target
+existed):** `AYSHost-macOS` builds (`xcodebuild ...
 -scheme AYSHost-macOS`) and runs — screenshotted with a real room code, a
 real scannable QR, `NWListenerServer` actually bound and listening
 (the UI now says `READY TO PARTY`; the numeric port stays internal) and the
@@ -183,7 +201,7 @@ not the App-target lookup wrapper itself).
 production `HostTransport`: JSONL framing over a real socket, mirroring
 `lib/multiplayer/networking/session_socket.dart`'s `SocketPartyTransport`
 exactly) are both written and build cleanly. `QRGenerator` renders the join
-deep link (`areyoustupid://join?room=XXXX`, matching
+universal link (`https://pynkstudio.eu/ays/join?room=XXXX`, matching
 `mp_home_screen.dart`'s `_deepLinkRoomCode` contract exactly) to a `CGImage`
 via `CIQRCodeGenerator` — no SwiftUI/UIKit/AppKit dependency, so it's usable
 from tvOS, iOS and macOS alike.
@@ -248,9 +266,11 @@ enough.
 
 ### Where the app shell itself stands
 
-**Landed.** `tvos/project.yml` (`xcodegen`) generates `AYSHost.xcodeproj`
-with `AYSHost-tvOS` and `AYSHost-macOS` app targets, both building the
-shared `App/` + `UI/` SwiftUI sources against the `AYSProtocol`/`AYSHostCore`
+**Landed.** `tvos/project.yml` (`xcodegen`) generates `AYSHost.xcodeproj`.
+Since 2026-10-05 it has only the `AYSHost-tvOS` app target (the Mac board
+lives in the Flutter macOS app — see "macOS: one app, two roles"); the
+paragraph below is the history of the original two-target shell, which built
+the shared `App/` + `UI/` SwiftUI sources against the `AYSProtocol`/`AYSHostCore`
 package as a local dependency — `RoomHost` and the rest of the package no
 longer need to stay Xcode-project-free to be buildable, and the app shell
 is real, not aspirational. `AYSHost-macOS` is confirmed building and
@@ -264,10 +284,10 @@ no Xcode project could be produced at all).
 
 ### App Store distribution (2026-10-02)
 
-Both host targets ship **inside the phone app's App Store record** —
-universal purchase, one product page for iPhone + Apple TV + Mac — so
-`project.yml` sets `PRODUCT_BUNDLE_IDENTIFIER = com.ays.areYouStupid` (the
-iOS Runner's id) for both, `PRODUCT_NAME = "Are You Stupid"`,
+The tvOS host and the Flutter macOS app ship **inside the phone app's App
+Store record** — universal purchase, one product page for iPhone + Apple TV +
+Mac — so `project.yml` sets `PRODUCT_BUNDLE_IDENTIFIER = com.ays.areYouStupid`
+(the iOS Runner's id, also the macOS Runner's), `PRODUCT_NAME = "Are You Stupid"`,
 `DEVELOPMENT_TEAM = G48384PHQK`, automatic signing, `MARKETING_VERSION
 1.0.0`. A player who owns the game on iPhone sees it offered on their
 Apple TV without searching. See [[Decision Log]].
@@ -279,14 +299,23 @@ Apple TV without searching. See [[Decision Log]].
   iOS icon (so the parallax has depth and no square-in-a-rectangle
   framing). The script also renders both Top Shelf images (art + "THE
   PARTY GAME FOR YOUR TV"). Re-run it whenever `icon.png` changes.
-- **macOS icon** — `MacResources/Assets.xcassets/AppIcon.appiconset`,
-  generated from the repo-root `icon.png` on Apple's Mac grid (824 pt
-  rounded rect + shadow on a 1024 canvas, 16–1024 px).
+- **macOS icon** — the Flutter Runner's
+  `macos/Runner/Assets.xcassets/AppIcon.appiconset`, generated by
+  `tool/make_apple_icons.py` from the repo-root `icon.png` on Apple's Mac
+  grid (824 pt rounded rect + dark shadow on a transparent 1024 canvas,
+  16–1024 px). It deliberately has no light outline.
 - **macOS App Sandbox** (required by the Mac App Store) —
-  `App/AYSHost-macOS.entitlements`, generated by xcodegen:
-  `app-sandbox`, `network.server` (the phones connect to the host's
-  listener), `network.client`.
-- `App/Info.plist` adds `CFBundleDisplayName`,
+  `macos/Runner/{DebugProfile,Release}.entitlements`: `app-sandbox`,
+  `network.server` (phones connect to the board window's listener; Debug
+  also needs it for the Flutter VM service), `network.client` (joining a
+  room as a player). `macos/Runner/Info.plist` declares
+  `NSLocalNetworkUsageDescription` and `NSBonjourServices = [_ays-party._tcp]`
+  for both roles, plus the games category and the encryption flag below.
+  The presenter backend keys (`AYSPresenterBackendURL`/`AYSPresenterAPIToken`)
+  are in both Info.plists, fed by `tvos/Config/Presenter.xcconfig` (the
+  Runner's Debug/Release xcconfigs include it). Without the untracked
+  secrets file, the board uses the offline/system-voice presenter path.
+- `App/Info.plist` (tvOS) adds `CFBundleDisplayName`,
   `LSApplicationCategoryType = public.app-category.games` (the Mac App Store rejected both `party-games` and `casual-games` with error 90249 — use the plain Games UTI) and
   `ITSAppUsesNonExemptEncryption = false`.
 
@@ -322,15 +351,41 @@ After `GAME_END`, the first `REMATCH_REQUEST` either broadcasts
 `AD_BREAK_FINISHED` handshake. Apple TV and Mac never load an ad. Their game
 end view shows troll sponsor copy during the break; Party Pack activation adds
 a generated high-energy lobby banner. Dedicated activation audio is a future
-sound-design task, not shipped behavior.
+sound now uses the same generated show palette as the round-start,
+elimination and winner stingers.
+
+`HostSoundEffects` loads those four MP3s from the `AYSHostUI` Swift-package
+resource bundle, allowing both Apple TV and the embedded Mac board to use the
+same files. Multiple short effects may overlap, but every player has a fixed
+`0.32` gain so the full-scale masters never play directly into headphones or
+TV speakers. Effects are independent from presenter speech and its mode.
 
 ## Presenter runtime
 
 `PresenterEngine` is pure Swift and turns verified round/game facts into
-versioned cues, deduplicated universal lines and earned titles. The UI-side
-`PresenterAudioController` resolves bundle → disk cache → configured shared
-backend, then checks semantic expiry before playback. Results expire with
-their round; final verdicts remain eligible while Game End is visible.
+cues, picking copy from a `PresenterLineBook` (most specific key first).
+`HostViewModel` also retains each `ROUND_START.challengeId` until its matching
+`ROUND_RESULTS`; the engine maps all 39 ids into nine stable editorial
+mechanics. Savage selection can therefore target the sole wrong player,
+someone still at zero after three rounds, a first point arriving on round four
+or later, and a three-error streak. Named mechanic templates are allowlisted;
+an unknown remote key is discarded and can never invent a match fact.
+`PresenterPackStore` (UI) syncs the published book and its hash-verified
+clips into Caches, and keeps whichever of the synced and bundled books has
+the higher revision. `PresenterAudioController` resolves pack clip → disk
+cache → shared backend → system speech, and checks semantic expiry until
+playback begins. A line still loading at the next round is discarded; audio
+already playing finishes naturally. Results expire with their round; final
+verdicts remain eligible while Game End is visible. The engine emits at most
+one cue per result and uses combined result/title templates when both facts
+land together.
+The store starts from the board device locale (`en`, `it`, `fr`, `es`, `pt`,
+`de`, otherwise English) and isolates manifest, ETag and audio caches by
+locale. Presenter controls stay behind the lobby's secondary `OPTIONS`
+button: room-language override, persistent output (`OFF`, `MUTE`, `VOICE`)
+and an independent roast level (`NEUTRAL`, `SAVAGE`) disabled only while
+output is Off. Off suppresses playback and the matching caption; Mute renders
+the caption immediately without touching any audio path.
 
 `PresenterCareerStore` records at most 64 earned careers by opaque `personaId`
 in board `UserDefaults`. A known persona gets one return cue per lobby. Winner
@@ -338,10 +393,15 @@ careers become `IL KING INDISCUSSO`; other earned titles can also carry over.
 Positive titles expire after 90 days and negative performance jokes after 7.
 
 The shared backend route lives in the PynkStudio Menuary repository at
-`src/app/api/ays/presenter/route.ts`; it uses OpenAI speech and a private
-Supabase bucket. Production still needs endpoint/token build settings and the
-licensed bundled `PresenterPack`; system TTS is only the development fallback.
+`src/app/api/ays/presenter/` (live speech, `pack`, `pack/clips/[sha256]`),
+served at `https://pynkstudio.eu`; ElevenLabs by default, OpenAI as the
+fallback. System TTS is only the development fallback.
 See [[Multiplayer Presenter]].
+
+For ambiguous join names, `RoomHost` selects the joined AI-capable seat with
+highest `computeRank` (join order breaks ties), forwards the request privately
+and accepts the matching response only from that seat. It does not persist or
+broadcast the requested display name.
 
 ## Local persistence
 

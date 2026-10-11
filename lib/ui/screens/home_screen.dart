@@ -4,11 +4,11 @@ import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
 import '../theme.dart';
 import '../widgets/ays_button.dart';
+import '../widgets/balanced_text.dart';
 import 'game_screen.dart';
-import 'multiplayer/mp_home_screen.dart';
+import 'multiplayer/mp_role_chooser.dart';
 import 'settings_screen.dart';
 import 'stats_screen.dart';
-import '../widgets/balanced_text.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -32,8 +32,11 @@ class HomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const Spacer(flex: 3),
-                    BalancedText(t('ui.home.title1'),
-                        style: Ays.title(74), maxLines: 1),
+                    BalancedText(
+                      t('ui.home.title1'),
+                      style: Ays.title(74),
+                      maxLines: 1,
+                    ),
                     BalancedText(
                       t('ui.home.title2'),
                       style: Ays.title(96).copyWith(color: Ays.red),
@@ -69,7 +72,9 @@ class HomeScreen extends StatelessWidget {
                         services.haptics.tap();
                         Navigator.of(context).push(
                           PageRouteBuilder(
-                            transitionDuration: const Duration(milliseconds: 120),
+                            transitionDuration: const Duration(
+                              milliseconds: 120,
+                            ),
                             pageBuilder: (_, _, _) => const GameScreen(),
                           ),
                         );
@@ -83,11 +88,7 @@ class HomeScreen extends StatelessWidget {
                       outlined: true,
                       onTap: () {
                         services.sound.button();
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const MpHomeScreen(),
-                          ),
-                        );
+                        openMultiplayerForPlatform(context);
                       },
                     ),
                     const SizedBox(height: 12),

@@ -69,11 +69,13 @@ class _MpJoinScreenState extends State<MpJoinScreen>
   bool _showDevAddress = false;
 
   bool _nameSeeded = false;
+  SpokenIdentity? _resolvedIdentity;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _nameController.addListener(_refreshNamePreview);
     _connect();
   }
 
@@ -137,6 +139,13 @@ class _MpJoinScreenState extends State<MpJoinScreen>
     _nameController.dispose();
     _devAddressController.dispose();
     super.dispose();
+  }
+
+  void _refreshNamePreview() {
+    if (!mounted) return;
+    final identity = AppServices.of(context).multiplayerProfile
+        .spokenIdentityFor(_nameController.text);
+    setState(() => _resolvedIdentity = identity);
   }
 
   Future<void> _connect({String? devAddress}) async {
@@ -230,7 +239,7 @@ class _MpJoinScreenState extends State<MpJoinScreen>
     if (!mounted) return;
     switch (event) {
       case PartyJoinedEvent():
-        _goToLobby();
+        unawaited(_goToLobby());
       case PartyErrorEvent(:final error):
         setState(() {
           _joining = false;
@@ -242,20 +251,19 @@ class _MpJoinScreenState extends State<MpJoinScreen>
     }
   }
 
-  void _goToLobby() {
+  Future<void> _goToLobby() async {
     if (_navigated) return;
     _navigated = true;
     final session = _session!;
     final services = AppServices.of(context);
-    unawaited(
-      services.multiplayerProfile.setProfile(
-        playerName: _nameController.text.trim(),
-        emoji: services.multiplayerProfile.emoji,
-        spokenIdentity: services.multiplayerProfile.spokenIdentityFor(
-          _nameController.text,
-        ),
-      ),
+    await services.multiplayerProfile.setProfile(
+      playerName: _nameController.text.trim(),
+      emoji: services.multiplayerProfile.emoji,
+      spokenIdentity:
+          _resolvedIdentity ??
+          services.multiplayerProfile.spokenIdentityFor(_nameController.text),
     );
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(builder: (_) => MpLobbyScreen(session: session)),
     );
@@ -270,7 +278,7 @@ class _MpJoinScreenState extends State<MpJoinScreen>
       _joinError = null;
     });
     final services = AppServices.of(context);
-    final identity = services.multiplayerProfile.spokenIdentityFor(name);
+    var identity = services.multiplayerProfile.spokenIdentityFor(name);
     if (identity.policy == NameSpeechPolicy.blocked) {
       setState(() {
         _joining = false;
@@ -278,14 +286,17 @@ class _MpJoinScreenState extends State<MpJoinScreen>
       });
       return;
     }
+    _resolvedIdentity = identity;
     session.joinRoom(
       playerName: name,
       emoji: services.multiplayerProfile.emoji,
       noAds: services.settings.adsRemoved,
       partyPack: services.settings.partyCapacityUnlocked,
       personaId: services.multiplayerProfile.personaId,
-      spokenName: identity.spokenName,
-      speechPolicy: identity.policy.name,
+      spokenName: identity.needsAi ? null : identity.spokenName,
+      speechPolicy: identity.needsAi
+          ? NameSpeechPolicy.displayOnly.name
+          : identity.policy.name,
     );
   }
 
@@ -491,6 +502,36 @@ class _MpJoinScreenState extends State<MpJoinScreen>
               autofocus: true,
               onSubmitted: (_) => _submitJoin(),
             ),
+            if (_resolvedIdentity case final identity?) ...[
+              if (identity.spokenName != null &&
+                  identity.spokenName!.toLowerCase() !=
+                      identity.displayName.toLowerCase()) ...[
+                const SizedBox(height: 10),
+                Text(
+                  t('ui.mp.join.spoken_as', {
+                    'name': identity.spokenName!.toUpperCase(),
+                  }),
+                  textAlign: TextAlign.center,
+                  style: Ays.mono(12, color: Ays.inkDim),
+                ),
+              ],
+              if (identity.policy == NameSpeechPolicy.displayOnly) ...[
+                const SizedBox(height: 10),
+                Text(
+                  t('ui.mp.join.not_spoken'),
+                  textAlign: TextAlign.center,
+                  style: Ays.mono(12, color: Ays.warning),
+                ),
+              ],
+              if (identity.policy == NameSpeechPolicy.blocked) ...[
+                const SizedBox(height: 10),
+                Text(
+                  t(blockedNameTauntKey(identity.displayName)),
+                  textAlign: TextAlign.center,
+                  style: Ays.mono(12, color: Ays.wrong),
+                ),
+              ],
+            ],
             if (_joinError != null) ...[
               const SizedBox(height: 12),
               Text(

@@ -1,11 +1,14 @@
 ---
 tags: [development, release]
-updated: 2026-10-02
+updated: 2026-10-11
 ---
 
 # Release Checklist
 
-Version **1.0.0**. One App Store record ships three platforms (universal
+Current production submission: **1.0.0**. Current release candidate:
+**1.2.0 (8)**, adding the native Stupid Streak extension and multiplayer
+presenter/name-intelligence work described in [[iMessage Multiplayer]] and
+[[Multiplayer Presenter]]. One App Store record ships three platforms (universal
 purchase, bundle id `com.ays.areYouStupid`): the Flutter phone app (iPhone +
 iPad), the Apple TV host and the Mac board host (`tvos/`, see
 [[Multiplayer Host (tvOS)]]). Google Play ships the Android phone app
@@ -20,6 +23,11 @@ already registered against them ([[Decision Log]]).
 - [x] `swift test` (from `tvos/`) green; `AYSHost-macOS` and `AYSHost-tvOS`
       Release builds succeed with the new store config (2026-10-02)
 - [x] `docs/` updated ([[Documentation Rules]])
+- [ ] Presenter: `tvos/Config/Presenter.secrets.xcconfig` present on the
+      build machine (token = Vercel `AYS_PRESENTER_API_TOKEN`); run
+      `scripts/fetch_presenter_pack.sh` then `xcodegen generate` (from
+      `tvos/`) so the release bundles the latest published pack
+      ([[Multiplayer Presenter]])
 - [x] Build number bump automated — `scripts/bump_build_number.sh`, wired
       into the iOS Archive pre-action and the Android `assembleRelease`/
       `bundleRelease` Gradle tasks ([[Getting Started]])
@@ -42,6 +50,10 @@ already registered against them ([[Decision Log]]).
 - [x] Export compliance: `ITSAppUsesNonExemptEncryption = false` in the
       phone and host `Info.plist`s
 - [x] Mac App Sandbox entitlements + macOS app icon for the board host
+- [x] One full-bleed `icon.png` master generates the iPhone/iPad catalog and
+      both macOS catalogs via `python3 tool/make_apple_icons.py`; iOS has no
+      pre-baked mask or pale corners, while Mac uses a transparent rounded tile
+      with no light rim
 - [x] Android release signs with the real upload key (`android/key.properties`
       + `upload-keystore.jks`, both gitignored — back them up offline)
 
@@ -64,42 +76,106 @@ already registered against them ([[Decision Log]]).
       platforms; subtitle, categories (Games › Word, Casual + Entertainment),
       free in 174 regions (Mainland China excluded: games there need a
       government licence), Game Center off (2026-10-02)
-- [ ] In-app purchase `ays_remove_ads` (non-consumable): created, priced,
-      review notes in. **Still needs the review screenshot** (Settings with
-      the REMOVE ADS row) and must be **attached to the first iOS
-      submission** — otherwise review can't find it
+- [x] Three non-consumable in-app purchases (`ays_remove_ads`,
+      `ays_party_pack`, `ays_party_bundle`) created, priced and localized;
+      review notes and the reviewer screenshot are uploaded and all three are
+      attached to the first iOS review submission.
 - [x] App Privacy published 2026-10-02: **Data used to track you** — Device ID (IDFA),
       Advertising Data, Product Interaction, Coarse Location, Diagnostics
       (all from the Google Mobile Ads SDK). *Not* "no data collected"
 - [x] Privacy Policy URL `https://pynkstudio.eu/it/lavori/are-you-stupid/privacy`;
-      Support/Marketing URL the `/en` game page
+      Support/Marketing URL the `/en` game page. The Apple TV-specific privacy
+      disclosure states that the host exchanges only ephemeral local-network
+      game data and has no ads, analytics, accounts or purchases.
 - [x] Age rating questionnaire: frequent profanity/crude humor, ads →
       **13+** (12+ in Vietnam/Korea)
-- [x] Description, promo text, keywords, support/marketing URLs, review
-      notes and contact filled for iOS, tvOS and macOS versions (party-game
-      positioning; no claims about features not shipped, e.g. on-screen AI
-      commentary or online leaderboards)
+- [x] Description, promo text, keywords, support/marketing URLs, review notes
+      and reviewer contact details are filled for iOS, tvOS and macOS.
 - [x] Review notes: multiplayer needs the Apple TV / Mac host on the same
       Wi-Fi; Apple Intelligence features need an iOS 26 eligible device and
       fall back to scripted challenges otherwise
-- [ ] Screenshots: iPhone has 4 (6.5") from an older build — refresh with
-      party-mode shots; still missing iPad 13", Apple TV (1920×1080), Mac
-      (≥1280×800). Suggested phone set: instruction frame, green flash, red
-      roast, Game Over card
+- [x] English master screenshot campaign generated in `store_assets/output/`
+      from real in-app captures: iPhone 6.9" (1320×2868), iPad 13"
+      (2064×2752), Apple TV (3840×2160) and Mac (2880×1800). The repeatable
+      composer is `store_assets/generate_store_screenshots.py`; outputs are
+      RGB PNGs without alpha. iPad artwork presents the phone controller
+      capture inside the campaign layout rather than pretending it is a
+      native iPad capture. The same script also writes the Google Play set:
+      `play-phone/` (five 1080×1920 shots — Play rejects anything taller
+      than 2:1, so the 6.9" iPhone files can't be reused) and
+      `play-feature/` (1024×500 feature graphic, 512×512 icon).
+- [x] Replacement six-panel editorial carousel generated for iPhone 6.9-inch
+      and iPad 13-inch in `iphone-6.9-carousel/` and `ipad-13-carousel/`.
+      Each panel combines real UI detail with a product benefit; iPad uses
+      edge-to-edge editorial crops rather than an iPhone device frame. The
+      replacement sets require visual approval before the live iOS submission
+      is withdrawn and updated.
+- [x] Five-panel iMessage/Stupid Streak carousel generated at 1320×2868 in
+      `store_assets/output/imessage-6.9-carousel/`, covering start, play,
+      hidden-score waiting, round result and rematch. It requires visual
+      approval and upload with the replacement iOS metadata.
+- [x] Screenshot sets uploaded to App Store Connect: five iPhone 6.9-inch,
+      five iPad 13-inch, three Apple TV and three Mac images (2026-10-03)
+- [x] Build `1.0.0 (4)` selected and saved for iOS, macOS and tvOS
+      (2026-10-03)
+- [x] Content-rights declaration completed: the app may display authorized
+      third-party content through its advertising integration.
+- [x] iOS 1.0 plus all three in-app purchases, macOS 1.0 and tvOS 1.0 sent to
+      App Review on 2026-10-03; all three submissions show **Waiting for
+      Review**. Automatic release after approval remains selected.
+- [x] iOS `1.1.0 (5)` delivered to App Store Connect/TestFlight with
+      Transporter at 19:02 on 2026-10-03; Apple processing is still in
+      progress. The two-device Stupid Streak delivery gate remains required
+      before promoting it beyond testers.
 
 ## Google Play Console
 
-- [ ] App created, package `com.ays.are_you_stupid`, Play App Signing on
-- [ ] Data safety: advertising ID + app interactions + diagnostics shared
-      with Google for advertising; no account; data encrypted in transit
-      (HTTPS)
-- [ ] Advertising ID declaration: yes (AdMob)
-- [ ] Contains ads: yes. Target audience: 13+ (avoid "Designed for
-      Families" — the language rules it out)
-- [ ] Content rating (IARC) questionnaire: crude humor, profanity
-- [ ] In-app product `ays_remove_ads` created and active
-- [ ] Internal testing track first, then production
-- [ ] Feature graphic 1024×500 + phone screenshots
+Developer account **PynkStudio** (id `8227410769086375104`) is a **personal**
+account. Google requires personal accounts created after November 2023 to run
+a **closed test with at least 12 opted-in testers for 14 consecutive days**
+before production access can be requested — production cannot be the first
+track ([[Decision Log]]).
+
+- [x] App created 2026-10-06 (app id `4973937346472521775`): "ARE YOU
+      STUPID?! - party game", package `com.ays.are_you_stupid`, Game, free,
+      default language en-US, Play App Signing terms accepted, automatic
+      protection on
+- [x] Privacy policy: `https://pynkstudio.eu/it/lavori/are-you-stupid/privacy`
+- [x] Ads: yes. Advertising ID: yes (AdMob merges
+      `com.google.android.gms.permission.AD_ID`) — analytics, advertising,
+      fraud prevention
+- [x] Sign-in details: no account; reviewer notes explain the optional
+      purchases and that party mode needs the Apple TV/Mac host on the same
+      Wi-Fi
+- [x] Content rating (IARC): mild crude language + moderate profanity
+      (frequent), digital purchases, users interact (player names on the
+      local board, invited players only). Australia: PG
+- [x] Target audience: **16–17 and 18+** (not 13+: a 13–15 band puts the
+      app under the Families ad requirements — [[Decision Log]])
+- [x] Data safety: approximate location, app interactions, crash logs,
+      diagnostics, device or other IDs — collected *and* shared (Google
+      Mobile Ads SDK), not ephemeral, required; purposes analytics,
+      advertising/marketing, fraud prevention; encrypted in transit; no
+      account creation
+- [x] Government / financial / health declarations: none
+- [x] Store settings: category Casual, contact `android@pynkstudio.eu`,
+      website `https://pynkstudio.eu`
+- [x] Default store listing (en-US): short + full description, 512 icon
+      (declared as AI-generated), feature graphic 1024×500, five 1080×1920
+      phone screenshots from `store_assets/output/play-*`
+- [x] Internal testing track: tester list "PynkStudio testers"
+- [ ] Upload `build/app/outputs/bundle/release/app-release.aab` to the
+      internal testing release and roll it out (drag the file in by hand:
+      the browser automation can't push a 66 MB file)
+- [ ] Google Payments merchant account (Monetize → Products shows
+      "Configura un account commerciante"; business, tax and bank details —
+      account holder only)
+- [ ] One-time products `ays_remove_ads` €2.99, `ays_party_pack` €4.99,
+      `ays_party_bundle` €5.99 (Monetize → Products; needs the merchant
+      account *and* an uploaded build with the BILLING permission)
+- [ ] Closed testing track with ≥ 12 testers, opted in for 14 days
+- [ ] Apply for production access, then submit the production release
+- [ ] Optional: localized listings for the other five app languages
 
 ## Builds
 
@@ -107,6 +183,25 @@ already registered against them ([[Decision Log]]).
 flutter build ipa --release
 flutter build appbundle --release
 ```
+
+**1.2.0 (8), 2026-10-06:** iOS App Store IPA built at
+`build/ios/ipa/Are You Stupid.ipa` (SHA-256
+`1f589d02b917b190d2d012c067ad80c149bbec08a4c01bd7ab85683b7d640482`).
+The containing app and Stupid Streak extension both report 1.2.0 (8); the
+export is signed with Apple Distribution team `G48384PHQK`, passes deep
+`codesign` verification, contains 11 dependency privacy manifests, and no
+longer uses Flutter's placeholder launch image. The tvOS Release target and
+Flutter macOS Release app also build successfully. `pubspec.yaml` is left at
+`1.2.0+9`, ready for the next archive. Localized What's New copy is in
+`store_assets/app-store-1.2.0.md`. Upload and the real-device manual pass are
+still required.
+
+**Android 1.1.0 (code 5), 2026-10-06:** `flutter analyze` clean,
+**350/350** tests green, AAB signed with the upload key (certificate
+`CN=Are You Stupid, O=PynkStudio`) at
+`build/app/outputs/bundle/release/app-release.aab`. The build left
+`pubspec.yaml` at `1.1.0+6` — see the versionCode caveat in
+[[Getting Started]].
 
 **1.0.0 (2), 2026-10-02:** all three store packages built and signed for
 distribution from commit `f2c9439` (331/331 tests green):
@@ -120,8 +215,29 @@ Xcode → Settings → Accounts, or upload with Transporter.
 
 Upload `build/ios/ipa/*.ipa` with Transporter (or Xcode Organizer) and
 `build/app/outputs/bundle/release/app-release.aab` in Play Console. Hosts:
-open `tvos/AYSHost.xcodeproj`, scheme `AYSHost-tvOS` / `AYSHost-macOS`,
-*Product → Archive → Distribute → App Store Connect*.
+open `tvos/AYSHost.xcodeproj`, scheme `AYSHost-tvOS`,
+*Product → Archive → Distribute → App Store Connect*. Mac (since 2026-10-05
+the only Mac product, embedding the board host): `flutter build macos
+--release`, then archive `macos/Runner.xcworkspace` (scheme `Runner`) and
+distribute the same way.
+
+**1.0.0 (4), 2026-10-03:** the current dirty-worktree release was verified
+with clean `flutter analyze` and **350/350** passing tests, then exported as
+`build/ios/ipa/Are You Stupid.ipa`,
+`build/hosts/tvos-export-4/Are You Stupid.ipa`, and
+`build/hosts/macos-export-4/Are You Stupid.pkg`. All three archives report
+build 4. The three builds are uploaded to App Store Connect and associated
+with their platform versions. All platform screenshots and the reviewer
+screenshot for each in-app purchase are uploaded. iOS (including all three
+in-app purchases), macOS and tvOS were submitted on 2026-10-03 and are waiting
+for review.
+
+**1.1.0 (5), 2026-10-03:** iOS-only TestFlight candidate containing the
+native Stupid Streak Messages extension. The containing app and
+`StupidStreak.appex` both report 1.1.0 (5), the archive signature validates,
+and Transporter accepted the delivery at 19:02. App Store Connect processing
+was still running at handoff. This does not replace or alter the tvOS/macOS
+1.0 submission.
 
 ## Manual pass (do it on a real phone, in portrait, one hand)
 

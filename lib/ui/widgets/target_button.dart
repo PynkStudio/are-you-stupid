@@ -78,7 +78,9 @@ class _TargetButtonState extends State<TargetButton> {
                       child: spec.label.isEmpty
                           ? null
                           : Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 child: Text(

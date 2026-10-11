@@ -9,10 +9,12 @@
 
 import SwiftUI
 
-struct RootView: View {
+public struct AYSHostBoardView: View {
     @StateObject private var model = HostViewModel()
 
-    var body: some View {
+    public init() {}
+
+    public var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
 
@@ -33,5 +35,5 @@ struct RootView: View {
 }
 
 #Preview {
-    RootView()
+    AYSHostBoardView()
 }

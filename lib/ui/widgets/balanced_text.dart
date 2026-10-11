@@ -94,10 +94,10 @@ class BalancedText extends StatelessWidget {
     final words = text.split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
 
     TextPainter paint(TextStyle s, double w) => TextPainter(
-          text: TextSpan(text: text, style: s),
-          textDirection: textDirection,
-          textScaler: textScaler,
-        )..layout(maxWidth: w);
+      text: TextSpan(text: text, style: s),
+      textDirection: textDirection,
+      textScaler: textScaler,
+    )..layout(maxWidth: w);
 
     double widest(TextStyle s) {
       var max = 0.0;

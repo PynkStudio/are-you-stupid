@@ -1,6 +1,6 @@
 ---
 tags: [gameplay, challenges, reference]
-updated: 2026-09-06
+updated: 2026-10-03
 ---
 
 # Challenge Catalog
@@ -9,6 +9,23 @@ updated: 2026-09-06
 or change one, update this note in the same commit** ([[Documentation Rules]]).
 Everything below is shown in English; the app ships in five more languages —
 see [[Localization]] for how each instruction/hint/fail-line is translated.
+
+## iMessage parity rule
+
+The native Stupid Streak catalog is currently a deliberately smaller subset,
+described in [[iMessage Multiplayer]]. From this point forward, every **new or
+changed** app challenge must also be implemented in
+`ios/iMessageExtensionCore/` and tested there. Mark new rows `Mirrored`; if the
+Messages extension genuinely cannot support the mechanic, mark them
+`Exception` and link the reason recorded in [[iMessage Multiplayer]] and
+[[Decision Log]]. An omitted status is incomplete work. This forward-parity
+rule does not claim that all 39 pre-existing templates have already been
+ported.
+
+For new rows, append the literal status **`[iMessage: Mirrored]`** or
+**`[iMessage: Exception]`** in the “The catch” cell. Every exception must also
+be explained in [[iMessage Multiplayer]]. This avoids rewriting all legacy
+tables while making the status mechanically visible to reviewers.
 
 Legend: **Lv** = first level it can appear · **W** = pick weight ·
 ★ = starter (allowed in levels 1–3).

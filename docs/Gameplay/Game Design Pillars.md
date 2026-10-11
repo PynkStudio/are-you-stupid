@@ -1,6 +1,6 @@
 ---
 tags: [design, pillars]
-updated: 2026-10-03
+updated: 2026-10-06
 ---
 
 # Game Design Pillars
@@ -38,10 +38,11 @@ Everything in this repo is judged against that sentence.
    and no ad-gated action may be offered when no ad is available. See
    [[State and Persistence]] and [[Monetization and Ads]].
 6. **No external visual assets.** Visuals are generated from native widgets,
-   shapes, gradients and text. Single-player audio uses platform sounds. The
-   only approved audio-asset exception is the future presenter's small bundled
-   fallback bank; most presenter audio stays cached/generated and optional
-   ([[Multiplayer Presenter]]). This keeps core load and binary size small.
+   shapes, gradients and text. Audio is the deliberate exception: a tiny,
+   reviewed ElevenLabs-generated SFX bank ships for semantic feedback in both
+   runtimes, fixed at 32% linear playback gain; the presenter also has its
+   versioned voice pack ([[Multiplayer Presenter]]). The bank stays small,
+   offline and source-controlled so core play never waits on generation.
 7. **9:16 first.** The screen must read well in a vertical screen recording —
    large type, huge targets, strong color states. See [[Virality and Sharing]].
 8. **Words never break; headlines are balanced.** Every title and big

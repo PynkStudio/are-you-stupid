@@ -1,6 +1,6 @@
 ---
 tags: [product, multiplayer, party]
-updated: 2026-10-03
+updated: 2026-10-06
 ---
 
 # Multiplayer Product
@@ -16,8 +16,8 @@ The tagline stays **YOU HAD ONE JOB.**
 The party mode is for a group sitting in front of a shared screen:
 
 - The **board is the game master** ([[Multiplayer Host (tvOS)]]) — an Apple TV,
-  or a **Mac in board-only mode** (host + display, no direct play on the Mac;
-  see below).
+  or a **Mac** running the same ARE YOU STUPID? app with HOST ON THIS MAC (the
+  board window is host + display only; see below).
 - Each player uses their **own iPhone/iPad as a controller**
   ([[Multiplayer Client (Mobile)]]).
 - Everyone receives the **same challenge simultaneously**
@@ -28,8 +28,8 @@ The party mode is for a group sitting in front of a shared screen:
 
 ## Player experience (2-16 players; 8 free)
 
-1. Open ARE YOU STUPID? on Apple TV **(or on your Mac — the Mac hosts the
-   room board-only, and you play on your phone like everyone else)**.
+1. Open ARE YOU STUPID? on Apple TV **(or on your Mac: MULTIPLAYER → HOST ON
+   THIS MAC opens the board, and you play on your phone like everyone else)**.
 2. The board creates a local room, advertises it on the LAN, and shows a QR code.
 3. Opening Multiplayer on a phone automatically suggests nearby rooms with the
    host device name and live occupancy; QR and room code remain fallbacks.
@@ -46,15 +46,17 @@ No account is required. Core room play remains local and works without
 internet. The optional online [[Multiplayer Presenter]] may add generated
 voice commentary; losing it only removes narration, never the match.
 
-## macOS as the host (board-only, no direct play)
+## macOS: one app, host or play
 
-The macOS build of the host runs the **exact same host core and screens as
-tvOS**, so groups without an Apple TV can host from any Mac:
+There is a single Mac app — the same ARE YOU STUPID? the player already knows.
+MULTIPLAYER on the Mac asks **WHAT ARE YOU DOING?**:
 
-- It is **board-only by design**: the Mac hosts, displays, and owns the rules —
-  the person at the Mac does **not** play on the Mac. They grab their phone
-  like everyone else. There is deliberately **no local controller** on macOS;
-  keeping Mac and TV feature-identical beats a half-baked Mac controller.
+- **PLAY ON THIS MAC** joins a room as a controller, exactly like a phone.
+- **HOST ON THIS MAC** opens the board in its own window. That board runs the
+  **exact same host core and screens as tvOS**, so groups without an Apple TV
+  can host from any Mac. The board window is **board-only**: it hosts,
+  displays and owns the rules; it is not itself a controller. Keeping Mac and
+  TV boards feature-identical beats a half-baked hybrid.
 - It shows an **AirPlay button** that mirrors the board (the same screen the TV
   renders natively) to another display, so the Mac can drive a big screen it is
   not physically plugged into.
@@ -143,7 +145,7 @@ Client (Mobile)]]). Same palette as the app theme ([[Rendering Pipeline]]).
 
 - Code = 4 characters from an unambiguous set (no `I`/`O`/`0`/`1`), random,
   e.g. `7F4K`. Enough entropy for casual collision avoidance.
-- The QR encodes `areyoustupid://join?room=7F4K`. Generating the QR is
+- The QR encodes the universal link `https://pynkstudio.eu/ays/join?room=7F4K` (any camera can open it; see [[Multiplayer Protocol]]). Generating the QR is
   on-device (`CIQRCodeGenerator`, zero assets — [[Multiplayer Host (tvOS)]]).
 - A room lives only while the host app runs. Nothing sensitive is ever on the
   wire ([[Multiplayer Protocol]]).
@@ -224,12 +226,36 @@ it may use a minimal backend for the cache-first [[Multiplayer Presenter]].
 The board and phones still own the room over LAN. Online services may generate
 or retrieve narration but never judge input, score players or gate play.
 
+## Browser host (demand-gated, not prioritized)
+
+A web page that replaces the Apple TV/macOS board remains a possible future
+accessibility expansion for groups without Apple hardware. It is **not current
+roadmap work and not a promised platform**. Re-evaluate it only when either:
+
+- the game has a meaningful sustained average-user base that justifies an
+  always-available room service; or
+- user feedback repeatedly identifies the Apple-only host as a real barrier
+  to starting multiplayer sessions.
+
+The browser cannot directly reproduce the shipped host topology: web pages
+cannot listen for raw TCP clients or advertise a Bonjour service. The most
+practical production shape would therefore be a WebSocket room backend, with
+both the browser board and mobile controllers connecting to it. That would add
+hosting, privacy, abuse prevention and operational responsibilities and would
+make web-hosted matches internet-dependent, while the Apple TV/macOS path
+would remain the local/offline option. This architecture is only a recorded
+direction for later evaluation; no web-host implementation or backend scope is
+approved today.
+
 ## Explicitly out of scope (MVP)
 
 - Online matchmaking, accounts, cloud saves, global leaderboards.
 - Voice/video chat, complex player profiles, cosmetics marketplace.
 - Anything requiring a backend or internet connection **to play or finish a
   match**. Optional show-layer enrichment may use one with local fallbacks.
+
+The demand-gated browser host above is a possible future exception to this MVP
+boundary, not part of the exception today.
 
 ## Success criteria
 

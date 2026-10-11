@@ -49,6 +49,7 @@ final class SimClient {
     private(set) var lastDirectorAssignment: AiDirectorAssignment?
     private(set) var lastAiChallengeRound: AiChallengeRound?
     private(set) var lastAiCommentary: AiCommentary?
+    private(set) var lastRoomPerks: RoomPerks?
 
     var selfId: String { lastPlayerJoined?.selfClientId ?? "" }
 
@@ -73,6 +74,7 @@ final class SimClient {
         case let m as AiDirectorAssignment: lastDirectorAssignment = m
         case let m as AiChallengeRound: lastAiChallengeRound = m
         case let m as AiCommentary: lastAiCommentary = m
+        case let m as RoomPerks: lastRoomPerks = m
         default: break
         }
     }
@@ -88,8 +90,8 @@ final class SimClient {
         transport.send(#"{"protocolVersion":\#(version),"type":"HELLO","ts":0,"appName":"test","appVersion":"1.0"}"#)
     }
 
-    func join(name: String, emoji: String = "🟢") {
-        transport.send((try? PartyProtocol.encode(JoinRoom(playerName: name, emoji: emoji))) ?? "")
+    func join(name: String, emoji: String = "🟢", noAds: Bool = false, partyPack: Bool = false) {
+        transport.send((try? PartyProtocol.encode(JoinRoom(playerName: name, emoji: emoji, noAds: noAds, partyPack: partyPack))) ?? "")
     }
 
     func ready(_ ready: Bool = true) {
@@ -98,6 +100,14 @@ final class SimClient {
 
     func leave() {
         transport.send((try? PartyProtocol.encode(LeaveRoom())) ?? "")
+    }
+
+    func requestRematch() {
+        transport.send((try? PartyProtocol.encode(RematchRequest())) ?? "")
+    }
+
+    func finishAdBreak() {
+        transport.send((try? PartyProtocol.encode(AdBreakFinished())) ?? "")
     }
 
     /// [correct] stands in for what a real phone's `PartyChallengeRunner`

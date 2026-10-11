@@ -28,8 +28,8 @@ void main() {
         final expected = switch (tag) {
           ChallengeTag.memory => MistakeCategory.memoryFailure,
           ChallengeTag.counting => MistakeCategory.countingFailure,
-          ChallengeTag.reaction || ChallengeTag.patience =>
-            MistakeCategory.timingFailure,
+          ChallengeTag.reaction ||
+          ChallengeTag.patience => MistakeCategory.timingFailure,
           _ => null,
         };
         expect(
@@ -90,8 +90,14 @@ void main() {
     });
 
     test('name round-trips through persist/load', () {
-      expect(mistakeCategoryFromName('impulsiveTap'), MistakeCategory.impulsiveTap);
-      expect(mistakeCategoryFromName('timingFailure'), MistakeCategory.timingFailure);
+      expect(
+        mistakeCategoryFromName('impulsiveTap'),
+        MistakeCategory.impulsiveTap,
+      );
+      expect(
+        mistakeCategoryFromName('timingFailure'),
+        MistakeCategory.timingFailure,
+      );
       expect(mistakeCategoryFromName('nope'), isNull);
     });
   });
@@ -136,23 +142,23 @@ void main() {
     /// Builds a real engine with a single starter stub; correct on 'good',
     /// wrong on anything else.
     GameEngine buildEngine() => GameEngine(
-          provider: FallbackChallengeProvider(
-            scripted: ScriptedChallengeProvider(
-              generator: ChallengeGenerator(
-                templates: [
-                  ChallengeTemplate(
-                    id: 'stub',
-                    tag: ChallengeTag.color,
-                    build: _StubChallenge.new,
-                    starter: true,
-                  ),
-                ],
-                random: Random(1),
+      provider: FallbackChallengeProvider(
+        scripted: ScriptedChallengeProvider(
+          generator: ChallengeGenerator(
+            templates: [
+              ChallengeTemplate(
+                id: 'stub',
+                tag: ChallengeTag.color,
+                build: _StubChallenge.new,
+                starter: true,
               ),
-            ),
+            ],
+            random: Random(1),
           ),
-          random: Random(1),
-        );
+        ),
+      ),
+      random: Random(1),
+    );
 
     void tick(GameEngine e, int ms) {
       for (var i = 0; i < ms ~/ 16; i++) {
@@ -172,8 +178,7 @@ void main() {
 
       engine.startRun();
       tick(engine, 600); // intro beats, then level 1 playing
-      engine.handleTap(
-          const TapInfo(targetId: 'good', elapsed: Duration.zero));
+      engine.handleTap(const TapInfo(targetId: 'good', elapsed: Duration.zero));
       expect(collector.profile.totalRoundsPlayed, 1);
       expect(collector.profile.fastestStreak, 1);
       expect(collector.profile.successRateByMechanic['stub'], 1.0);
@@ -198,8 +203,7 @@ void main() {
 
       engine.startRun();
       tick(engine, 600);
-      engine.handleTap(
-          const TapInfo(targetId: 'good', elapsed: Duration.zero));
+      engine.handleTap(const TapInfo(targetId: 'good', elapsed: Duration.zero));
       await collector.persist();
 
       final reloaded = TelemetryCollector(prefs: prefs);
@@ -215,8 +219,7 @@ void main() {
 
       engine.startRun();
       tick(engine, 600);
-      engine.handleTap(
-          const TapInfo(targetId: 'good', elapsed: Duration.zero));
+      engine.handleTap(const TapInfo(targetId: 'good', elapsed: Duration.zero));
       await collector.persist();
 
       await collector.reset();
@@ -235,20 +238,23 @@ void main() {
       expect(p.isEmpty, isTrue);
     });
 
-    test('a run restart clears the in-run window but keeps all-time counters',
-        () {
-      final engine = buildEngine();
-      final collector = TelemetryCollector(prefs: prefs, engine: engine);
-      collector.load();
+    test(
+      'a run restart clears the in-run window but keeps all-time counters',
+      () {
+        final engine = buildEngine();
+        final collector = TelemetryCollector(prefs: prefs, engine: engine);
+        collector.load();
 
-      engine.startRun();
-      tick(engine, 600);
-      engine.handleTap(
-          const TapInfo(targetId: 'good', elapsed: Duration.zero));
-      engine.startRun();
-      expect(collector.profile.totalRoundsPlayed, 1);
-      expect(collector.profile.successRateByMechanic['stub'], isNull);
-    });
+        engine.startRun();
+        tick(engine, 600);
+        engine.handleTap(
+          const TapInfo(targetId: 'good', elapsed: Duration.zero),
+        );
+        engine.startRun();
+        expect(collector.profile.totalRoundsPlayed, 1);
+        expect(collector.profile.successRateByMechanic['stub'], isNull);
+      },
+    );
 
     test('detach stops observing without throwing', () {
       final engine = buildEngine();
@@ -261,8 +267,10 @@ void main() {
   });
 
   group('AdaptiveChallengeProvider', () {
-    ChallengeContext ctx =
-        const ChallengeContext(level: 6, locale: AppLocale.en);
+    ChallengeContext ctx = const ChallengeContext(
+      level: 6,
+      locale: AppLocale.en,
+    );
 
     test('cold start passes through the inner provider untouched', () {
       final inner = _SequenceProvider(['a', 'b', 'c']);
@@ -279,14 +287,15 @@ void main() {
       // Inner keeps offering 'b' first; province is only won by re-rolling
       // until a struggling-mechanic candidate shows up.
       final inner = _SequenceProvider(['b', 'a', 'c']);
-      final adaptive =
-          AdaptiveChallengeProvider(inner: inner, profile: profile);
+      final adaptive = AdaptiveChallengeProvider(
+        inner: inner,
+        profile: profile,
+      );
       expect(adaptive.next(ctx)!.challenge.id, 'a');
       expect(adaptive.next(ctx)!.challenge.id, 'a');
     });
 
-    test('never over-serves one mechanic within a window (variety guard)',
-        () {
+    test('never over-serves one mechanic within a window (variety guard)', () {
       // Inner serves 'a' 2/3 of the time — explosive without the guard.
       // Needs at least 3 distinct ids for the invariant below to even be
       // satisfiable: with only 2 ids and cap 3, an 8-window can hold at
@@ -294,12 +303,12 @@ void main() {
       // for something mathematically impossible. This bug (not a production
       // one) was caught by actually working the pigeonhole argument rather
       // than assuming a failing test always means the code is wrong.
-      final inner = _SequenceProvider(List.generate(
-          60, (i) => i % 3 == 2 ? (i % 6 == 2 ? 'b' : 'c') : 'a'));
+      final inner = _SequenceProvider(
+        List.generate(60, (i) => i % 3 == 2 ? (i % 6 == 2 ? 'b' : 'c') : 'a'),
+      );
       final adaptive = AdaptiveChallengeProvider(inner: inner, maxRerolls: 4);
 
-      final served = List.generate(
-          30, (_) => adaptive.next(ctx)!.challenge.id);
+      final served = List.generate(30, (_) => adaptive.next(ctx)!.challenge.id);
       for (var w = 0; w + 8 <= served.length; w++) {
         final window = served.sublist(w, w + 8);
         for (final id in window.toSet()) {
@@ -318,8 +327,10 @@ void main() {
       );
       // Inner NEVER offers the target mechanic 'a'.
       final inner = _SequenceProvider(['b', 'b', 'b']);
-      final adaptive =
-          AdaptiveChallengeProvider(inner: inner, profile: profile);
+      final adaptive = AdaptiveChallengeProvider(
+        inner: inner,
+        profile: profile,
+      );
       expect(adaptive.next(ctx)!.challenge.id, 'b');
     });
 
@@ -348,13 +359,13 @@ class _StubChallenge extends Challenge {
 
   @override
   ChallengeView get view => const ChallengeView(
-        instruction: 'TAP GOOD',
-        layout: ChallengeLayout.row,
-        targets: [
-          TargetSpec(id: 'good'),
-          TargetSpec(id: 'bad'),
-        ],
-      );
+    instruction: 'TAP GOOD',
+    layout: ChallengeLayout.row,
+    targets: [
+      TargetSpec(id: 'good'),
+      TargetSpec(id: 'bad'),
+    ],
+  );
 
   @override
   void onTap(TapInfo tap, ChallengeHost host) {
@@ -368,12 +379,14 @@ class _StubChallenge extends Challenge {
 
 class _FakeChallenge extends Challenge {
   _FakeChallenge(this._id, this._tag)
-      : super(ChallengeParams(
+    : super(
+        ChallengeParams(
           level: 1,
           rng: Random(1),
           speed: Difficulty.speedForLevel(1),
           locale: AppLocale.en,
-        ));
+        ),
+      );
 
   final String _id;
   final ChallengeTag _tag;
@@ -389,10 +402,10 @@ class _FakeChallenge extends Challenge {
 
   @override
   ChallengeView get view => const ChallengeView(
-        instruction: 'TAP',
-        layout: ChallengeLayout.row,
-        targets: [TargetSpec(id: 'x')],
-      );
+    instruction: 'TAP',
+    layout: ChallengeLayout.row,
+    targets: [TargetSpec(id: 'x')],
+  );
 
   @override
   void onTap(TapInfo tap, ChallengeHost host) => host.pass();

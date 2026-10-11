@@ -95,7 +95,9 @@ class _MpGameScreenState extends State<MpGameScreen>
     if (event is PartyGameEndEvent && !_navigated) {
       _navigated = true;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => MpResultScreen(session: _session)),
+        MaterialPageRoute<void>(
+          builder: (_) => MpResultScreen(session: _session),
+        ),
       );
     }
   }
@@ -132,7 +134,9 @@ class _MpGameScreenState extends State<MpGameScreen>
                     correct: _state.privateResult!.correct,
                     message: Strings.t(
                       locale,
-                      _state.privateResult!.correct ? 'ui.mp.game.correct' : 'ui.mp.game.wrong',
+                      _state.privateResult!.correct
+                          ? 'ui.mp.game.correct'
+                          : 'ui.mp.game.wrong',
                     ),
                   ),
                 if (_isEliminated)
@@ -141,11 +145,18 @@ class _MpGameScreenState extends State<MpGameScreen>
                     left: 0,
                     right: 0,
                     child: Center(
-                      child: _Badge(text: Strings.t(locale, 'ui.mp.game.eliminated')),
+                      child: _Badge(
+                        text: Strings.t(locale, 'ui.mp.game.eliminated'),
+                      ),
                     ),
                   ),
-                if (_state.phase == PartyPhase.disconnected || _state.phase == PartyPhase.rejected)
-                  MpDisconnectView(session: _session, state: _state, locale: locale),
+                if (_state.phase == PartyPhase.disconnected ||
+                    _state.phase == PartyPhase.rejected)
+                  MpDisconnectView(
+                    session: _session,
+                    state: _state,
+                    locale: locale,
+                  ),
               ],
             ),
           );
@@ -154,9 +165,11 @@ class _MpGameScreenState extends State<MpGameScreen>
     );
   }
 
-  bool get _showResultFlash => _state.round != null && _state.privateResult != null;
+  bool get _showResultFlash =>
+      _state.round != null && _state.privateResult != null;
 
-  bool get _isEliminated => _state.standings[_state.selfClientId]?.eliminated ?? false;
+  bool get _isEliminated =>
+      _state.standings[_state.selfClientId]?.eliminated ?? false;
 
   Widget _buildBody(AppLocale locale) {
     final round = _state.round;
@@ -178,7 +191,11 @@ class _MpGameScreenState extends State<MpGameScreen>
         ),
       );
     }
-    return ChallengeRenderer(view: round.view, claim: _claim, onTarget: _onTarget);
+    return ChallengeRenderer(
+      view: round.view,
+      claim: _claim,
+      onTarget: _onTarget,
+    );
   }
 }
 
@@ -188,8 +205,11 @@ class _Badge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(color: Ays.surfaceHigh, borderRadius: Ays.radiusSmall),
-        child: Text(text, style: Ays.label(13)),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+    decoration: BoxDecoration(
+      color: Ays.surfaceHigh,
+      borderRadius: Ays.radiusSmall,
+    ),
+    child: Text(text, style: Ays.label(13)),
+  );
 }

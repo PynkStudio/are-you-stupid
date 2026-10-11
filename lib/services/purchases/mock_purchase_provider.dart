@@ -15,10 +15,24 @@ class MockPurchaseProvider implements PurchaseProvider {
 
   @override
   PurchaseProduct? get removeAdsProduct => const PurchaseProduct(
-        id: IapProductIds.removeAds,
-        title: 'Remove Ads',
-        price: '\$2.99',
-      );
+    id: IapProductIds.removeAds,
+    title: 'Remove Ads',
+    price: '\$2.99',
+  );
+
+  @override
+  PurchaseProduct? get partyPackProduct => const PurchaseProduct(
+    id: IapProductIds.partyPack,
+    title: 'Party Pack',
+    price: '\$5.99',
+  );
+
+  @override
+  PurchaseProduct? get partyBundleProduct => const PurchaseProduct(
+    id: IapProductIds.partyBundle,
+    title: 'Party Bundle',
+    price: '\$7.99',
+  );
 
   @override
   Stream<PurchaseUpdate> get purchaseUpdates => _updates.stream;
@@ -31,17 +45,41 @@ class MockPurchaseProvider implements PurchaseProvider {
 
   @override
   Future<void> buyRemoveAds() async {
-    _updates.add(const PurchaseUpdate(
-      productId: IapProductIds.removeAds,
-      status: PurchaseUpdateStatus.purchased,
-    ));
+    _updates.add(
+      const PurchaseUpdate(
+        productId: IapProductIds.removeAds,
+        status: PurchaseUpdateStatus.purchased,
+      ),
+    );
+  }
+
+  @override
+  Future<void> buyPartyPack() async {
+    _updates.add(
+      const PurchaseUpdate(
+        productId: IapProductIds.partyPack,
+        status: PurchaseUpdateStatus.purchased,
+      ),
+    );
+  }
+
+  @override
+  Future<void> buyPartyBundle() async {
+    _updates.add(
+      const PurchaseUpdate(
+        productId: IapProductIds.partyBundle,
+        status: PurchaseUpdateStatus.purchased,
+      ),
+    );
   }
 
   @override
   Future<void> restorePurchases() async {
-    _updates.add(const PurchaseUpdate(
-      productId: IapProductIds.removeAds,
-      status: PurchaseUpdateStatus.restored,
-    ));
+    _updates.add(
+      const PurchaseUpdate(
+        productId: IapProductIds.removeAds,
+        status: PurchaseUpdateStatus.restored,
+      ),
+    );
   }
 }

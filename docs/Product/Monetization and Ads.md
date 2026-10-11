@@ -1,6 +1,6 @@
 ---
 tags: [product, ads, monetization]
-updated: 2026-10-02
+updated: 2026-10-11
 ---
 
 # Monetization and Ads
@@ -168,8 +168,12 @@ abstract class PurchaseProvider {
   Future<void> initialize();
   bool get isAvailable;                    // false: hide buy/restore, same as ads
   PurchaseProduct? get removeAdsProduct;   // null until the store resolves it
+  PurchaseProduct? get partyPackProduct;
+  PurchaseProduct? get partyBundleProduct;
   Stream<PurchaseUpdate> get purchaseUpdates;
   Future<void> buyRemoveAds();
+  Future<void> buyPartyPack();
+  Future<void> buyPartyBundle();
   Future<void> restorePurchases();
   Future<void> refreshProduct();           // retried when Settings opens
 }
@@ -203,6 +207,32 @@ keeps working with no connection. This is the one thing the purchase actually
 buys the player: **the same functionality, minus the ad they'd otherwise have
 to watch for it.**
 
+### Multiplayer products and rematch placement
+
+There are three independent non-consumables:
+
+- `ays_remove_ads` removes ads only — **€2.99**;
+- `ays_party_pack` unlocks 16-player rooms only — **€4.99**;
+- `ays_party_bundle` unlocks 16-player rooms and removes ads — **€5.99**.
+
+Prices are EUR base prices, the same on the App Store and Google Play; each
+store derives the other territories from them.
+
+`SettingsManager` persists the products separately under
+`ays.noAdsPurchased`, `ays.partyPackPurchased` and
+`ays.partyBundlePurchased`. Effective room entitlements are derived from
+those flags: the bundle contributes both. `PurchaseManager` queries, buys and
+restores all three. Store metadata for Party Pack and Party Bundle still has
+to be created in App Store Connect/Google Play before their production CTAs
+can resolve localized prices.
+
+Multiplayer has one user-initiated placement: after `GAME_END`, the phone whose
+player taps RIVINCITA may show one already-preloaded interstitial. There is no
+run counter for this placement. Only that phone calls AdMob; every other phone
+and the board render synchronized troll copy. No-fill/offline completes the
+break immediately. Any joined Remove Ads or Party Bundle owner suppresses the
+placement for the whole room session; Party Pack alone never suppresses ads.
+
 **Restoring.** Required by App Store review guidelines for any non-consumable;
 the Settings screen shows a "restore purchase" link next to the buy button.
 Some stores stay silent on `restorePurchases()` when there is nothing to
@@ -233,10 +263,17 @@ purchase found" if no stream event ever arrives.
   once the account is unblocked, other than attaching it to a build submission
   ("Aggiungi alla verifica").
 
-- **Google Play Console: not started.** Deliberately deferred — iOS ships
-  first (see [[Decision Log]]). Same product id `ays_remove_ads`, type
-  "Managed product", under Monetize → Products → In-app products, whenever
-  Android setup resumes.
+- **Google Play Console: app created 2026-10-06, products not yet.** The
+  app record, policy declarations and store listing are done (see
+  [[Release Checklist]]). Two blockers stand before the three one-time
+  products (`ays_remove_ads` €2.99, `ays_party_pack` €4.99,
+  `ays_party_bundle` €5.99 — same ids as iOS) can be created: the
+  *One-time products* page is locked until a **Google Payments merchant
+  account** is set up for the developer account (business, tax and bank
+  details — only the account holder can fill them in), and Play only
+  offers product creation once a build declaring
+  `com.android.vending.BILLING` has been uploaded to a track. The Play listing and data-safety form already disclose ads and
+  in-app purchases.
 
 Until a store's product exists and its agreement is active,
 `PurchaseProvider.removeAdsProduct` stays `null` there and the row simply

@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, client, flutter]
-updated: 2026-10-03
+updated: 2026-10-06
 ---
 
 # Multiplayer Client (Mobile)
@@ -40,10 +40,15 @@ Swift implementation was the alternative. The client:
 
 ## Entry points
 
-The home screen ([[Architecture Overview]]) gains a **MULTIPLAYER** tile. Two
-ways in:
+The home screen ([[Architecture Overview]]) gains a **MULTIPLAYER** tile.
+On macOS only, the tile first opens a role chooser
+(`openMultiplayerForPlatform` in `ui/screens/multiplayer/mp_role_chooser.dart`):
+**PLAY ON THIS MAC** continues into the join flow below, **HOST ON THIS MAC**
+opens the native board window over the `ays/host_mode` method channel
+([[Multiplayer Host (tvOS)]]). Every other platform goes straight to the join
+flow. Two ways in:
 
-1. **Scan QR** — `areyoustupid://join?room=7F4K`. If the deep link opened the
+1. **Scan QR** — `https://pynkstudio.eu/ays/join?room=7F4K` (legacy `areyoustupid://join?room=7F4K` still accepted; iOS opens the https link via the `applinks:pynkstudio.eu` Associated Domain in `Runner.entitlements`). If the deep link opened the
    app directly, `app_links` delivers it on cold start or while the app is
    already running; the app skips the scan screen and goes straight to the
    join flow. iOS registers the custom scheme in `Info.plist`, Android in the
@@ -215,9 +220,12 @@ obvious profanity/contact payloads are rejected before the network. The result
 is cached for the exact display name, reused on a later join, and invalidated
 as soon as the display name changes. A random persistent `personaId` lets the
 same board recognize a returning narrative career without an account or name-
-based matching. This is the deterministic floor; optional on-device-model
-refinement and alias confirmation UI in [[Multiplayer Presenter]] are not
-implemented yet, but their structured verdict uses the same cache.
+based matching. Ambiguous input tries the local Apple model, then privately
+borrows an AI-capable phone already in the room. The join form previews changed
+pronunciation and marks display-only or blocked names; the structured verdict
+uses the same exact-name cache. Ambiguous players enter immediately; a lobby
+status opens the game-toned `COME TI CHIAMERÀ?` sheet, which can edit the name
+in place while analysis continues and pushes the final identity to the roster.
 
 ## Testability
 

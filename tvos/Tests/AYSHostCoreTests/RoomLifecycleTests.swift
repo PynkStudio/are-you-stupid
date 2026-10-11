@@ -95,7 +95,40 @@ final class RoomLifecycleTests: XCTestCase {
         XCTAssertNotNil(a.lastPlayerJoined)
         XCTAssertNotNil(b.lastPlayerJoined)
         XCTAssertNil(c.lastPlayerJoined)
-        XCTAssertEqual(c.lastError?.code, "ROOM_FULL")
+        XCTAssertEqual(c.lastError?.code, "ROOM_FULL_UPGRADABLE")
+        XCTAssertTrue(a.received.contains { $0 is PartyPackNudge })
+    }
+
+    func testOnePartyPackOwnerRaisesTheWholeRoomCapToSixteen() {
+        let clock = ManualHostClock(1000)
+        let host = RoomHost(maxPlayers: 8, clock: clock, judge: FakeChallengeJudge())
+        var clients: [SimClient] = []
+        for index in 0..<16 {
+            let (hostSide, clientSide) = InMemoryHostTransport.pair()
+            host.attachClient(hostSide)
+            let client = SimClient(transport: clientSide)
+            client.hello()
+            client.join(name: "P\(index)", partyPack: index == 0)
+            clients.append(client)
+        }
+        XCTAssertEqual(host.seatCount, 16)
+        XCTAssertEqual(clients.last?.lastRoomPerks?.maxPlayers, 16)
+        XCTAssertEqual(clients.last?.lastRoomPerks?.partyPackActive, true)
+        XCTAssertEqual(clients.last?.lastRoomPerks?.adsRemoved, false)
+    }
+
+    func testBundleEntitlementsRaiseCapAndRemoveAds() {
+        let clock = ManualHostClock(1000)
+        let host = RoomHost(maxPlayers: 8, clock: clock, judge: FakeChallengeJudge())
+        let (hostSide, clientSide) = InMemoryHostTransport.pair()
+        host.attachClient(hostSide)
+        let client = SimClient(transport: clientSide)
+        client.hello()
+        client.join(name: "Bundle", noAds: true, partyPack: true)
+
+        XCTAssertEqual(client.lastRoomPerks?.maxPlayers, 16)
+        XCTAssertEqual(client.lastRoomPerks?.partyPackActive, true)
+        XCTAssertEqual(client.lastRoomPerks?.adsRemoved, true)
     }
 
     func testLeaveDropsSeatAndBroadcastsPlayerLeave() {

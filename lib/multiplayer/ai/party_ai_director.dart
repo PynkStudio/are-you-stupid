@@ -29,6 +29,7 @@ import '../../ai/generated_challenge.dart';
 import '../../i18n/app_locale.dart';
 import '../engine/party_session.dart';
 import '../engine/party_state.dart';
+import '../protocol/protocol.dart';
 
 class PartyAiDirector {
   PartyAiDirector({
@@ -36,10 +37,10 @@ class PartyAiDirector {
     required AppleAIService service,
     required Future<AiFeatureFlags> Function() loadFlags,
     ChallengeValidator validator = const ChallengeValidator(),
-  })  : _session = session,
-        _service = service,
-        _validator = validator,
-        _flagsFuture = loadFlags() {
+  }) : _session = session,
+       _service = service,
+       _validator = validator,
+       _flagsFuture = loadFlags() {
     _eventsSub = session.events.listen(_onEvent);
     unawaited(_initFlags());
   }
@@ -91,19 +92,49 @@ class PartyAiDirector {
         _level = (roundStart.config['level'] as int?) ?? _level;
         unawaited(_maybeGenerateRound());
       case PartyAiChallengeRoundEvent(:final round):
-        _level = (round.proposal['difficulty'] as Map?)?['level'] as int? ?? _level;
+        _level =
+            (round.proposal['difficulty'] as Map?)?['level'] as int? ?? _level;
         unawaited(_maybeGenerateRound());
       case PartyEliminatedEvent(:final eliminated):
-        unawaited(_maybeSendCommentary(kind: CommentaryKind.elimination, roundId: eliminated.roundId));
+        unawaited(
+          _maybeSendCommentary(
+            kind: CommentaryKind.elimination,
+            roundId: eliminated.roundId,
+          ),
+        );
       case PartyGameEndEvent(:final end):
-        final wonIt = end.winnerId != null && end.winnerId == _session.state.selfClientId;
-        unawaited(_maybeSendCommentary(
-          kind: wonIt ? CommentaryKind.winner : CommentaryKind.loser,
-          roundId: '',
-        ));
+        final wonIt =
+            end.winnerId != null && end.winnerId == _session.state.selfClientId;
+        unawaited(
+          _maybeSendCommentary(
+            kind: wonIt ? CommentaryKind.winner : CommentaryKind.loser,
+            roundId: '',
+          ),
+        );
+      case PartyAiNameAnalysisRequestEvent(:final request):
+        unawaited(_analyzeName(request));
       default:
         break;
     }
+  }
+
+  Future<void> _analyzeName(AiNameAnalysisRequest request) async {
+    final availability = await _service.available();
+    if (!availability.isAvailable) return;
+    final result = await _service.analyzeSpokenName(
+      unitId: request.requestId,
+      displayName: request.displayName,
+      locale: AppLocale.en,
+    );
+    if (result == null) return;
+    _session.sendNameAnalysisResult(
+      AiNameAnalysisResult(
+        requestId: request.requestId,
+        decision: result['decision'] as String? ?? 'displayOnly',
+        spokenName: result['spokenName'] as String?,
+        confidence: (result['confidence'] as num?)?.toDouble() ?? 0,
+      ),
+    );
   }
 
   /// Announces this phone's on-device model availability once, right after
@@ -190,11 +221,16 @@ class PartyAiDirector {
     }
   }
 
-  Future<void> _maybeSendCommentary({required CommentaryKind kind, required String roundId}) async {
+  Future<void> _maybeSendCommentary({
+    required CommentaryKind kind,
+    required String roundId,
+  }) async {
     if (!_isDirector) return;
     final flags = _flags;
     final commentary = _commentary;
-    if (flags == null || commentary == null) return; // flags not resolved yet — cold start.
+    if (flags == null || commentary == null) {
+      return; // flags not resolved yet — cold start.
+    }
     if (!flags.aiMultiplayerDirectorEnabled) return;
     final availability = await _service.available();
     if (!availability.isAvailable) return;
@@ -206,6 +242,10 @@ class PartyAiDirector {
     // already has the same static pools locally and doesn't need the
     // Director to relay one.
     if (!isCommentaryLineValid(text, kind)) return;
-    _session.sendAiCommentaryProposal(kind: kind.wire, roundId: roundId, text: text);
+    _session.sendAiCommentaryProposal(
+      kind: kind.wire,
+      roundId: roundId,
+      text: text,
+    );
   }
 }

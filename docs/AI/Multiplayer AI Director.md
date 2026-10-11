@@ -1,6 +1,6 @@
 ---
 tags: [ai, multiplayer, architecture]
-updated: 2026-10-03
+updated: 2026-10-06
 ---
 
 # Multiplayer AI Director
@@ -95,6 +95,17 @@ it — see [[Decision Log]]):
 | `AI_CHALLENGE_ROUND` | `{ roundId, proposal, startAt, durationMs }` | match host → all, relayed **as-is** |
 | `AI_COMMENTARY_PROPOSAL` | `{ kind, roundId, text }` | the Director phone → match host |
 | `AI_COMMENTARY` | `{ kind, roundId, text }` | match host → all, relayed as-is |
+| `AI_NAME_ANALYSIS_REQUEST` | `{ requestId, displayName }` | requesting phone → host → best available AI-capable phone |
+| `AI_NAME_ANALYSIS_RESULT` | `{ requestId, decision, spokenName?, confidence }` | analyzer → host → requesting phone only |
+| `PLAYER_IDENTITY_UPDATE` | `{ playerName, spokenName?, speechPolicy }` | phone → host; refreshes the roster without leaving |
+
+Name analysis is an independent, short-lived use of the capability
+announcements, not an AI Director election. The host selects the available
+phone with the highest compute rank (join order breaks ties), routes the raw
+name only to that phone, and returns the result only to its requester. Pending
+routes are discarded if either endpoint disconnects. Joining never waits:
+an ambiguous name enters as display-only, then the lobby and roster update
+when a cached, local-model, or relayed result arrives.
 
 The match host does **not** re-validate `AI_ROUND_PROPOSAL` before
 relaying it — it has no `ChallengeValidator` (that's ~400 lines of pure

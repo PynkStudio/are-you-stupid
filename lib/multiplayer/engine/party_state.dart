@@ -115,14 +115,13 @@ class PlayerStanding {
     int? lives,
     int? standing,
     bool? eliminated,
-  }) =>
-      PlayerStanding(
-        playerId: playerId,
-        score: score ?? this.score,
-        lives: lives ?? this.lives,
-        standing: standing ?? this.standing,
-        eliminated: eliminated ?? this.eliminated,
-      );
+  }) => PlayerStanding(
+    playerId: playerId,
+    score: score ?? this.score,
+    lives: lives ?? this.lives,
+    standing: standing ?? this.standing,
+    eliminated: eliminated ?? this.eliminated,
+  );
 }
 
 /// The complete image a controller screen renders. Rebuilt from each received
@@ -153,6 +152,13 @@ class PartyState {
   GameEnd? gameEnd;
   Rejected? rejected;
   PartyError? lastError;
+
+  int maxPlayers = 8;
+  bool partyPackActive = false;
+  bool roomAdsRemoved = false;
+  String? partyPackActivatedByPlayerId;
+  String? adBreakPlayerId;
+  int partyPackNudgeSerial = 0;
 
   /// The elected AI Director's peer id, or `null` when no capable phone is
   /// connected ([[Multiplayer AI Director]], Phase 8). Phase 7 only tracks
@@ -208,6 +214,26 @@ class PartyJoinedEvent extends PartyEvent {
 class PartyRosterEvent extends PartyEvent {
   const PartyRosterEvent(this.roster);
   final PlayerReadyRoster roster;
+}
+
+class PartyRoomPerksEvent extends PartyEvent {
+  const PartyRoomPerksEvent(this.perks);
+  final RoomPerks perks;
+}
+
+class PartyPackNudgeEvent extends PartyEvent {
+  const PartyPackNudgeEvent(this.nudge);
+  final PartyPackNudge nudge;
+}
+
+class PartyAdBreakStartedEvent extends PartyEvent {
+  const PartyAdBreakStartedEvent(this.adBreak);
+  final AdBreakStarted adBreak;
+}
+
+class PartyRematchReadyEvent extends PartyEvent {
+  const PartyRematchReadyEvent(this.ready);
+  final RematchReady ready;
 }
 
 class PartyPlayerLeftEvent extends PartyEvent {
@@ -294,6 +320,16 @@ class PartyAiChallengeRoundEvent extends PartyEvent {
 class PartyAiCommentaryEvent extends PartyEvent {
   const PartyAiCommentaryEvent(this.commentary);
   final AiCommentary commentary;
+}
+
+class PartyAiNameAnalysisRequestEvent extends PartyEvent {
+  const PartyAiNameAnalysisRequestEvent(this.request);
+  final AiNameAnalysisRequest request;
+}
+
+class PartyAiNameAnalysisResultEvent extends PartyEvent {
+  const PartyAiNameAnalysisResultEvent(this.result);
+  final AiNameAnalysisResult result;
 }
 
 /// Builds the canonical local challenge for a round, exactly as every other

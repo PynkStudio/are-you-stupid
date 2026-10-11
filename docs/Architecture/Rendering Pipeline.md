@@ -1,6 +1,6 @@
 ---
 tags: [architecture, ui]
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # Rendering Pipeline
@@ -45,6 +45,36 @@ rotation, press scale (0.94, 70 ms), opacity, then the shape
 (rect / circle / triangle / diamond via `CustomPainter`).
 
 Labels use `FittedBox` so a long word never overflows or wraps badly.
+
+## Headlines and titles — `BalancedText`
+
+> **Rule.** Any new title or big headline (anything styled with `Ays.title`
+> or `Ays.instruction` that is not a live challenge instruction) must use
+> `BalancedText`, not a bare `Text` or `FittedBox`. Hard rule 8 in
+> [[Game Design Pillars]].
+
+`lib/ui/widgets/balanced_text.dart`. Every screen title and big headline
+(home title, Settings, Best score, Game Over roast/verdict, the "killed by"
+instruction, correct/wrong flash message, `bigCenterText`, multiplayer
+titles, mock ad title) goes through `BalancedText` instead of a bare `Text`.
+It applies three rules, in order:
+
+1. **Never split a word.** If the longest word does not fit the width alone,
+   the font shrinks until it does — `IMPOSTAZIONI` stays one word instead
+   of `IMPOSTAZION / I`.
+2. **Respect `maxLines`** (default 2), shrinking further down to
+   `minScale` (40 % of the base size). `maxLines: 1` means "fit on one
+   line" — used for single-word titles such as Settings and the home title.
+3. **Balance the lines.** With the line count fixed, a binary search finds
+   the narrowest width that keeps it, so lines come out even:
+   `CONGRATULATIONS, / I GUESS`, never `CONGRATULATIONS, I / GUESS`.
+
+It measures with a `TextPainter` using the same `TextScaler` as the
+rendered `Text`. By default it reads its width from a `LayoutBuilder`; the
+Game Over headline passes `maxWidth` explicitly because it sits under the
+card's `FittedBox`. Small label/body copy stays a plain `Text` on purpose.
+The layout maths is a pure static (`BalancedText.balance`) so it can be
+unit-tested — see [[Testing]].
 
 ## Visual language
 

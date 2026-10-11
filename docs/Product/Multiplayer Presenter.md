@@ -1,6 +1,6 @@
 ---
 tags: [product, multiplayer, audio, ai, presenter]
-updated: 2026-10-03
+updated: 2026-10-11
 ---
 
 # Multiplayer Presenter
@@ -13,10 +13,46 @@ generation is unavailable ([[Multiplayer Architecture]]).
 
 ## Character and timing
 
-The host is elegant, theatrical and increasingly disappointed by the room. It
-teases demonstrated play, never bodies, identity or protected traits. Good
-slots are lobby waiting, results, eliminations, standings changes and game end;
-silence is preferable to commentary every round.
+The host is elegant, theatrical and increasingly disappointed by the room,
+but it is not polite family-TV banter. The target room is a loud group of
+friends already roasting one another; the presenter earns its place by
+raising that energy. It attacks demonstrated play, confidence, hesitation,
+rank and rivalry, never bodies, identity or protected traits. Good slots are
+lobby waiting, results, eliminations, standings changes and game end; silence
+is preferable to commentary every round.
+
+`NEUTRAL` stays concise and amused, with enough bite to avoid sounding like a
+scripted television host. `SAVAGE` is a genuine roast, not neutral copy with a
+slightly harsher adjective. Vary its attack:
+
+- **Plateale:** direct public humiliation after an obvious failure.
+- **Indirect:** calm praise whose implication makes the insult land a beat
+  later.
+- **Rivalry:** use another player's success to sharpen the target's loss.
+- **Callback:** reuse a player's earlier confidence or repeated mistake.
+- **Fake broadcast:** invoke the control room, audience, adjudicator or a
+  familiar quiz-show convention as if the room were a collapsing live show.
+- **Mechanic-aware:** name how elementary the failed action was: one button,
+  a tiny sum, counting, reading, waiting or remembering a single item.
+
+The strongest lines state an observable fact, then expose why it is
+embarrassing: “Io mi vergognerei a perdere contro `{name}`” or “`{name}` era
+convinto. È questo l'aspetto più grave.” Avoid generic insults that could be
+played after any event, empty cruelty and elegant aphorisms detached from the
+room. The joke must feel improvised from what just happened.
+
+Broadcast references deliberately break the fourth wall and may be culturally
+specific. Locales adapt the underlying device to a locally familiar quiz-show
+convention; they do not translate named references literally. Prefer generic
+roles and conventions over celebrity impersonation, endorsement or a copied
+catchphrase.
+
+Mechanic-aware lines bind to a specific challenge family or failure reason and
+must never fire on an unrelated round. They should expose the smallest literal
+task the player failed (“Non pensavo servisse un tutorial per premere un
+bottone”) rather than explain the challenge rules. This copy is metadata on
+the presenter cue, not part of the challenge's instructional or fail-line
+contract.
 
 Lines stay short and subtitle verbatim. Highlighting the target card makes
 `MA CE LA FAI?` unambiguous without a name. Voice has a separate toggle.
@@ -25,14 +61,25 @@ Lines stay short and subtitle verbatim. Highlighting the target card makes
 
 The presenter resolves every cue through this ladder without delaying play:
 
-1. Bundled fallback clip for essential/common beats.
-2. Host disk cache.
-3. Shared backend/CDN cache.
+1. Pack clip: synced from the backend or bundled with the app.
+2. Host disk cache of generated lines.
+3. Shared backend cache.
 4. New online text-to-speech generation.
 5. Subtitle only if audio is not ready before the cue's deadline.
 
 The host chooses event, line/template and variant; the backend only resolves
 or produces audio. Gameplay never waits for it.
+
+The room presenter supports the same six locales as the game: English,
+Italian, French, Spanish, Portuguese and German. On launch the board derives
+the presenter's locale from the host device language and falls back to English
+when it is unsupported. Language is deliberately a secondary lobby action:
+`OPTIONS` opens the presenter panel, where the host can override the locale,
+choose output independently as `OFF`, `MUTE` or `VOICE`, and choose
+`NEUTRAL` or `SAVAGE` intensity whenever output is not Off. `OFF` suppresses
+both speech and the matching presenter caption; `MUTE` keeps the caption but
+never starts pack playback, cache lookup or TTS. Both settings persist and
+neither disables unrelated AI Director copy.
 
 Three content tiers keep cost and latency bounded:
 
@@ -59,11 +106,107 @@ and metadata unused for 30 days. Common names/phrases therefore remain warm,
 while rare combinations disappear automatically. Bundled universal audio is
 still permanent and versioned with the app.
 
-The bundled presenter pack and its text manifest are released in lockstep with
-the host app. Every bundled clip has the same stable line ID used by backend
-and subtitles, so online and offline selection cannot drift. A later app
-release may refresh the pack; runtime downloads are an optimization, never the
-only copy of baseline commentary.
+## Remote presenter pack
+
+Universal lines, spoken-name templates and narrative title wording live in a
+**line book** published by the PynkStudio backend, so copy and recordings can
+change without an app release:
+
+- Source: one `content/ays-presenter/pack.<locale>.json` per supported locale
+  in the PynkStudio repo (`en`, `it`, `fr`, `es`, `pt`, `de`).
+  `npm run ays:pack` validates it (uppercase, ≤ 180 characters, only known
+  templates/placeholders), records only new or changed lines, uploads them
+  to the private `ays-presenter-pack` bucket and publishes the manifest as a
+  new revision.
+- Host: `PresenterPackStore` fetches `GET /api/ays/presenter/pack` (ETag →
+  `304` when unchanged) at hosting start and at each match start, at most
+  every 15 minutes. It downloads every missing clip from
+  `/api/ays/presenter/pack/clips/<sha256>`, verifies size and SHA-256, and
+  only then swaps the manifest. A half-downloaded pack is never used.
+- **Replace** a recording: change its text or bump its `take`. The clip is
+  content-addressed, so the new audio gets a new hash and cannot be confused
+  with the old one.
+- **Invalidate** a line: remove it from the JSON and publish. Boards drop it,
+  and delete its file, on their next sync. `--prune` also removes unused
+  clips from the bucket.
+- A new book applies immediately in the lobby, otherwise at the next match
+  start: copy never changes mid-match.
+
+The release bundle carries all six published packs
+(`scripts/fetch_presenter_pack.sh` → `tvos/TVResources/PresenterPack/`), and
+the code keeps a localized text-only baseline (`PresenterLineBook.builtIn(locale:)`). The board
+uses whichever of the synced and bundled packs has the higher revision.
+Runtime downloads remain an optimization, never the only copy of baseline
+commentary.
+
+### What the server can and cannot change
+
+The server changes **what is said**; the app still decides **when**, from
+facts it has verified. For every beat the engine asks the book for a list of
+keys, most specific first, and plays the first one that has lines:
+
+| Beat | Keys (most specific → generic) |
+|---|---|
+| Round result | `<outcome>.streak3`, `result.mixed.oneWrong` / `result.mixed.oneCorrect`, `<outcome>.mechanic.<category>`, `<outcome>.firstRound`, `<outcome>` |
+| Named Savage result | `result.mixed.oneWrong.mechanic.<category>`, late first point, still zero after 3+ rounds, or wrong streak 3+, then its generic named key |
+| Lobby | `lobby.empty` |
+| Game end, no name | `gameEnd` |
+
+`<outcome>` is `result.everyoneWrong`, `result.everyoneCorrect` or
+`result.mixed`. Publishing lines under a narrower key covers that case with
+no app release. A case built on a **new fact** (for example "the same player
+failed in two different modes") still requires app code to emit a new key.
+Mechanic categories are the fixed
+vocabulary `button`, `math`, `counting`, `reading`, `waiting`, `timing`,
+`memory`, `direction` and `perception`; every one of the 39 shipped challenge
+ids maps to exactly one category. `HostViewModel` retains the verified
+`ROUND_START.challengeId` by round id until `ROUND_RESULTS`, so no protocol
+field or client-reported description is trusted for this copy.
+
+Templates the app can fill: `title.named`, `title.anonymous`,
+`gameEnd.named` (`{name}`), `lobby.returning.named`,
+`lobby.returning.anonymous` (`{title}`, plus `{name}` where named). Title
+wording: `king`, `kingUndisputed`, `doesNotRead`. Any line may be restricted
+to `neutral` or `savage` intensity. Unknown keys, bad placeholders or
+lowercase copy are rejected by the publish script and dropped again by the
+host. A manifest `format` newer than the build understands is ignored
+entirely.
+
+## Voice provider
+
+One backend module (`src/lib/ays-presenter/speech.ts`) owns synthesis, so
+pack clips and live lines come from the same voice. **ElevenLabs** is the
+default whenever `ELEVENLABS_API_KEY` and `AYS_PRESENTER_ELEVENLABS_VOICE_ID`
+are set: `eleven_v3` for the pre-recorded pack (most expressive, latency
+irrelevant) and `eleven_flash_v2_5` for live named lines (the host waits at
+most 1.4 s). Otherwise the backend falls back to OpenAI `gpt-4o-mini-tts`.
+The selected production voice is **AYS — The Disappointed Host**
+(`C5m0ozw0kWxM7oU5fgRY`), a generated multilingual voice. Its character
+background is an elegant former European prime-time announcer now condemned
+to host the simplest competition imaginable: warm baritone, measured pace,
+crisp diction, controlled delivery and growing disappointment. Neutral lines
+use restrained sarcasm; Savage lines may escalate into a pointed roast while
+remaining controlled rather than frantic. The background guides identity; individual v3 lines may still use
+sparingly chosen delivery tags to shape a specific performance. Production
+pack synthesis uses the approved consistency preset: seed `42817`, stability
+`0.42`, similarity boost `0.86`, style `0.42`, speaker boost enabled and speed
+`1.03`. Keep the same seed and settings across a locale's takes; unusually low
+stability is rejected because it changes the apparent speaker and pacing.
+
+Lobby copy is direct and situational: the host addresses the actual
+contestants with theatrical impatience, rather than delivering abstract
+one-liners. Approved Italian examples include “Ma davvero questo è il meglio
+che abbiamo stasera?”, “Ma vuoi chiudere Instagram ed entrare in partita, o
+no?” and “Se questi sono i concorrenti, io me ne vado.” Other locales should
+adapt the comic intent and spoken rhythm, not translate these literally.
+Subtitles stay uppercase; the selected locale is sent on every live request,
+selects the corresponding system voice fallback (`en-US`, `it-IT`, `fr-FR`,
+`es-ES`, `pt-PT`, `de-DE`) and separates manifest, ETag and generated-audio
+caches. The backend sends sentence-case text to the
+voice, because all-caps input is read as shouting or spelled out. The voice
+tag (provider, voice, model) is part of every cache key: changing voice
+regenerates audio instead of mixing voices. Pack clips change only on the
+next publish.
 
 ## Cue deadlines and late delivery
 
@@ -80,6 +223,14 @@ Every cue declares a relevance policy; connectivity never changes game timing:
 The subtitle follows the same policy: do not show a generated line at a time
 when its audio would be stale. A cue may be delayed for theatrical timing, but
 must never refer to an old leader, eliminated target or superseded title.
+Relevance is checked until playback begins. If the next round starts while a
+line is still loading, that line is discarded; if its audio has already
+started, it is allowed to finish naturally across the round boundary.
+
+One beat emits at most one presenter cue. When a result also awards a title,
+the line book may provide one combined sentence containing both facts. If no
+combined template exists, the title wins the slot; two independent voice
+tracks are never started together.
 
 ## Display name versus spoken identity
 
@@ -91,13 +242,14 @@ spokenName: Luca
 speechPolicy: speakAlias
 ```
 
-Deterministic normalization runs first: normalize Unicode, remove invisible
+Deterministic normalization runs first: normalize Unicode, fold common
+leetspeak (`0→o`, `1/!→i`, `3→e`, `4/@→a`, `5/$→s`, `7→t`, etc.), remove invisible
 characters and edge decoration, collapse spaces, and retain a conservative
 set of letters, apostrophes and hyphens. It also rejects contact details,
 URLs, obvious profanity and prompt-like payloads. If the result is clear, no
 model call is needed.
 
-When available, the on-device model may classify an ambiguous name and extract
+When available, the on-device model classifies an ambiguous name and extracts
 a pronounceable alias using a closed structured result:
 
 ```text
@@ -106,11 +258,20 @@ spokenName: optional short value
 confidence: 0..1
 ```
 
+Name analysis never blocks entry: an ambiguous player joins provisionally as
+`displayOnly` and the lobby shows that the presenter is still trying to read
+the name. If that phone has no model, it sends a two-second LAN request through the host
+to the highest-ranked AI-capable phone already in the room. The host routes the
+answer only to the requester; the helper phone never displays the name. If no
+answer arrives, joining continues as `displayOnly`.
+
 The model is advisory, never the only safety layer: Android and unsupported
-Apple devices must behave correctly without it. Low confidence becomes
+Apple devices still behave correctly without it. Low confidence becomes
 `displayOnly`. If an alias differs materially, joining shows `THE HOST WILL
-CALL YOU: LUCA` and lets the player reject or edit it. Manual pronunciation
-passes through the same validator.
+CALL YOU: LUCA`; display-only and blocked names show explicit warnings, with
+the latter using the game's `NICE TRY` voice. The lobby warning opens `COME TI
+CHIAMERÀ?`, where the player can inspect or change name/pronunciation without
+leaving the room. A completed verdict updates the live roster additively.
 
 The phone caches the verified result against the exact display name. A later
 join with the same spelling reuses `spokenName` and `speechPolicy`; changing
@@ -196,15 +357,27 @@ ephemeral room authorization, cache/TTS, retention and spend controls. Provider
 selection follows a voice bake-off for performance, pronunciation, latency,
 licensing and price.
 
-**Implementation status:** the pure Swift cue engine, versioned text manifest,
-semantic expiry, title ledger, local returning-player careers, homonym labels, host disk/backend
-ladder and AVFoundation playback are wired. Flutter performs deterministic
-spoken-name extraction and sends `spokenName`/`speechPolicy` on join. The
-shared PynkStudio/Menuary backend now contains `/api/ays/presenter`, backed by
-OpenAI speech plus a private Supabase cache and sliding 30-day retention cron.
-Still required before production:
-deploy/apply the storage migration, provision host/backend tokens and URL,
-choose the licensed voice, populate the bundled `PresenterPack` MP3s, add the
-AI refinement/confirmation UI for ambiguous names, and expose presenter intensity/toggles in
-host settings. Until the pack/config exists, the host uses system TTS as a
-development-only offline safety net.
+**Implementation status:** the pure Swift cue engine, data-driven line book
+with specificity ladder, semantic expiry, title ledger (reset per match),
+local returning-player careers, homonym labels, pack sync, host
+disk/backend ladder and AVFoundation playback are wired. Flutter performs
+deterministic spoken-name extraction and sends `spokenName`/`speechPolicy`
+on join. The backend on `https://pynkstudio.eu` serves live speech
+(`POST /api/ays/presenter`, private cache with sliding 30-day retention) and
+the pack (`GET /api/ays/presenter/pack`, `…/pack/clips/<sha256>`). The
+shared token is set on Vercel production and in the untracked
+`tvos/Config/Presenter.secrets.xcconfig`, which tvOS and the Mac Runner
+both read. Still required before production: deploy the backend branch,
+apply the pack migration, set the selected ElevenLabs voice ID in production,
+publish the first pack and bundle it with the release. Local/LAN AI name
+refinement and join-form pronunciation warnings are wired. Language, output
+`OFF`/`MUTE`/`VOICE` and independent `NEUTRAL`/`SAVAGE` controls already ship
+in host Options. The token ships inside the host binary,
+so it is a speed bump, not authentication. Per-room ephemeral authorization
+and a spend ceiling remain open. Until the pack exists, the host uses system
+TTS as a development-only offline safety net.
+Blocked or deliberately evasive names receive one of five localized,
+presenter-voiced UI rebukes instead of a generic validation error. The choice
+is deterministically derived from the normalized name, so it varies between
+players but never flickers while the same player edits or reopens the name
+card. These lines are screen copy only: a blocked name is never sent to TTS.

@@ -16,8 +16,8 @@ class TimerBar extends StatelessWidget {
     final color = left > 0.5
         ? Ays.ink
         : left > 0.22
-            ? Ays.warning
-            : Ays.wrong;
+        ? Ays.warning
+        : Ays.wrong;
     return AnimatedOpacity(
       opacity: visible ? 1 : 0,
       duration: const Duration(milliseconds: 140),

@@ -142,36 +142,36 @@ class PlayerGameplayProfile {
         fastestStreak: (json['fastestStreak'] as num?)?.toInt() ?? 0,
         successRateByMechanic: _stringDoubles(json['successRateByMechanic']),
         mistakeRatesByCategory: _stringDoubles(json['mistakeRatesByCategory']),
-        averageReactionTimeMs:
-            (json['averageReactionTimeMs'] as num?)?.toDouble(),
-        reactionTimeVarianceMs:
-            (json['reactionTimeVarianceMs'] as num?)?.toDouble(),
+        averageReactionTimeMs: (json['averageReactionTimeMs'] as num?)
+            ?.toDouble(),
+        reactionTimeVarianceMs: (json['reactionTimeVarianceMs'] as num?)
+            ?.toDouble(),
         winRateByDifficulty: _intDoubles(json['winRateByDifficulty']),
       );
 
   Map<String, dynamic> toJson() => {
-        'totalRoundsPlayed': totalRoundsPlayed,
-        'fastestStreak': fastestStreak,
-        'successRateByMechanic': successRateByMechanic,
-        'mistakeRatesByCategory': mistakeRatesByCategory,
-        'mostCommonMistakeCategory': mostCommonMistakeCategory,
-        'averageReactionTimeMs': averageReactionTimeMs,
-        'reactionTimeVarianceMs': reactionTimeVarianceMs,
-        'winRateByDifficulty': {
-          for (final e in winRateByDifficulty.entries) '${e.key}': e.value,
-        },
-      };
+    'totalRoundsPlayed': totalRoundsPlayed,
+    'fastestStreak': fastestStreak,
+    'successRateByMechanic': successRateByMechanic,
+    'mistakeRatesByCategory': mistakeRatesByCategory,
+    'mostCommonMistakeCategory': mostCommonMistakeCategory,
+    'averageReactionTimeMs': averageReactionTimeMs,
+    'reactionTimeVarianceMs': reactionTimeVarianceMs,
+    'winRateByDifficulty': {
+      for (final e in winRateByDifficulty.entries) '${e.key}': e.value,
+    },
+  };
 }
 
 Map<String, double> _stringDoubles(Object? value) => {
-      for (final e in (value as Map?)?.entries ?? <MapEntry<dynamic, dynamic>>[])
-        '${e.key}': (e.value as num).toDouble(),
-    };
+  for (final e in (value as Map?)?.entries ?? <MapEntry<dynamic, dynamic>>[])
+    '${e.key}': (e.value as num).toDouble(),
+};
 
 Map<int, double> _intDoubles(Object? value) => {
-      for (final e in (value as Map?)?.entries ?? <MapEntry<dynamic, dynamic>>[])
-        int.parse('${e.key}'): (e.value as num).toDouble(),
-    };
+  for (final e in (value as Map?)?.entries ?? <MapEntry<dynamic, dynamic>>[])
+    int.parse('${e.key}'): (e.value as num).toDouble(),
+};
 
 /// Classifies a failure into at most one [MistakeCategory] from the
 /// observable signals available at the event boundary.
@@ -224,9 +224,9 @@ class TelemetryCollector {
     GameEngine? engine,
     int window = kProfileWindow,
     double emaAlpha = kEmaAlpha,
-  })  : _prefs = prefs,
-        _window = window,
-        _alpha = emaAlpha {
+  }) : _prefs = prefs,
+       _window = window,
+       _alpha = emaAlpha {
     _engine = engine;
     if (engine != null) {
       engine.addEventListener(_onEvent);
@@ -294,7 +294,9 @@ class TelemetryCollector {
         break;
       case GameEvent.correct:
         _sessionFastStreak = state.fastStreak;
-        if (state.fastStreak > _fastestStreak) _fastestStreak = state.fastStreak;
+        if (state.fastStreak > _fastestStreak) {
+          _fastestStreak = state.fastStreak;
+        }
         _observe(state: state, outcome: 'correct');
         break;
       case GameEvent.wrong:
@@ -321,15 +323,19 @@ class TelemetryCollector {
         timedOut: false,
       );
     }
-    _rounds.add(RoundObserved(
-      level: state.level,
-      mechanicId: challenge.id,
-      sessionFastStreak: _sessionFastStreak,
-      reactionTimeMs: outcome == 'correct' ? state.elapsed.inMilliseconds : null,
-      timeLimitMs: state.duration.inMilliseconds,
-      outcome: outcome,
-      mistake: mistake,
-    ));
+    _rounds.add(
+      RoundObserved(
+        level: state.level,
+        mechanicId: challenge.id,
+        sessionFastStreak: _sessionFastStreak,
+        reactionTimeMs: outcome == 'correct'
+            ? state.elapsed.inMilliseconds
+            : null,
+        timeLimitMs: state.duration.inMilliseconds,
+        outcome: outcome,
+        mistake: mistake,
+      ),
+    );
     if (_rounds.length > _window) _rounds.removeAt(0);
     _recompute();
   }
@@ -344,7 +350,9 @@ class TelemetryCollector {
     final levelTotal = <int, int>{};
 
     for (final r in _rounds) {
-      if (r.sessionFastStreak > _fastestStreak) _fastestStreak = r.sessionFastStreak;
+      if (r.sessionFastStreak > _fastestStreak) {
+        _fastestStreak = r.sessionFastStreak;
+      }
       totalByMechanic[r.mechanicId] = (totalByMechanic[r.mechanicId] ?? 0) + 1;
       levelTotal[r.level] = (levelTotal[r.level] ?? 0) + 1;
       if (r.outcome == 'correct') {
@@ -355,7 +363,8 @@ class TelemetryCollector {
       } else {
         failures += 1;
         if (r.mistake != null) {
-          categoryCounts[r.mistake!.name] = (categoryCounts[r.mistake!.name] ?? 0) + 1;
+          categoryCounts[r.mistake!.name] =
+              (categoryCounts[r.mistake!.name] ?? 0) + 1;
         }
       }
     }
@@ -401,7 +410,8 @@ class TelemetryCollector {
   }
 
   /// Persists the current profile (fire-and-forget).
-  Future<void> persist() => _prefs.setString(kProfileKey, jsonEncode(_profile.toJson()));
+  Future<void> persist() =>
+      _prefs.setString(kProfileKey, jsonEncode(_profile.toJson()));
 
   /// Hard wipe (Settings → RESET STATS): clears the session and disk copy.
   Future<void> reset() async {

@@ -38,12 +38,12 @@ TapTargetChallenge buildSpotDifferent(ChallengeParams p) {
 /// 31 — two identical buttons. One of them changes. Tap the other one.
 class DidntChangeChallenge extends BaseChallenge {
   DidntChangeChallenge(ChallengeParams p)
-      : super(
-          p,
-          id: 'didnt_change',
-          tag: ChallengeTag.perception,
-          duration: p.pace(const Duration(milliseconds: 3000), floorMs: 1600),
-        ) {
+    : super(
+        p,
+        id: 'didnt_change',
+        tag: ChallengeTag.perception,
+        duration: p.pace(const Duration(milliseconds: 3000), floorMs: 1600),
+      ) {
     final base = params.pick(kWideColors);
     _other = params.pick(kWideColors.where((c) => c != base).toList());
     _changing = params.rng.nextInt(2);
@@ -119,7 +119,9 @@ TapTargetChallenge buildSizeCompare(ChallengeParams p) {
     tag: ChallengeTag.perception,
     duration: p.pace(const Duration(milliseconds: 2400), floorMs: 1200),
     instruction: p.tr(
-      biggest ? 'challenge.size_compare.biggest' : 'challenge.size_compare.smallest',
+      biggest
+          ? 'challenge.size_compare.biggest'
+          : 'challenge.size_compare.smallest',
     ),
     targets: targets,
     correctIds: {'z$wanted'},

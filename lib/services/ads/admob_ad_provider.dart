@@ -102,7 +102,8 @@ class AdMobAdProvider implements AdProvider {
 
   Future<void> _refreshPrivacyStatus() async {
     try {
-      _privacyOptionsRequired = await ConsentInformation.instance
+      _privacyOptionsRequired =
+          await ConsentInformation.instance
               .getPrivacyOptionsRequirementStatus() ==
           PrivacyOptionsRequirementStatus.required;
       _canRequestAds = await ConsentInformation.instance.canRequestAds();
@@ -121,19 +122,17 @@ class AdMobAdProvider implements AdProvider {
 
   @override
   bool isReady(AdPlacement placement) => switch (placement) {
-        AdPlacement.interstitial => _interstitial != null,
-        AdPlacement.rewardedContinue ||
-        AdPlacement.rewardedDoubleXp =>
-          _rewarded != null,
-      };
+    AdPlacement.interstitial => _interstitial != null,
+    AdPlacement.rewardedContinue ||
+    AdPlacement.rewardedDoubleXp => _rewarded != null,
+  };
 
   @override
   Future<void> preload(AdPlacement placement) => switch (placement) {
-        AdPlacement.interstitial => _loadInterstitial(),
-        AdPlacement.rewardedContinue ||
-        AdPlacement.rewardedDoubleXp =>
-          _loadRewarded(),
-      };
+    AdPlacement.interstitial => _loadInterstitial(),
+    AdPlacement.rewardedContinue ||
+    AdPlacement.rewardedDoubleXp => _loadRewarded(),
+  };
 
   Future<void> _loadInterstitial() async {
     if (!_sdkStarted || _interstitial != null || _loadingInterstitial) return;
@@ -172,8 +171,7 @@ class AdMobAdProvider implements AdProvider {
       switch (placement) {
         AdPlacement.interstitial => _showInterstitial(),
         AdPlacement.rewardedContinue ||
-        AdPlacement.rewardedDoubleXp =>
-          _showRewarded(),
+        AdPlacement.rewardedDoubleXp => _showRewarded(),
       };
 
   Future<bool> _showInterstitial() async {

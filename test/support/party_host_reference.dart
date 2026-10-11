@@ -113,8 +113,8 @@ class PartyHostReference {
     this.speedBonus = false,
     this.graceWindowMs = 15000,
     required FakePartyClock clock,
-  })  : _clock = clock,
-        _generator = ChallengeGenerator(templates: kChallengeTemplates);
+  }) : _clock = clock,
+       _generator = ChallengeGenerator(templates: kChallengeTemplates);
 
   final String hostName;
   final String roomCode;
@@ -183,7 +183,8 @@ class PartyHostReference {
           _send(
             conn,
             Rejected(
-              reason: 'protocolVersion $incomingVersion unsupported, '
+              reason:
+                  'protocolVersion $incomingVersion unsupported, '
                   'need $kProtocolVersion',
               ts: nowMs,
             ),
@@ -192,8 +193,10 @@ class PartyHostReference {
         }
         _handle(conn, message);
       case DecodedMalformed():
-        _send(conn,
-            PartyError(code: 'BAD_MESSAGE', detail: 'malformed frame', ts: nowMs));
+        _send(
+          conn,
+          PartyError(code: 'BAD_MESSAGE', detail: 'malformed frame', ts: nowMs),
+        );
       case DecodedUnknownType():
         break; // forward-tolerant.
     }
@@ -212,8 +215,14 @@ class PartyHostReference {
       case PlayerAction():
         _onAction(conn, message);
       default:
-        _send(conn,
-            PartyError(code: 'BAD_MESSAGE', detail: 'unexpected ${message.type}', ts: nowMs));
+        _send(
+          conn,
+          PartyError(
+            code: 'BAD_MESSAGE',
+            detail: 'unexpected ${message.type}',
+            ts: nowMs,
+          ),
+        );
     }
   }
 
@@ -235,8 +244,10 @@ class PartyHostReference {
       return;
     }
     if (_seats.length >= maxPlayers) {
-      _send(conn,
-          PartyError(code: 'ROOM_FULL', detail: 'host is full', ts: nowMs));
+      _send(
+        conn,
+        PartyError(code: 'ROOM_FULL', detail: 'host is full', ts: nowMs),
+      );
       return;
     }
     final seat = _Seat(
@@ -297,8 +308,10 @@ class PartyHostReference {
     final seat = _seatFor(conn);
     if (seat == null) return;
     if (ready.playerId.isNotEmpty && ready.playerId != seat.playerId) {
-      _send(conn,
-          PartyError(code: 'BAD_MESSAGE', detail: 'wrong playerId', ts: nowMs));
+      _send(
+        conn,
+        PartyError(code: 'BAD_MESSAGE', detail: 'wrong playerId', ts: nowMs),
+      );
       return;
     }
     seat.ready = ready.ready;
@@ -382,10 +395,17 @@ class PartyHostReference {
         ts: nowMs,
       ),
     );
-    _broadcast(RoundCountdown(
-        roundId: round.id, atMs: startAt - 1000, state: 'READY', ts: nowMs));
     _broadcast(
-        RoundCountdown(roundId: round.id, atMs: startAt, state: 'GO', ts: nowMs));
+      RoundCountdown(
+        roundId: round.id,
+        atMs: startAt - 1000,
+        state: 'READY',
+        ts: nowMs,
+      ),
+    );
+    _broadcast(
+      RoundCountdown(roundId: round.id, atMs: startAt, state: 'GO', ts: nowMs),
+    );
     for (final seat in _seats.values) {
       if (seat.alive) {
         seat.pendingAction = null;
@@ -442,7 +462,12 @@ class PartyHostReference {
     }
 
     _broadcast(
-        RoundResults(roundId: round.id, results: round.judged.values.toList(), ts: nowMs));
+      RoundResults(
+        roundId: round.id,
+        results: round.judged.values.toList(),
+        ts: nowMs,
+      ),
+    );
     _broadcast(RoundEnd(roundId: round.id, ts: nowMs));
 
     _applyScoring(round);
@@ -452,32 +477,46 @@ class PartyHostReference {
   void _onAction(_Conn conn, PlayerAction action) {
     final round = _round;
     if (round == null || round.ended) {
-      _send(conn,
-          PartyError(code: 'ROUND_CLOSED', detail: 'no open round', ts: nowMs));
+      _send(
+        conn,
+        PartyError(code: 'ROUND_CLOSED', detail: 'no open round', ts: nowMs),
+      );
       return;
     }
     final seat = _seatFor(conn);
     if (seat == null || seat.playerId != action.playerId) {
-      _send(conn,
-          PartyError(code: 'BAD_MESSAGE', detail: 'unknown playerId', ts: nowMs));
+      _send(
+        conn,
+        PartyError(code: 'BAD_MESSAGE', detail: 'unknown playerId', ts: nowMs),
+      );
       return;
     }
     if (!seat.alive) return; // eliminated seats are spectators.
     if (action.roundId != round.id) {
-      _send(conn,
-          PartyError(code: 'ROUND_CLOSED', detail: 'stale round', ts: nowMs));
+      _send(
+        conn,
+        PartyError(code: 'ROUND_CLOSED', detail: 'stale round', ts: nowMs),
+      );
       return;
     }
     if (seat.pendingAction != null) {
-      _send(conn,
-          PartyError(code: 'DUPLICATE_ACTION', detail: 'already submitted', ts: nowMs));
+      _send(
+        conn,
+        PartyError(
+          code: 'DUPLICATE_ACTION',
+          detail: 'already submitted',
+          ts: nowMs,
+        ),
+      );
       return;
     }
 
     final elapsed = nowMs - round.startAt;
     if (elapsed >= round.duration.inMilliseconds) {
-      _send(conn,
-          PartyError(code: 'ROUND_CLOSED', detail: 'round expired', ts: nowMs));
+      _send(
+        conn,
+        PartyError(code: 'ROUND_CLOSED', detail: 'round expired', ts: nowMs),
+      );
       return;
     }
 
@@ -516,8 +555,11 @@ class PartyHostReference {
     }
   }
 
-  PlayerRoundResult _result(_Seat seat, _Judged judged,
-      {required int? actionElapsedMs}) {
+  PlayerRoundResult _result(
+    _Seat seat,
+    _Judged judged, {
+    required int? actionElapsedMs,
+  }) {
     var scoreDelta = 0;
     if (judged.correct && _mode == GameMode.stupidBattle) {
       scoreDelta = 100;
@@ -543,16 +585,24 @@ class PartyHostReference {
           if (seat.lives <= 0) {
             seat.alive = false;
             _broadcast(
-                PlayerEliminated(roundId: round.id, playerId: seat.playerId, ts: nowMs));
+              PlayerEliminated(
+                roundId: round.id,
+                playerId: seat.playerId,
+                ts: nowMs,
+              ),
+            );
           }
         }
-        _broadcast(PlayerScore(
+        _broadcast(
+          PlayerScore(
             playerId: seat.playerId,
             mode: _mode,
             score: seat.score,
             lives: seat.lives,
             standing: _standingFor(seat),
-            ts: nowMs));
+            ts: nowMs,
+          ),
+        );
       }
       return;
     }
@@ -570,12 +620,15 @@ class PartyHostReference {
       seat.score += delta;
     }
     for (final seat in _seats.values) {
-      _broadcast(PlayerScore(
+      _broadcast(
+        PlayerScore(
           playerId: seat.playerId,
           mode: _mode,
           score: seat.score,
           standing: _standingFor(seat),
-          ts: nowMs));
+          ts: nowMs,
+        ),
+      );
     }
   }
 
@@ -685,21 +738,25 @@ class PartyHostReference {
 
   void _broadcastRoster() {
     _broadcast(
-        PlayerReadyRoster(players: [for (final s in _seats.values) _info(s)], ts: nowMs));
+      PlayerReadyRoster(
+        players: [for (final s in _seats.values) _info(s)],
+        ts: nowMs,
+      ),
+    );
   }
 
   PlayerInfo _info(_Seat seat) => PlayerInfo(
-        playerId: seat.playerId,
-        playerName: seat.gameName,
-        emoji: seat.emoji,
-        ready: seat.ready,
-      );
+    playerId: seat.playerId,
+    playerName: seat.gameName,
+    emoji: seat.emoji,
+    ready: seat.ready,
+  );
 
   PlayerJoined _joined(_Seat seat) => PlayerJoined(
-        selfClientId: seat.playerId,
-        roomId: roomCode,
-        players: [for (final s in _seats.values) _info(s)],
-      );
+    selfClientId: seat.playerId,
+    roomId: roomCode,
+    players: [for (final s in _seats.values) _info(s)],
+  );
 
   _Seat? _seatFor(_Conn conn) {
     for (final seat in _seats.values) {

@@ -38,6 +38,7 @@ class PartySession {
 
   final StreamController<PartyEvent> _events;
   final StreamController<PartyState> _stateStream;
+  final Map<String, Completer<AiNameAnalysisResult?>> _nameAnalysis = {};
 
   /// Drives the open round's [Challenge] once it's GO — see the
   /// design-change note on [PlayerAction] in protocol.dart. Owned here
@@ -141,6 +142,36 @@ class PartySession {
     _send(AiCommentaryProposal(kind: kind, roundId: roundId, text: text));
   }
 
+  Future<AiNameAnalysisResult?> requestNameAnalysis(String displayName) async {
+    final id = '${DateTime.now().microsecondsSinceEpoch}';
+    final completer = Completer<AiNameAnalysisResult?>();
+    _nameAnalysis[id] = completer;
+    _send(AiNameAnalysisRequest(requestId: id, displayName: displayName));
+    return completer.future.timeout(
+      const Duration(seconds: 2),
+      onTimeout: () {
+        _nameAnalysis.remove(id);
+        return null;
+      },
+    );
+  }
+
+  void sendNameAnalysisResult(AiNameAnalysisResult result) => _send(result);
+
+  void updatePlayerIdentity({
+    required String playerName,
+    String? spokenName,
+    required String speechPolicy,
+  }) {
+    _send(
+      PlayerIdentityUpdate(
+        playerName: playerName,
+        spokenName: spokenName,
+        speechPolicy: speechPolicy,
+      ),
+    );
+  }
+
   /// Elapsed time on the open round's runner, for [PartyController] to stamp
   /// on a [TapInfo] — null before GO or once the round has closed.
   Duration? get runnerElapsed => _runner?.elapsed;
@@ -215,6 +246,10 @@ class PartySession {
 
   Future<void> dispose() async {
     _stopRunner();
+    for (final pending in _nameAnalysis.values) {
+      if (!pending.isCompleted) pending.complete(null);
+    }
+    _nameAnalysis.clear();
     await _sub.cancel();
     await _transport.close();
     await _events.close();
@@ -442,6 +477,13 @@ class PartySession {
         state.lastAiCommentary = message;
         _emitState();
         _events.add(PartyAiCommentaryEvent(message));
+
+      case AiNameAnalysisRequest():
+        _events.add(PartyAiNameAnalysisRequestEvent(message));
+
+      case AiNameAnalysisResult():
+        _nameAnalysis.remove(message.requestId)?.complete(message);
+        _events.add(PartyAiNameAnalysisResultEvent(message));
 
       default:
         break; // forward-tolerant.

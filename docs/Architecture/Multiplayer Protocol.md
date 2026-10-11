@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, protocol, contract]
-updated: 2026-10-03
+updated: 2026-10-06
 ---
 
 # Multiplayer Protocol
@@ -54,8 +54,14 @@ controllers talk. Both ends implement this exact contract; the tvOS app does
 - **Room code:** short, human-typed-as-fallback, e.g. `7F4K`. Generated
    randomly at host boot; sufficiently random to avoid accidental collisions
    ([[Multiplayer Product]]).
-- **QR deep link (universal scheme):** `areyoustupid://join?room=7F4K`.
-   The QR encodes this URL. Scanning opens the Flutter app into the join flow.
+- **QR join link (universal link):** `https://pynkstudio.eu/ays/join?room=7F4K`.
+   The QR encodes this https URL, so any camera can scan it: with the app
+   installed iOS opens it straight into the join flow (`applinks:pynkstudio.eu`
+   + the site's `apple-app-site-association`); without it the page offers the
+   App Store. The legacy custom scheme `areyoustupid://join?room=7F4K` still
+   parses (older hosts, the landing page's "open the game" button). A custom
+   scheme alone failed App Review: the system camera reports "No usable data
+   found" for it when the app isn't installed ([[Decision Log]]).
 - **Resolving the host from the code:** a room code alone does not carry the
    host's IP. Flow is: scan → app opens → app asks the Bonjour resolver for a
    service whose instance name equals the room code, then connects to that
@@ -139,6 +145,9 @@ speech backend.
 | `AI_CHALLENGE_ROUND` | host → clients | `{ roundId, proposal, startAt, durationMs }` | relayed as-is, trusted the same way `PLAYER_ACTION.correct` is — opens an AI-authored round instead of `ROUND_START`'s `{challengeId, seed}` pick, since there's no shared generator to replay from a seed |
 | `AI_COMMENTARY_PROPOSAL` | client → host | `{ kind, roundId, text }` | Director only |
 | `AI_COMMENTARY` | host → clients | `{ kind, roundId, text }` | relayed as-is |
+| `AI_NAME_ANALYSIS_REQUEST` | client → host → capable client | `{ requestId, displayName }` | ambiguous-name request routed privately to the best available on-device model |
+| `AI_NAME_ANALYSIS_RESULT` | capable client → host → requester | `{ requestId, decision, spokenName?, confidence }` | private response; requester falls back after two seconds |
+| `PLAYER_IDENTITY_UPDATE` | client → host → roster | `{ playerName, spokenName?, speechPolicy }` | changes the seated player's display/spoken identity without leaving the room |
 
 ## Round synchronization contract
 

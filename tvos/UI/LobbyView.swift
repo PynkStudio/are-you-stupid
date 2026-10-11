@@ -1,8 +1,10 @@
+import AYSHostCore
 import AYSProtocol
 import SwiftUI
 
 struct LobbyView: View {
     @ObservedObject var model: HostViewModel
+    @State private var showingOptions = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -20,6 +22,43 @@ struct LobbyView: View {
                 }
                 .padding(.horizontal, compact ? 24 : 48)
                 .padding(.vertical, compact ? 20 : 32)
+                if model.partyPackActive {
+                    VStack {
+                        HStack(spacing: 14) {
+                            Text("✦").font(.system(size: 30, weight: .black))
+                            VStack(spacing: 2) {
+                                Text("PARTY PACK ACTIVATED").font(Theme.title(24))
+                                Text("ONE PLAYER UNLOCKED 16 FOR EVERYONE.")
+                                    .font(Theme.label(12))
+                            }
+                            Text("✦").font(.system(size: 30, weight: .black))
+                        }
+                        .padding(.horizontal, 28).padding(.vertical, 14)
+                        .background(Theme.sunshine, in: Capsule())
+                        .foregroundStyle(Theme.ink)
+                        .shadow(color: Theme.sunshine.opacity(0.8), radius: 32)
+                        Spacer()
+                    }
+                    .padding(.top, compact ? 74 : 92)
+                    .transition(.scale(scale: 1.8).combined(with: .opacity))
+                    .animation(.spring(response: 0.48, dampingFraction: 0.55), value: model.partyPackActive)
+                }
+            }
+            .sheet(isPresented: $showingOptions) {
+                PresenterOptionsView(model: model)
+            }
+            .overlay(alignment: .bottomLeading) {
+                Button("OPTIONS") { showingOptions = true }
+                    .font(Theme.label(12))
+                    .padding(.horizontal, 16).padding(.vertical, 10)
+                    .background(.black.opacity(0.32), in: Capsule())
+                    .foregroundStyle(Color.white.opacity(0.68))
+                    .padding(compact ? 18 : 28)
+                    #if os(tvOS)
+                    .buttonStyle(.card)
+                    #else
+                    .buttonStyle(.plain)
+                    #endif
             }
         }
     }
@@ -96,7 +135,7 @@ private struct PartyRoster: View {
             HStack(alignment: .firstTextBaseline) {
                 ShoutText(text: "WHO'S IN?", size: compact ? 28 : 38)
                 Spacer()
-                Text("\(model.roster.count)/8 PLAYERS").font(Theme.label(14)).foregroundStyle(Theme.cyan)
+                Text("\(model.roster.count)/\(model.maxPlayers) PLAYERS").font(Theme.label(14)).foregroundStyle(Theme.cyan)
             }
             Group {
                 if model.roster.isEmpty {
@@ -116,6 +155,71 @@ private struct PartyRoster: View {
             StartPanel(model: model)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+private struct PresenterOptionsView: View {
+    @ObservedObject var model: HostViewModel
+    private let labels = ["en": "EN", "it": "IT", "fr": "FR", "es": "ES", "pt": "PT", "de": "DE"]
+
+    var body: some View {
+        ZStack {
+            Theme.background.ignoresSafeArea()
+            VStack(alignment: .leading, spacing: 28) {
+                ShoutText(text: "OPTIONS", size: 38, color: Theme.sunshine)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("PRESENTER LANGUAGE").font(Theme.label(12)).foregroundStyle(Theme.cyan)
+                    HStack(spacing: 10) {
+                        ForEach(model.presenterLocales, id: \.self) { locale in
+                            option(labels[locale] ?? locale.uppercased(), selected: model.presenterLocale == locale) {
+                                model.selectPresenterLocale(locale)
+                            }
+                        }
+                    }
+                    Text("DEFAULTS TO THIS DEVICE'S LANGUAGE. UNSUPPORTED LANGUAGES USE ENGLISH.")
+                        .font(Theme.label(10)).foregroundStyle(Color.white.opacity(0.42))
+                }
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("PRESENTER OUTPUT").font(Theme.label(12)).foregroundStyle(Theme.cyan)
+                    HStack(spacing: 10) {
+                        ForEach(PresenterOutputMode.allCases, id: \.rawValue) { mode in
+                            option(mode.rawValue.uppercased(), selected: model.presenterOutputMode == mode) {
+                                model.selectPresenterOutputMode(mode)
+                            }
+                        }
+                    }
+                    Text("OFF HIDES EVERYTHING. MUTE SHOWS CAPTIONS WITHOUT VOICE.")
+                        .font(Theme.label(10)).foregroundStyle(Color.white.opacity(0.42))
+                }
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("ROAST LEVEL").font(Theme.label(12)).foregroundStyle(Theme.cyan)
+                    HStack(spacing: 10) {
+                        ForEach(PresenterIntensity.allCases, id: \.rawValue) { intensity in
+                            option(intensity.rawValue.uppercased(), selected: model.presenterIntensity == intensity) {
+                                model.selectPresenterIntensity(intensity)
+                            }
+                            .disabled(model.presenterOutputMode == .off)
+                            .opacity(model.presenterOutputMode == .off ? 0.38 : 1)
+                        }
+                    }
+                }
+                Spacer()
+            }
+            .padding(46).frame(maxWidth: 760, maxHeight: 640, alignment: .leading)
+        }
+    }
+
+    private func option(_ label: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(label, action: action)
+            .font(Theme.label(13)).padding(.horizontal, 18).padding(.vertical, 12)
+            .background(selected ? Theme.sunshine : Color.white.opacity(0.09))
+            .foregroundStyle(selected ? Theme.ink : .white)
+            .clipShape(Capsule())
+            #if os(tvOS)
+            .buttonStyle(.card)
+            #else
+            .buttonStyle(.plain)
+            #endif
     }
 }
 

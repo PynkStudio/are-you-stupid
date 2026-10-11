@@ -12,6 +12,8 @@ class SettingsManager extends ChangeNotifier {
   static const _kRoasts = 'ays.roasts';
   static const _kLocale = 'ays.locale';
   static const _kNoAdsPurchased = 'ays.noAdsPurchased';
+  static const _kPartyPackPurchased = 'ays.partyPackPurchased';
+  static const _kPartyBundlePurchased = 'ays.partyBundlePurchased';
 
   final SharedPreferences _prefs;
 
@@ -41,6 +43,17 @@ class SettingsManager extends ChangeNotifier {
   /// directly — see docs/Product/Monetization and Ads.md.
   bool get noAdsPurchased => _prefs.getBool(_kNoAdsPurchased) ?? false;
 
+  /// Unlocks 16-player rooms, without changing advertising.
+  bool get partyPackPurchased => _prefs.getBool(_kPartyPackPurchased) ?? false;
+
+  /// Store-confirmed bundle purchase. Kept separately so each product can be
+  /// restored and represented independently in the store UI.
+  bool get partyBundlePurchased =>
+      _prefs.getBool(_kPartyBundlePurchased) ?? false;
+
+  bool get adsRemoved => noAdsPurchased || partyBundlePurchased;
+  bool get partyCapacityUnlocked => partyPackPurchased || partyBundlePurchased;
+
   Future<void> setSound(bool value) async {
     await _prefs.setBool(_kSound, value);
     notifyListeners();
@@ -68,6 +81,16 @@ class SettingsManager extends ChangeNotifier {
 
   Future<void> setNoAdsPurchased(bool value) async {
     await _prefs.setBool(_kNoAdsPurchased, value);
+    notifyListeners();
+  }
+
+  Future<void> setPartyPackPurchased(bool value) async {
+    await _prefs.setBool(_kPartyPackPurchased, value);
+    notifyListeners();
+  }
+
+  Future<void> setPartyBundlePurchased(bool value) async {
+    await _prefs.setBool(_kPartyBundlePurchased, value);
     notifyListeners();
   }
 }

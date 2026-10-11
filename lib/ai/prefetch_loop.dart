@@ -33,7 +33,7 @@ library;
 ///   to the single-in-flight rule, not a bug.
 class PrefetchLoop<T> {
   PrefetchLoop({required Future<T?> Function() fetch, this.ringSize = 2})
-      : _fetch = fetch;
+    : _fetch = fetch;
 
   final Future<T?> Function() _fetch;
   final int ringSize;

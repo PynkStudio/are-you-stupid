@@ -60,30 +60,30 @@ class AiElement {
   AiShape? get shape => AiShape.parse(shapeName);
 
   factory AiElement.fromJson(Map<String, dynamic> json) => AiElement(
-        id: json['id'] as String,
-        label: (json['label'] as String?) ?? '',
-        colorName: json['color'] as String,
-        shapeName: json['shape'] as String,
-        scale: (json['scale'] as num?)?.toDouble() ?? 1.0,
-        rotation: (json['rotation'] as num?)?.toDouble() ?? 0.0,
-        dx: (json['dx'] as num?)?.toDouble() ?? 0.0,
-        dy: (json['dy'] as num?)?.toDouble() ?? 0.0,
-        opacity: (json['opacity'] as num?)?.toDouble() ?? 1.0,
-        hidden: (json['hidden'] as bool?) ?? false,
-      );
+    id: json['id'] as String,
+    label: (json['label'] as String?) ?? '',
+    colorName: json['color'] as String,
+    shapeName: json['shape'] as String,
+    scale: (json['scale'] as num?)?.toDouble() ?? 1.0,
+    rotation: (json['rotation'] as num?)?.toDouble() ?? 0.0,
+    dx: (json['dx'] as num?)?.toDouble() ?? 0.0,
+    dy: (json['dy'] as num?)?.toDouble() ?? 0.0,
+    opacity: (json['opacity'] as num?)?.toDouble() ?? 1.0,
+    hidden: (json['hidden'] as bool?) ?? false,
+  );
 
   Map<String, Object?> toJson() => {
-        'id': id,
-        'label': label,
-        'color': colorName,
-        'shape': shapeName,
-        'scale': scale,
-        'rotation': rotation,
-        'dx': dx,
-        'dy': dy,
-        'opacity': opacity,
-        'hidden': hidden,
-      };
+    'id': id,
+    'label': label,
+    'color': colorName,
+    'shape': shapeName,
+    'scale': scale,
+    'rotation': rotation,
+    'dx': dx,
+    'dy': dy,
+    'opacity': opacity,
+    'hidden': hidden,
+  };
 
   /// Whether the obvious sensed fields differ from [other] beyond rounding.
   bool differsFrom(AiElement other, {double epsilon = 0.01}) =>
@@ -113,21 +113,20 @@ class MechanicRef {
   final List<String> senseDecoys;
 
   factory MechanicRef.fromJson(Map<String, dynamic> json) => MechanicRef(
-        move: json['move'] as String,
-        action: json['action'] as String,
-        kind: (json['kind'] as String?) ?? '',
-        senseDecoys: [
-          for (final s in (json['sense_decoys'] as List?) ?? const [])
-            s as String,
-        ],
-      );
+    move: json['move'] as String,
+    action: json['action'] as String,
+    kind: (json['kind'] as String?) ?? '',
+    senseDecoys: [
+      for (final s in (json['sense_decoys'] as List?) ?? const []) s as String,
+    ],
+  );
 
   Map<String, Object?> toJson() => {
-        'move': move,
-        'action': action,
-        'kind': kind,
-        'sense_decoys': senseDecoys,
-      };
+    'move': move,
+    'action': action,
+    'kind': kind,
+    'sense_decoys': senseDecoys,
+  };
 }
 
 /// The winning input, exactly one.
@@ -142,12 +141,14 @@ class CorrectAnswer {
   final bool startsCorrect;
 
   factory CorrectAnswer.fromJson(Map<String, dynamic> json) => CorrectAnswer(
-        elementId: json['elementId'] as String,
-        startsCorrect: (json['startsCorrect'] as bool?) ?? false,
-      );
+    elementId: json['elementId'] as String,
+    startsCorrect: (json['startsCorrect'] as bool?) ?? false,
+  );
 
-  Map<String, Object?> toJson() =>
-      {'elementId': elementId, 'startsCorrect': startsCorrect};
+  Map<String, Object?> toJson() => {
+    'elementId': elementId,
+    'startsCorrect': startsCorrect,
+  };
 }
 
 /// The tension read-outs the model fills for a mechanic.
@@ -173,13 +174,16 @@ class DifficultySpec {
   AiTrickType? get trickType => AiTrickType.parse(trickTypeName);
 
   factory DifficultySpec.fromJson(Map<String, dynamic> json) => DifficultySpec(
-        level: json['level'] as int,
-        timeLimitMs: json['timeLimitMs'] as int,
-        trickTypeName: (json['trickType'] as String?) ?? 'none',
-      );
+    level: json['level'] as int,
+    timeLimitMs: json['timeLimitMs'] as int,
+    trickTypeName: (json['trickType'] as String?) ?? 'none',
+  );
 
-  Map<String, Object?> toJson() =>
-      {'level': level, 'timeLimitMs': timeLimitMs, 'trickType': trickTypeName};
+  Map<String, Object?> toJson() => {
+    'level': level,
+    'timeLimitMs': timeLimitMs,
+    'trickType': trickTypeName,
+  };
 }
 
 /// The model's pre-validation proposal, in the portable wire shape
@@ -274,16 +278,16 @@ class ChallengeProposal {
   }
 
   Map<String, Object?> toJson() => {
-        'id': id,
-        'mechanic': mechanic.toJson(),
-        'instruction': instruction,
-        'elements': [for (final e in elements) e.toJson()],
-        'correctAnswer': correctAnswer.toJson(),
-        'difficulty': difficulty.toJson(),
-        'failLine': failLine,
-        'seed': seed,
-        'source': source,
-      };
+    'id': id,
+    'mechanic': mechanic.toJson(),
+    'instruction': instruction,
+    'elements': [for (final e in elements) e.toJson()],
+    'correctAnswer': correctAnswer.toJson(),
+    'difficulty': difficulty.toJson(),
+    'failLine': failLine,
+    'seed': seed,
+    'source': source,
+  };
 }
 
 /// A challenge produced by a [ChallengeProvider], wrapped with provenance.
@@ -293,8 +297,8 @@ class GeneratedChallenge {
     required this.source,
     String? id,
     int? seed,
-  })  : id = id ?? challenge.id,
-        seed = seed ?? 0;
+  }) : id = id ?? challenge.id,
+       seed = seed ?? 0;
 
   /// The built, playable challenge.
   final Challenge challenge;

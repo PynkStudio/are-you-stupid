@@ -98,6 +98,7 @@ public final class RoomHost {
     /// here when the next round needs to start, `startNextRound` falls back
     /// to the scripted picker, silently, exactly like a cache underflow.
     private var pendingAiProposal: (roundId: String, proposal: [String: Any])?
+    private var pendingNameAnalysis: [String: (requester: Connection, analyzer: Connection)] = [:]
 
     public var currentDirectorPeerId: String? { directorPeerId }
 
@@ -155,6 +156,9 @@ public final class RoomHost {
     /// this once a connection is done with, whether it left cleanly or the
     /// transport just closed.
     private func detach(_ conn: Connection) {
+        pendingNameAnalysis = pendingNameAnalysis.filter {
+            $0.value.requester !== conn && $0.value.analyzer !== conn
+        }
         conn.transport.onLine = nil
         conn.transport.onDone = nil
     }
@@ -216,6 +220,12 @@ public final class RoomHost {
             onAiRoundProposal(conn, m)
         case let m as AiCommentaryProposal:
             onAiCommentaryProposal(conn, m)
+        case let m as AiNameAnalysisRequest:
+            onAiNameAnalysisRequest(conn, m)
+        case let m as AiNameAnalysisResult:
+            onAiNameAnalysisResult(conn, m)
+        case let m as PlayerIdentityUpdate:
+            onPlayerIdentityUpdate(conn, m)
         default:
             send(conn, PartyError(code: "BAD_MESSAGE", detail: "unexpected \(message.type)", ts: nowMs))
         }
@@ -245,6 +255,44 @@ public final class RoomHost {
     private func onAiCommentaryProposal(_ conn: Connection, _ proposal: AiCommentaryProposal) {
         guard let seat = seatFor(conn), seat.playerId == directorPeerId else { return }
         broadcast(AiCommentary(kind: proposal.kind, roundId: proposal.roundId, text: proposal.text, ts: nowMs))
+    }
+
+    private func onAiNameAnalysisRequest(_ conn: Connection, _ request: AiNameAnalysisRequest) {
+        guard !request.requestId.isEmpty, request.displayName.count <= 40 else { return }
+        let analyzer = seats.values
+            .filter { $0.aiCapabilities?.aiAvailable == true && $0.conn != nil }
+            .sorted {
+                let left = $0.aiCapabilities?.computeRank ?? 0
+                let right = $1.aiCapabilities?.computeRank ?? 0
+                return left == right ? $0.joinOrder < $1.joinOrder : left > right
+            }
+            .first?.conn
+        guard let analyzer else {
+            send(conn, AiNameAnalysisResult(requestId: request.requestId, decision: "displayOnly", confidence: 0, ts: nowMs))
+            return
+        }
+        pendingNameAnalysis[request.requestId] = (conn, analyzer)
+        send(analyzer, AiNameAnalysisRequest(requestId: request.requestId, displayName: request.displayName, ts: nowMs))
+    }
+
+    private func onAiNameAnalysisResult(_ conn: Connection, _ result: AiNameAnalysisResult) {
+        guard let pending = pendingNameAnalysis.removeValue(forKey: result.requestId), pending.analyzer === conn else { return }
+        guard ["speakAsWritten", "speakAlias", "displayOnly", "blocked"].contains(result.decision),
+              result.confidence >= 0, result.confidence <= 1,
+              (result.spokenName?.count ?? 0) <= 30 else { return }
+        send(pending.requester, AiNameAnalysisResult(requestId: result.requestId, decision: result.decision, spokenName: result.spokenName, confidence: result.confidence, ts: nowMs))
+    }
+
+    private func onPlayerIdentityUpdate(_ conn: Connection, _ update: PlayerIdentityUpdate) {
+        guard let seat = seatFor(conn) else { return }
+        let name = String(update.playerName.trimmingCharacters(in: .whitespacesAndNewlines).prefix(30))
+        guard !name.isEmpty,
+              ["speakAsWritten", "speakAlias", "displayOnly", "blocked", "uncertain"].contains(update.speechPolicy),
+              (update.spokenName?.count ?? 0) <= 30 else { return }
+        seat.gameName = name
+        seat.spokenName = update.spokenName.map { String($0.prefix(30)) }
+        seat.speechPolicy = update.speechPolicy
+        broadcastRoster()
     }
 
     private func onHello(_ conn: Connection) {
@@ -825,7 +873,7 @@ private final class Connection {
 
 private final class Seat {
     let playerId: String
-    let gameName: String
+    var gameName: String
     let emoji: String
     let joinOrder: Int
     var ready = false
@@ -838,8 +886,8 @@ private final class Seat {
     var actionElapsedMs: Int?
     let noAds: Bool
     let partyPack: Bool
-    let spokenName: String?
-    let speechPolicy: String
+    var spokenName: String?
+    var speechPolicy: String
     let personaId: String?
 
     /// Set on `AI_CAPABILITIES` — `nil` until this seat announces itself.

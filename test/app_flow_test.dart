@@ -59,8 +59,9 @@ void main() {
     expect(find.text('SETTINGS'), findsOneWidget);
   });
 
-  testWidgets('play -> level 1 -> timeout -> game over -> retry',
-      (tester) async {
+  testWidgets('play -> level 1 -> timeout -> game over -> retry', (
+    tester,
+  ) async {
     await tester.pumpWidget(AreYouStupidApp(services: await boot()));
     await tester.pumpAndSettle();
 
@@ -101,8 +102,9 @@ void main() {
     expect(tester.getSize(fill).width, greaterThan(0));
   });
 
-  testWidgets('level 1 shows the timer bar and no pace note yet',
-      (tester) async {
+  testWidgets('level 1 shows the timer bar and no pace note yet', (
+    tester,
+  ) async {
     await tester.pumpWidget(AreYouStupidApp(services: await boot()));
     await tester.pumpAndSettle();
 
@@ -191,7 +193,9 @@ void main() {
     expect(services.settings.roastsEnabled, isFalse);
   });
 
-  testWidgets('the Ai section shows a mode picker defaulting to Genius', (tester) async {
+  testWidgets('the Ai section shows a mode picker defaulting to Genius', (
+    tester,
+  ) async {
     final services = await boot();
     await tester.pumpWidget(AreYouStupidApp(services: services));
     await tester.pumpAndSettle();
@@ -209,17 +213,17 @@ void main() {
     // "device can't run the model" response a real environment would give.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel(kAppleIntelligenceChannel),
-      (call) async => call.method == 'available'
-          ? {'state': 'unavailable', 'reason': 'bridgeUnavailable'}
-          : null,
-    );
+          const MethodChannel(kAppleIntelligenceChannel),
+          (call) async => call.method == 'available'
+              ? {'state': 'unavailable', 'reason': 'bridgeUnavailable'}
+              : null,
+        );
     addTearDown(() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel(kAppleIntelligenceChannel),
-        null,
-      );
+            const MethodChannel(kAppleIntelligenceChannel),
+            null,
+          );
     });
 
     await tester.tap(find.text('SETTINGS'));
@@ -233,8 +237,9 @@ void main() {
     expect(find.text('Not supported on this device.'), findsOneWidget);
   });
 
-  testWidgets('buying remove-ads flips the row to owned and persists',
-      (tester) async {
+  testWidgets('buying remove-ads flips the row to owned and persists', (
+    tester,
+  ) async {
     final services = await boot();
     await tester.pumpWidget(AreYouStupidApp(services: services));
     await tester.pumpAndSettle();
@@ -262,54 +267,60 @@ void main() {
   });
 
   testWidgets(
-      'about/privacy rows and the PynkStudio credit open the right URLs (English)',
-      (tester) async {
-    final fake = _FakeUrlLauncher();
-    final original = UrlLauncherPlatform.instance;
-    UrlLauncherPlatform.instance = fake;
-    addTearDown(() => UrlLauncherPlatform.instance = original);
+    'about/privacy rows and the PynkStudio credit open the right URLs (English)',
+    (tester) async {
+      final fake = _FakeUrlLauncher();
+      final original = UrlLauncherPlatform.instance;
+      UrlLauncherPlatform.instance = fake;
+      addTearDown(() => UrlLauncherPlatform.instance = original);
 
-    SharedPreferences.setMockInitialValues({'ays.locale': 'en'});
-    await tester.pumpWidget(AreYouStupidApp(services: await AppServices.boot()));
-    await tester.pumpAndSettle();
+      SharedPreferences.setMockInitialValues({'ays.locale': 'en'});
+      await tester.pumpWidget(
+        AreYouStupidApp(services: await AppServices.boot()),
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('SETTINGS'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('SETTINGS'));
+      await tester.pumpAndSettle();
 
-    // Same "below the fold" situation as REMOVE ADS above: these two rows
-    // plus the "Made by PynkStudio" credit push the settings list past one
-    // screen's height on common devices, so they need ensureVisible before
-    // tapping.
-    await tester.ensureVisible(find.text('ABOUT THE GAME'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('ABOUT THE GAME'));
-    await tester.pumpAndSettle();
+      // Same "below the fold" situation as REMOVE ADS above: these two rows
+      // plus the "Made by PynkStudio" credit push the settings list past one
+      // screen's height on common devices, so they need ensureVisible before
+      // tapping.
+      await tester.ensureVisible(find.text('ABOUT THE GAME'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('ABOUT THE GAME'));
+      await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('PRIVACY POLICY'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('PRIVACY POLICY'));
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('PRIVACY POLICY'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('PRIVACY POLICY'));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Made by PynkStudio'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Made by PynkStudio'));
+      await tester.pumpAndSettle();
 
-    // Every non-Italian locale gets the English case-study page.
-    expect(fake.launched, [
-      'https://pynkstudio.eu/it/lavori/are-you-stupid/en',
-      'https://pynkstudio.eu/it/lavori/are-you-stupid/privacy',
-      'https://pynkstudio.eu',
-    ]);
-  });
+      // Every non-Italian locale gets the English case-study page.
+      expect(fake.launched, [
+        'https://pynkstudio.eu/it/lavori/are-you-stupid/en',
+        'https://pynkstudio.eu/it/lavori/are-you-stupid/privacy',
+        'https://pynkstudio.eu',
+      ]);
+    },
+  );
 
-  testWidgets('the about row links to the Italian case-study page in Italian',
-      (tester) async {
+  testWidgets('the about row links to the Italian case-study page in Italian', (
+    tester,
+  ) async {
     final fake = _FakeUrlLauncher();
     final original = UrlLauncherPlatform.instance;
     UrlLauncherPlatform.instance = fake;
     addTearDown(() => UrlLauncherPlatform.instance = original);
 
     SharedPreferences.setMockInitialValues({'ays.locale': 'it'});
-    await tester.pumpWidget(AreYouStupidApp(services: await AppServices.boot()));
+    await tester.pumpWidget(
+      AreYouStupidApp(services: await AppServices.boot()),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('IMPOSTAZIONI'));

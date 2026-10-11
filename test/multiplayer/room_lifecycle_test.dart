@@ -12,12 +12,14 @@ void main() {
       final c = h.addClient(name: 'Ana');
 
       // Raw wrong-version handshake, bypassing the session's fixed version.
-      c.sendRaw(jsonEncode({
-        'type': 'HELLO',
-        'protocolVersion': 99,
-        'appName': 'x',
-        'appVersion': '1',
-      }));
+      c.sendRaw(
+        jsonEncode({
+          'type': 'HELLO',
+          'protocolVersion': 99,
+          'appName': 'x',
+          'appVersion': '1',
+        }),
+      );
 
       expect(c.state.phase, PartyPhase.rejected);
       expect(c.state.rejected, isNotNull);

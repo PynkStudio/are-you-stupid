@@ -12,7 +12,7 @@ class IapPurchaseProvider implements PurchaseProvider {
   final _updates = StreamController<PurchaseUpdate>.broadcast();
 
   StreamSubscription<List<PurchaseDetails>>? _subscription;
-  ProductDetails? _details;
+  final Map<String, ProductDetails> _details = {};
   bool _available = false;
 
   @override
@@ -20,7 +20,29 @@ class IapPurchaseProvider implements PurchaseProvider {
 
   @override
   PurchaseProduct? get removeAdsProduct {
-    final details = _details;
+    final details = _details[IapProductIds.removeAds];
+    if (details == null) return null;
+    return PurchaseProduct(
+      id: details.id,
+      title: details.title,
+      price: details.price,
+    );
+  }
+
+  @override
+  PurchaseProduct? get partyPackProduct {
+    final details = _details[IapProductIds.partyPack];
+    if (details == null) return null;
+    return PurchaseProduct(
+      id: details.id,
+      title: details.title,
+      price: details.price,
+    );
+  }
+
+  @override
+  PurchaseProduct? get partyBundleProduct {
+    final details = _details[IapProductIds.partyBundle];
     if (details == null) return null;
     return PurchaseProduct(
       id: details.id,
@@ -40,14 +62,16 @@ class IapPurchaseProvider implements PurchaseProvider {
 
   @override
   Future<void> refreshProduct() async {
-    if (_details != null) return;
     try {
       _available = await _iap.isAvailable();
       if (!_available) return;
-      final response =
-          await _iap.queryProductDetails({IapProductIds.removeAds});
-      if (response.productDetails.isNotEmpty) {
-        _details = response.productDetails.first;
+      final response = await _iap.queryProductDetails({
+        IapProductIds.removeAds,
+        IapProductIds.partyPack,
+        IapProductIds.partyBundle,
+      });
+      for (final product in response.productDetails) {
+        _details[product.id] = product;
       }
     } catch (_) {
       // Store unreachable: leave the product unresolved, retry next time.
@@ -55,9 +79,17 @@ class IapPurchaseProvider implements PurchaseProvider {
   }
 
   @override
-  Future<void> buyRemoveAds() async {
-    final details = _details;
-    if (details == null) throw StateError('remove-ads product not loaded');
+  Future<void> buyRemoveAds() => _buy(IapProductIds.removeAds);
+
+  @override
+  Future<void> buyPartyPack() => _buy(IapProductIds.partyPack);
+
+  @override
+  Future<void> buyPartyBundle() => _buy(IapProductIds.partyBundle);
+
+  Future<void> _buy(String productId) async {
+    final details = _details[productId];
+    if (details == null) throw StateError('$productId not loaded');
     final started = await _iap.buyNonConsumable(
       purchaseParam: PurchaseParam(productDetails: details),
     );
@@ -69,17 +101,21 @@ class IapPurchaseProvider implements PurchaseProvider {
 
   Future<void> _onPurchaseDetails(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
-      if (purchase.productID == IapProductIds.removeAds) {
-        _updates.add(PurchaseUpdate(
-          productId: purchase.productID,
-          status: switch (purchase.status) {
-            PurchaseStatus.purchased => PurchaseUpdateStatus.purchased,
-            PurchaseStatus.restored => PurchaseUpdateStatus.restored,
-            PurchaseStatus.pending => PurchaseUpdateStatus.pending,
-            PurchaseStatus.canceled => PurchaseUpdateStatus.canceled,
-            PurchaseStatus.error => PurchaseUpdateStatus.error,
-          },
-        ));
+      if (purchase.productID == IapProductIds.removeAds ||
+          purchase.productID == IapProductIds.partyPack ||
+          purchase.productID == IapProductIds.partyBundle) {
+        _updates.add(
+          PurchaseUpdate(
+            productId: purchase.productID,
+            status: switch (purchase.status) {
+              PurchaseStatus.purchased => PurchaseUpdateStatus.purchased,
+              PurchaseStatus.restored => PurchaseUpdateStatus.restored,
+              PurchaseStatus.pending => PurchaseUpdateStatus.pending,
+              PurchaseStatus.canceled => PurchaseUpdateStatus.canceled,
+              PurchaseStatus.error => PurchaseUpdateStatus.error,
+            },
+          ),
+        );
       }
       if (purchase.pendingCompletePurchase) {
         await _iap.completePurchase(purchase);

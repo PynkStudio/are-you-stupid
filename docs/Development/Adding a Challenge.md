@@ -1,6 +1,6 @@
 ---
 tags: [development, howto, challenges]
-updated: 2026-09-06
+updated: 2026-10-03
 ---
 
 # Adding a Challenge
@@ -82,9 +82,47 @@ list, an antonym pair, a letter count) it needs a hand-authored equivalent per
 language, not a literal translation — [[Localization]] explains why and shows
 the existing examples.
 
-## 6. Document it — mandatory
+## 6. Add the iMessage counterpart — mandatory
 
-Add a row to [[Challenge Catalog]] in the **same commit**. See
+Stupid Streak does **not** execute Dart inside the Messages extension. Every
+new or changed challenge must therefore be mirrored deliberately in the pure
+Swift generator under
+`ios/iMessageExtensionCore/Sources/AYSMessageCore/StupidChallenge.swift`:
+
+- preserve the same player-facing mechanic, correct answer and one-line fail
+  explanation;
+- derive every random choice from the supplied seeded `SplitMix64`; never use
+  `Int.random`, `arc4random` or wall-clock state;
+- keep the instruction uppercase and under eight words;
+- place it in the appropriate Stupid Streak difficulty pool rather than making
+  it available in every round;
+- extend `MessageCoreTests` so identical `{matchSeed, round, streak}` inputs
+  prove identical Swift output.
+
+The Dart and Swift implementations do not need byte-identical view models —
+the two products have different renderers — but they must represent the same
+recognisable challenge and remain deterministic within their own match.
+
+If a mechanic genuinely cannot work inside the iMessage extension (for
+example, it requires an API or interaction unavailable to an extension), do
+not invent a degraded substitute silently. Record the exception and reason in
+[[iMessage Multiplayer]], append [[Decision Log]], and mark the catalog row as
+`Exception`. Mere implementation effort is not an exception.
+
+Verify the native side:
+
+```bash
+swift test --package-path ios/iMessageExtensionCore
+xcodebuild -project ios/Runner.xcodeproj -target StupidStreak \
+  -configuration Debug -sdk iphonesimulator \
+  -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO build
+```
+
+## 7. Document it — mandatory
+
+Add a row to [[Challenge Catalog]] in the **same commit**, including its
+`iMessage` parity status (`Mirrored` or a documented `Exception`). See
 [[Documentation Rules]].
 
 ## Checklist
@@ -94,5 +132,10 @@ Add a row to [[Challenge Catalog]] in the **same commit**. See
 - [ ] `minLevel` / `weight` set honestly
 - [ ] Behaviour test (win + lose + trap)
 - [ ] Every string added to all six `lib/i18n/strings_*.dart` files
-- [ ] Row in [[Challenge Catalog]]
+- [ ] Swift iMessage counterpart added/updated and determinism tested
+- [ ] Or: genuine iMessage exception documented in [[iMessage Multiplayer]]
+      and [[Decision Log]]
+- [ ] Row in [[Challenge Catalog]] with iMessage parity status
+- [ ] `swift test --package-path ios/iMessageExtensionCore` green
+- [ ] `StupidStreak` simulator target builds
 - [ ] `flutter analyze` clean, `flutter test` green

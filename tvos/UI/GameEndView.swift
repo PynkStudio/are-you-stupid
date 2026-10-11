@@ -32,22 +32,21 @@ struct GameEndView: View {
                           ? model.lastAiCommentary!
                           : "EVERYONE ELSE: MAYBE NEXT TIME.").uppercased())
                         .font(Theme.label(13)).foregroundStyle(Color.white.opacity(0.42))
-                    Button(action: { model.rematch() }) {
-                        HStack {
-                            Text("RUN IT BACK")
-                            Spacer()
-                            Text("↻")
+                    if let adPlayer = model.adBreakPlayerName {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("A WORD FROM OUR SPONSORS.").font(Theme.title(20))
+                            Text("\(adPlayer) PRESSED REMATCH. NOW WE ALL PAY.")
+                                .font(Theme.label(12))
                         }
-                        .font(Theme.title(20)).padding(.horizontal, 22).padding(.vertical, 16)
-                        .frame(maxWidth: 370)
+                        .padding(.horizontal, 22).padding(.vertical, 16)
+                        .background(Theme.hotPink, in: RoundedRectangle(cornerRadius: 18))
+                    } else {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("RUN IT BACK?").font(Theme.title(20))
+                            Text("A PLAYER CAN START THE REMATCH FROM THEIR PHONE.")
+                                .font(Theme.label(12)).foregroundStyle(Color.white.opacity(0.55))
+                        }
                     }
-                    .background(Theme.sunshine).foregroundStyle(Theme.ink)
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
-                    #if os(tvOS)
-                    .buttonStyle(.card)
-                    #else
-                    .buttonStyle(.plain)
-                    #endif
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 

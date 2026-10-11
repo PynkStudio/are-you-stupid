@@ -53,21 +53,22 @@ GeneratedChallenge buildFromProposal(
 /// `lib/challenges/` does for scripted templates.
 class GeneratedChallengeRuntime extends BaseChallenge {
   GeneratedChallengeRuntime(this.proposal, ChallengeParams params)
-      : action = AiAction.parse(proposal.mechanic.action) ?? AiAction.tap,
-        _correctId = proposal.correctAnswer.elementId,
-        _orderedIds = [for (final e in proposal.elements) e.id],
-        _tapGoal = _tapUntilStopGoal(proposal),
-        super(
-          params,
-          id: proposal.id,
-          tag: proposal.mechanicContract?.tag ?? ChallengeTag.trick,
-          // Wordier languages read longer instructions: +1/+2 s outside
-          // English ([localeTimeBonusMs], [[Localization and Language]]).
-          duration: Duration(
-            milliseconds: proposal.difficulty.timeLimitMs +
-                localeTimeBonusMs(params.locale, proposal.instruction),
-          ),
-        ) {
+    : action = AiAction.parse(proposal.mechanic.action) ?? AiAction.tap,
+      _correctId = proposal.correctAnswer.elementId,
+      _orderedIds = [for (final e in proposal.elements) e.id],
+      _tapGoal = _tapUntilStopGoal(proposal),
+      super(
+        params,
+        id: proposal.id,
+        tag: proposal.mechanicContract?.tag ?? ChallengeTag.trick,
+        // Wordier languages read longer instructions: +1/+2 s outside
+        // English ([localeTimeBonusMs], [[Localization and Language]]).
+        duration: Duration(
+          milliseconds:
+              proposal.difficulty.timeLimitMs +
+              localeTimeBonusMs(params.locale, proposal.instruction),
+        ),
+      ) {
     instruction = proposal.instruction;
     layout = _layoutFor(proposal.elements.length);
     targets = [

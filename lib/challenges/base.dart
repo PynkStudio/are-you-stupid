@@ -39,16 +39,16 @@ abstract class BaseChallenge extends Challenge {
 
   @override
   ChallengeView get view => ChallengeView(
-        instruction: instruction,
-        layout: layout,
-        targets: targets,
-        hint: hint,
-        bigCenterText: bigCenterText,
-        blackout: blackout,
-        showTimer: showTimer,
-        pressure: pressure,
-        tapCounter: tapCounter,
-      );
+    instruction: instruction,
+    layout: layout,
+    targets: targets,
+    hint: hint,
+    bigCenterText: bigCenterText,
+    blackout: blackout,
+    showTimer: showTimer,
+    pressure: pressure,
+    tapCounter: tapCounter,
+  );
 
   /// The current target with [targetId], or null when the tap hit a button
   /// that was just swapped out (e.g. a show→ask phase change landing in the
@@ -63,7 +63,8 @@ abstract class BaseChallenge extends Challenge {
   /// Replaces the target with [id] using [update].
   void mutateTarget(String targetId, TargetSpec Function(TargetSpec) update) {
     targets = [
-      for (final t in targets) if (t.id == targetId) update(t) else t,
+      for (final t in targets)
+        if (t.id == targetId) update(t) else t,
     ];
   }
 }
@@ -145,7 +146,8 @@ class PatienceChallenge extends BaseChallenge {
 // --------------------------------------------------------------- tiny helpers
 
 /// Four (or N) buttons whose label matches their own color.
-List<TargetSpec> honestColorTargets(List<GameColor> colors, AppLocale locale) => [
+List<TargetSpec> honestColorTargets(List<GameColor> colors, AppLocale locale) =>
+    [
       for (var i = 0; i < colors.length; i++)
         TargetSpec(
           id: 'c$i',
@@ -159,26 +161,25 @@ List<TargetSpec> mixedColorTargets(
   List<GameColor> paints,
   List<GameColor> words,
   AppLocale locale,
-) =>
-    [
-      for (var i = 0; i < paints.length; i++)
-        TargetSpec(
-          id: 'c$i',
-          label: Strings.t(locale, 'color.${words[i].name}'),
-          color: paints[i],
-        ),
-    ];
+) => [
+  for (var i = 0; i < paints.length; i++)
+    TargetSpec(
+      id: 'c$i',
+      label: Strings.t(locale, 'color.${words[i].name}'),
+      color: paints[i],
+    ),
+];
 
 List<TargetSpec> numberTargets(List<int> numbers) => [
-      for (var i = 0; i < numbers.length; i++)
-        TargetSpec(
-          id: 'n${numbers[i]}',
-          label: '${numbers[i]}',
-          color: GameColor.slate,
-        ),
-    ];
+  for (var i = 0; i < numbers.length; i++)
+    TargetSpec(
+      id: 'n${numbers[i]}',
+      label: '${numbers[i]}',
+      color: GameColor.slate,
+    ),
+];
 
 List<TargetSpec> wordTargets(List<String> words, {GameColor? color}) => [
-      for (var i = 0; i < words.length; i++)
-        TargetSpec(id: 'w$i', label: words[i], color: color ?? GameColor.slate),
-    ];
+  for (var i = 0; i < words.length; i++)
+    TargetSpec(id: 'w$i', label: words[i], color: color ?? GameColor.slate),
+];

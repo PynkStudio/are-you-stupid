@@ -1,6 +1,6 @@
 ---
 tags: [development, multiplayer, testing, roadmap]
-updated: 2026-10-03
+updated: 2026-10-11
 ---
 
 # Multiplayer Development
@@ -118,6 +118,12 @@ display; no local controller, no direct play on the Mac itself — the person
 running the Mac plays on their phone like everyone else), with an **AirPlay
 button** to mirror the board to another screen. The tvOS and macOS hosts
 share one host core; see [[Decision Log]].
+
+**2026-10-05 update:** the separate `AYSHost-macOS` target is retired. The
+board UI is now the `AYSHostUI` package library; the tvOS app links it, and
+the Flutter macOS app links it too and opens the board window from
+MULTIPLAYER → HOST ON THIS MAC. Mentions of `AYSHost-macOS` below are
+historical. See [[Multiplayer Host (tvOS)]].
 
 **Status: ⚠️ partial, but every "Not started" item from the previous pass has
 now landed at least once.** The authoritative `Host/` graph is landed and
@@ -271,8 +277,11 @@ started — Phase 9.
 QR deep-link → join ([[Multiplayer Product]]); roster editing, player count,
 grace-period reconnects.
 
-**Status: QR deep-link joining landed.** The custom `areyoustupid://` scheme is
-registered on iOS and Android; `app_links` handles cold and warm launches,
+**Status: QR deep-link joining landed.** The QR carries the universal link
+`https://pynkstudio.eu/ays/join?room=XXXX` (iOS Associated Domain
+`applinks:pynkstudio.eu`; the page and `apple-app-site-association` live on
+the PynkStudio site); the custom `areyoustupid://` scheme stays
+registered on iOS and Android as a fallback; `app_links` handles cold and warm launches,
 preserves the permissions primer, and opens `MpJoinScreen` with the QR's room
 code. Roster editing and the remaining lobby polish stay open.
 
@@ -291,9 +300,20 @@ derives and sends a spoken alias; the Swift host has the cue/title engine,
 semantic expiry, cache ladder and audio playback. Exact-name verification is
 cached on the phone, while a stable anonymous persona lets the board remember
 bounded, expiring narrative careers and greet returning players. The shared PynkStudio backend
-has the authenticated OpenAI TTS route and private-cache migration. Automated
-logic tests and a macOS host build pass. Remaining: deploy/migrate, configure
-endpoint secrets, populate the licensed offline pack, add on-device AI name
+(`https://pynkstudio.eu`) has the authenticated live-speech route
+(ElevenLabs, OpenAI fallback), the private cache and the remote pack
+(`/api/ays/presenter/pack`). The host syncs that pack and picks its lines by
+most-specific key, so copy and recordings change without a release.
+**Local setup:** the shared token lives in the untracked
+`tvos/Config/Presenter.secrets.xcconfig`
+(`AYS_PRESENTER_API_TOKEN = …`, the same value as on Vercel production).
+`tvos/Config/Presenter.xcconfig` holds the URL and is read by the tvOS target
+and by the Mac Runner's Debug/Release xcconfigs. Without the secrets file the
+board runs the offline presenter. Automated
+logic tests and a macOS host build pass. The production ElevenLabs voice is
+selected and saved; language plus Off/Mute/Neutral/Savage options are wired.
+Remaining: deploy/migrate, configure its voice ID in the production backend,
+populate the licensed offline pack, add on-device AI name
 refinement/settings, validate tvOS audio and tune the narrative catalog on
 real parties. Full contract: [[Multiplayer Presenter]].
 

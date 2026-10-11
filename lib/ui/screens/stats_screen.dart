@@ -28,8 +28,11 @@ class StatsScreen extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    BalancedText(t('ui.stats.title'),
-                        style: Ays.title(44), textAlign: TextAlign.left),
+                    BalancedText(
+                      t('ui.stats.title'),
+                      style: Ays.title(44),
+                      textAlign: TextAlign.left,
+                    ),
                     const SizedBox(height: 24),
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 26),
@@ -40,8 +43,11 @@ class StatsScreen extends StatelessWidget {
                       child: Column(
                         children: [
                           Text(t('ui.stats.level'), style: Ays.mono(14)),
-                          BalancedText('${s.bestLevel}',
-                              style: Ays.title(86), maxLines: 1),
+                          BalancedText(
+                            '${s.bestLevel}',
+                            style: Ays.title(86),
+                            maxLines: 1,
+                          ),
                         ],
                       ),
                     ),

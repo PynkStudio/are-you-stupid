@@ -8,15 +8,15 @@ import 'ad_provider.dart';
 /// - never on launch, never mid-gameplay;
 /// - interstitial roughly every 3-4 finished runs;
 /// - one rewarded continue per run;
-/// - none of the above once `SettingsManager.noAdsPurchased` is set.
+/// - none of the above once `SettingsManager.adsRemoved` is true.
 class AdManager {
   AdManager({
     required AdProvider provider,
     required ScoreManager scores,
     required SettingsManager settings,
-  })  : _provider = provider,
-        _scores = scores,
-        _settings = settings;
+  }) : _provider = provider,
+       _scores = scores,
+       _settings = settings;
 
   final AdProvider _provider;
   final ScoreManager _scores;
@@ -26,7 +26,7 @@ class AdManager {
 
   bool _initialized = false;
 
-  bool get _adsRemoved => _settings.noAdsPurchased;
+  bool get _adsRemoved => _settings.adsRemoved;
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -55,6 +55,15 @@ class AdManager {
     if (!shouldShowInterstitial) return;
     final shown = await _provider.show(context, AdPlacement.interstitial);
     if (shown) await _scores.markInterstitialShown();
+    await _provider.preload(AdPlacement.interstitial);
+  }
+
+  /// One explicit multiplayer rematch tap may show one interstitial on the
+  /// requesting phone. Room coordination is handled by the party protocol;
+  /// no-fill/offline remains an immediate no-op.
+  Future<void> showMultiplayerRematchInterstitial(BuildContext context) async {
+    if (_adsRemoved || !_provider.isReady(AdPlacement.interstitial)) return;
+    await _provider.show(context, AdPlacement.interstitial);
     await _provider.preload(AdPlacement.interstitial);
   }
 

@@ -53,10 +53,12 @@ class SettingsScreen extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    BalancedText(t('ui.settings.title'),
-                        style: Ays.title(48),
-                        maxLines: 1,
-                        textAlign: TextAlign.left),
+                    BalancedText(
+                      t('ui.settings.title'),
+                      style: Ays.title(48),
+                      maxLines: 1,
+                      textAlign: TextAlign.left,
+                    ),
                     const SizedBox(height: 28),
                     Expanded(
                       child: SingleChildScrollView(
@@ -145,8 +147,11 @@ class SettingsScreen extends StatelessWidget {
                         child: Text(
                           t('ui.settings.made_by'),
                           textAlign: TextAlign.center,
-                          style: Ays.label(11,
-                              color: Ays.inkDim, weight: FontWeight.w700),
+                          style: Ays.label(
+                            11,
+                            color: Ays.inkDim,
+                            weight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
@@ -184,7 +189,8 @@ class SettingsScreen extends StatelessWidget {
             for (final l in AppLocale.values)
               _LanguageOption(
                 label: l.nativeName,
-                selected: !services.settings.localeIsSystemDefault &&
+                selected:
+                    !services.settings.localeIsSystemDefault &&
                     services.settings.locale == l,
                 onTap: () => Navigator.of(context).pop(l),
               ),
@@ -219,7 +225,10 @@ class SettingsScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(t('ui.settings.reset'), style: Ays.label(14, color: Ays.red)),
+            child: Text(
+              t('ui.settings.reset'),
+              style: Ays.label(14, color: Ays.red),
+            ),
           ),
         ],
       ),
@@ -265,8 +274,11 @@ class _Toggle extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         caption!,
-                        style: Ays.label(12,
-                            color: Ays.inkDim, weight: FontWeight.w600),
+                        style: Ays.label(
+                          12,
+                          color: Ays.inkDim,
+                          weight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ],
@@ -401,7 +413,8 @@ class _AiSectionState extends State<_AiSection> {
       return 'ui.settings.ai.status.available';
     }
     return switch (availability.reason) {
-      'appleIntelligenceNotEnabled' => 'ui.settings.ai.status.supported_not_enabled',
+      'appleIntelligenceNotEnabled' =>
+        'ui.settings.ai.status.supported_not_enabled',
       'modelNotReady' => 'ui.settings.ai.status.model_not_ready',
       _ => 'ui.settings.ai.status.not_eligible', // deviceNotEligible, unsupportedOS, bridgeUnavailable
     };
@@ -514,11 +527,13 @@ class _RemoveAdsSectionState extends State<_RemoveAdsSection> {
     final message = switch (feedback) {
       PurchaseFeedback.purchased => t('ui.settings.remove_ads_owned'),
       PurchaseFeedback.restored => t('ui.settings.remove_ads_restored'),
-      PurchaseFeedback.nothingToRestore =>
-        t('ui.settings.remove_ads_not_found'),
+      PurchaseFeedback.nothingToRestore => t(
+        'ui.settings.remove_ads_not_found',
+      ),
       PurchaseFeedback.error => t('ui.settings.remove_ads_error'),
     };
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -532,26 +547,52 @@ class _RemoveAdsSectionState extends State<_RemoveAdsSection> {
         if (!purchases.storeAvailable) return const SizedBox.shrink();
         final t = widget.t;
 
-        if (purchases.isPurchased) {
-          return _RemoveAdsRow(
-            label: t('ui.settings.remove_ads_owned'),
-            caption: t('ui.settings.remove_ads_owned_caption'),
-            owned: true,
-          );
-        }
-
         final product = purchases.product;
+        final partyPack = purchases.partyPackProduct;
+        final partyBundle = purchases.partyBundleProduct;
         // Restore stays visible even while the product is unresolved —
         // App Review requires a restore path, and a reinstall on a flaky
         // connection must still be able to get its purchase back.
         return Column(
           children: [
-            if (product != null)
+            if (purchases.isPurchased)
+              _RemoveAdsRow(
+                label: t('ui.settings.remove_ads_owned'),
+                caption: t('ui.settings.remove_ads_owned_caption'),
+                owned: true,
+              )
+            else if (product != null)
               _RemoveAdsRow(
                 label: t('ui.settings.remove_ads'),
                 caption: t('ui.settings.remove_ads_caption'),
                 trailing: product.price,
                 onTap: purchases.busy ? null : purchases.buyRemoveAds,
+              ),
+            if (widget.services.settings.partyCapacityUnlocked)
+              _RemoveAdsRow(
+                label: t('ui.settings.party_pack_owned'),
+                caption: t('ui.settings.party_pack_owned_caption'),
+                owned: true,
+              )
+            else if (partyPack != null)
+              _RemoveAdsRow(
+                label: t('ui.settings.party_pack'),
+                caption: t('ui.settings.party_pack_caption'),
+                trailing: partyPack.price,
+                onTap: purchases.busy ? null : purchases.buyPartyPack,
+              ),
+            if (purchases.isPartyBundlePurchased)
+              _RemoveAdsRow(
+                label: t('ui.settings.party_bundle_owned'),
+                caption: t('ui.settings.party_bundle_owned_caption'),
+                owned: true,
+              )
+            else if (partyBundle != null)
+              _RemoveAdsRow(
+                label: t('ui.settings.party_bundle'),
+                caption: t('ui.settings.party_bundle_caption'),
+                trailing: partyBundle.price,
+                onTap: purchases.busy ? null : purchases.buyPartyBundle,
               ),
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -560,8 +601,11 @@ class _RemoveAdsSectionState extends State<_RemoveAdsSection> {
                   onTap: purchases.busy ? null : purchases.restorePurchases,
                   child: Text(
                     t('ui.settings.restore_purchase'),
-                    style: Ays.label(13, color: Ays.inkDim,
-                        weight: FontWeight.w700),
+                    style: Ays.label(
+                      13,
+                      color: Ays.inkDim,
+                      weight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -611,8 +655,11 @@ class _RemoveAdsRow extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       caption,
-                      style: Ays.label(12,
-                          color: Ays.inkDim, weight: FontWeight.w600),
+                      style: Ays.label(
+                        12,
+                        color: Ays.inkDim,
+                        weight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),

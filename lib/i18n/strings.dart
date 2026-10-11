@@ -43,6 +43,6 @@ class Strings {
   /// Reads an indexed pool `'$prefix.0'`, `'$prefix.1'`, ... of [count]
   /// entries. Used for the roast/viral-prompt/word-content pools.
   static List<String> list(AppLocale locale, String prefix, int count) => [
-        for (var i = 0; i < count; i++) t(locale, '$prefix.$i'),
-      ];
+    for (var i = 0; i < count; i++) t(locale, '$prefix.$i'),
+  ];
 }

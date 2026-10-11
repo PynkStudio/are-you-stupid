@@ -84,11 +84,13 @@ class SimClient {
     }
   }
 
-  void _rawTap(String? targetId, {int? index}) => session.submitTap(TapInfo(
-        targetId: targetId,
-        elapsed: session.runnerElapsed ?? Duration.zero,
-        index: index,
-      ));
+  void _rawTap(String? targetId, {int? index}) => session.submitTap(
+    TapInfo(
+      targetId: targetId,
+      elapsed: session.runnerElapsed ?? Duration.zero,
+      index: index,
+    ),
+  );
 
   /// Simulates a player who never answers: fast-forwards straight to the
   /// challenge's own timeout, exactly like `tap`'s settle fast-forward but
@@ -103,7 +105,9 @@ class SimClient {
   /// `PartySession.tick` in fixed steps until this player's `RoundResult`
   /// arrives (the host round-trips synchronously over the harness's
   /// in-memory transports) or the challenge's own duration is exhausted.
-  void _driveToSettleOrTimeout({Duration step = const Duration(milliseconds: 16)}) {
+  void _driveToSettleOrTimeout({
+    Duration step = const Duration(milliseconds: 16),
+  }) {
     final round = state.round;
     if (round == null) return;
     var elapsed = session.runnerElapsed ?? Duration.zero;
@@ -130,7 +134,10 @@ class SimClient {
       ch.onStart(host);
       for (var i = 0; i < n; i++) {
         if (host.settled) break;
-        ch.onTap(fsupport.tapOn('pad', at: const Duration(milliseconds: 500)), host);
+        ch.onTap(
+          fsupport.tapOn('pad', at: const Duration(milliseconds: 500)),
+          host,
+        );
       }
       fsupport.advance(ch, host, to: ch.duration);
       if (host.passed) return n;
@@ -180,14 +187,14 @@ class PartyHarness {
   /// Same as [PartyHarness] but the default, fixed-name constructor for a
   /// config-heavy test that wants to tweak the host directly.
   PartyHarness.fromConfig(PartyHostReference partHost, FakePartyClock clock)
-      : clock = clock,
-        hostName = partHost.hostName,
-        roomCode = partHost.roomCode,
-        maxPlayers = partHost.maxPlayers,
-        lives = partHost.lives,
-        battleRounds = partHost.battleRounds,
-        speedBonus = partHost.speedBonus,
-        graceWindowMs = partHost.graceWindowMs {
+    : clock = clock,
+      hostName = partHost.hostName,
+      roomCode = partHost.roomCode,
+      maxPlayers = partHost.maxPlayers,
+      lives = partHost.lives,
+      battleRounds = partHost.battleRounds,
+      speedBonus = partHost.speedBonus,
+      graceWindowMs = partHost.graceWindowMs {
     _host = partHost;
   }
 

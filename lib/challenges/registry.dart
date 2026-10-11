@@ -331,7 +331,10 @@ Challenge buildFromSeed({
   final template = templateById(challengeId);
   if (template == null) {
     throw ArgumentError.value(
-        challengeId, 'challengeId', 'template not found in registry');
+      challengeId,
+      'challengeId',
+      'template not found in registry',
+    );
   }
   final params = ChallengeParams(
     level: level,

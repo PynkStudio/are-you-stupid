@@ -9,14 +9,15 @@ import 'purchase_provider.dart';
 /// the settings screen can show a message. Cleared by [PurchaseManager.clearFeedback].
 enum PurchaseFeedback { purchased, restored, nothingToRestore, error }
 
-/// Purchase *policy* lives here, not in the UI: buy/restore the single
-/// "remove ads" non-consumable and mirror the result into
-/// `SettingsManager.noAdsPurchased`, which is the flag `AdManager` actually
-/// gates on. See docs/Product/Monetization and Ads.md.
+/// Purchase *policy* lives here, not in the UI: buy/restore Remove Ads and
+/// Party Pack and Party Bundle, then mirror store-confirmed entitlements into
+/// SettingsManager.
 class PurchaseManager extends ChangeNotifier {
-  PurchaseManager({required PurchaseProvider provider, required SettingsManager settings})
-      : _provider = provider,
-        _settings = settings;
+  PurchaseManager({
+    required PurchaseProvider provider,
+    required SettingsManager settings,
+  }) : _provider = provider,
+       _settings = settings;
 
   final PurchaseProvider _provider;
   final SettingsManager _settings;
@@ -27,9 +28,13 @@ class PurchaseManager extends ChangeNotifier {
   bool busy = false;
   PurchaseFeedback? feedback;
 
-  bool get isPurchased => _settings.noAdsPurchased;
+  bool get isPurchased => _settings.adsRemoved;
+  bool get isPartyPackPurchased => _settings.partyPackPurchased;
+  bool get isPartyBundlePurchased => _settings.partyBundlePurchased;
   bool get storeAvailable => _provider.isAvailable;
   PurchaseProduct? get product => _provider.removeAdsProduct;
+  PurchaseProduct? get partyPackProduct => _provider.partyPackProduct;
+  PurchaseProduct? get partyBundleProduct => _provider.partyBundleProduct;
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -45,9 +50,24 @@ class PurchaseManager extends ChangeNotifier {
 
   /// Retries loading the product (see [PurchaseProvider.refreshProduct]).
   Future<void> refreshProduct() async {
-    if (product != null) return;
     await _provider.refreshProduct();
     notifyListeners();
+  }
+
+  Future<void> buyPartyPack() async {
+    if (isPartyPackPurchased ||
+        busy ||
+        !storeAvailable ||
+        partyPackProduct == null) {
+      return;
+    }
+    busy = true;
+    notifyListeners();
+    try {
+      await _provider.buyPartyPack();
+    } catch (_) {
+      _settle(PurchaseFeedback.error);
+    }
   }
 
   Future<void> buyRemoveAds() async {
@@ -59,6 +79,22 @@ class PurchaseManager extends ChangeNotifier {
     } catch (_) {
       // A thrown store call never produces a purchase update, so without
       // this the buy button would stay disabled for the whole session.
+      _settle(PurchaseFeedback.error);
+    }
+  }
+
+  Future<void> buyPartyBundle() async {
+    if (isPartyBundlePurchased ||
+        busy ||
+        !storeAvailable ||
+        partyBundleProduct == null) {
+      return;
+    }
+    busy = true;
+    notifyListeners();
+    try {
+      await _provider.buyPartyBundle();
+    } catch (_) {
       _settle(PurchaseFeedback.error);
     }
   }
@@ -94,16 +130,32 @@ class PurchaseManager extends ChangeNotifier {
     feedback = null;
   }
 
-  void _onUpdate(PurchaseUpdate update) {
-    if (update.productId != IapProductIds.removeAds) return;
+  Future<void> _onUpdate(PurchaseUpdate update) async {
+    if (update.productId != IapProductIds.removeAds &&
+        update.productId != IapProductIds.partyPack &&
+        update.productId != IapProductIds.partyBundle) {
+      return;
+    }
     _restoreTimeout?.cancel();
     switch (update.status) {
       case PurchaseUpdateStatus.purchased:
-        _settings.setNoAdsPurchased(true);
+        if (update.productId == IapProductIds.partyPack) {
+          await _settings.setPartyPackPurchased(true);
+        } else if (update.productId == IapProductIds.partyBundle) {
+          await _settings.setPartyBundlePurchased(true);
+        } else {
+          await _settings.setNoAdsPurchased(true);
+        }
         feedback = PurchaseFeedback.purchased;
         busy = false;
       case PurchaseUpdateStatus.restored:
-        _settings.setNoAdsPurchased(true);
+        if (update.productId == IapProductIds.partyPack) {
+          await _settings.setPartyPackPurchased(true);
+        } else if (update.productId == IapProductIds.partyBundle) {
+          await _settings.setPartyBundlePurchased(true);
+        } else {
+          await _settings.setNoAdsPurchased(true);
+        }
         feedback = PurchaseFeedback.restored;
         busy = false;
       case PurchaseUpdateStatus.canceled:

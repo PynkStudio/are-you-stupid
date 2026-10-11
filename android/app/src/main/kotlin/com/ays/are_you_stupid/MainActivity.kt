@@ -1,6 +1,9 @@
 package com.ays.are_you_stupid
 
 import android.content.Intent
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
@@ -18,6 +21,19 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "localNetworkStatus" -> result.success("granted")
+                    "wifiStatus" -> {
+                        val connectivity = getSystemService(Context.CONNECTIVITY_SERVICE)
+                            as? ConnectivityManager
+                        val capabilities = connectivity?.activeNetwork?.let {
+                            connectivity.getNetworkCapabilities(it)
+                        }
+                        result.success(
+                            if (capabilities == null) "disconnected"
+                            else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI))
+                                "connected"
+                            else "disconnected"
+                        )
+                    }
                     "openAppSettings" -> {
                         try {
                             startActivity(

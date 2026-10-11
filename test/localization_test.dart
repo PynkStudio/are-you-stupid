@@ -42,8 +42,7 @@ void main() {
     }
   });
 
-  test('no locale leaves a non-empty English string untranslated as empty',
-      () {
+  test('no locale leaves a non-empty English string untranslated as empty', () {
     for (final locale in AppLocale.values) {
       for (final entry in kStringsEn.entries) {
         if (entry.value.isEmpty) continue;
@@ -70,14 +69,23 @@ void main() {
     for (final locale in AppLocale.values) {
       final letters = kSpellCountLetters[locale]!;
       final digits = kSpellCountDigits[locale]!;
-      expect(letters.keys.toSet(), digits.keys.toSet(),
-          reason: '$locale spell_count word sets diverge');
+      expect(
+        letters.keys.toSet(),
+        digits.keys.toSet(),
+        reason: '$locale spell_count word sets diverge',
+      );
       expect(letters.length, 8, reason: '$locale needs exactly 8 words');
       for (final word in letters.keys) {
-        expect(letters[word], greaterThan(0),
-            reason: '$locale "$word" has a non-positive letter count');
-        expect(digits[word], greaterThan(0),
-            reason: '$locale "$word" has a non-positive digit value');
+        expect(
+          letters[word],
+          greaterThan(0),
+          reason: '$locale "$word" has a non-positive letter count',
+        );
+        expect(
+          digits[word],
+          greaterThan(0),
+          reason: '$locale "$word" has a non-positive digit value',
+        );
       }
     }
   });
@@ -86,16 +94,14 @@ void main() {
     for (final locale in AppLocale.values) {
       for (var i = 0; i < 6; i++) {
         final parts = Strings.t(locale, 'word.opposite.pair.$i').split('|');
-        expect(parts.length, 2,
-            reason: '$locale pair $i is not "A|B"-shaped');
+        expect(parts.length, 2, reason: '$locale pair $i is not "A|B"-shaped');
         expect(parts[0], isNotEmpty);
         expect(parts[1], isNotEmpty);
       }
     }
   });
 
-  test('every challenge instruction stays under 8 words in every language',
-      () {
+  test('every challenge instruction stays under 8 words in every language', () {
     // Mirrors the English-only check in challenge_templates_test.dart, but
     // across all six locales — the design rule (Game Design Pillars) applies
     // to every player, not just English ones. Caught a real French overflow
@@ -120,8 +126,9 @@ void main() {
     }
   });
 
-  testWidgets('the home screen renders in the language SettingsManager picks',
-      (tester) async {
+  testWidgets('the home screen renders in the language SettingsManager picks', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({'ays.locale': 'it'});
     final services = await AppServices.boot();
     await tester.pumpWidget(AreYouStupidApp(services: services));

@@ -70,8 +70,10 @@ class _GameOverViewState extends State<GameOverView>
   /// built by the time it accepts taps.
   static const _entrance = Duration(milliseconds: 560);
 
-  late final AnimationController _intro =
-      AnimationController(vsync: this, duration: _entrance)..forward();
+  late final AnimationController _intro = AnimationController(
+    vsync: this,
+    duration: _entrance,
+  )..forward();
 
   bool _armed = false;
   Timer? _armTimer;
@@ -124,8 +126,11 @@ class _GameOverViewState extends State<GameOverView>
   Widget _beat(double start, Widget child) {
     final curve = CurvedAnimation(
       parent: _intro,
-      curve: Interval(start, (start + 0.55).clamp(0.0, 1.0),
-          curve: Curves.easeOutCubic),
+      curve: Interval(
+        start,
+        (start + 0.55).clamp(0.0, 1.0),
+        curve: Curves.easeOutCubic,
+      ),
     );
     return AnimatedBuilder(
       animation: curve,
@@ -145,8 +150,7 @@ class _GameOverViewState extends State<GameOverView>
     final locale = AppServices.of(context).settings.locale;
     String t(String key, [Map<String, String>? args]) =>
         Strings.t(locale, key, args);
-    final headline =
-        _headline ??= widget.aiVerdict?.toUpperCase() ?? _roast;
+    final headline = _headline ??= widget.aiVerdict?.toUpperCase() ?? _roast;
     final instruction = widget.failedInstruction?.trim();
 
     return AbsorbPointer(
@@ -163,8 +167,10 @@ class _GameOverViewState extends State<GameOverView>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(t('app.title'), style: Ays.mono(13)),
-                    Text(t('ui.game_over.title'),
-                        style: Ays.mono(13, color: Ays.red)),
+                    Text(
+                      t('ui.game_over.title'),
+                      style: Ays.mono(13, color: Ays.red),
+                    ),
                   ],
                 ),
                 Expanded(
@@ -196,29 +202,38 @@ class _GameOverViewState extends State<GameOverView>
                                 ),
                               ),
                               const SizedBox(height: 22),
-                              _beat(0.15, _ScoreCard(
-                                level: widget.level,
-                                best: widget.best,
-                                isRecord: widget.isRecord,
-                                reachedLabel: t('ui.game_over.i_reached'),
-                                levelLabel: (n) =>
-                                    t('ui.game_over.level', {'n': '$n'}),
-                                newBestLabel: t('ui.game_over.new_best'),
-                                bestLabel: t('ui.game_over.best',
-                                    {'n': '${widget.best}'}),
-                                streakLabel: widget.bestStreak >= 3
-                                    ? t('ui.game_over.streak',
-                                        {'n': '${widget.bestStreak}'})
-                                    : null,
-                                intro: _intro,
-                              )),
-                              if (instruction != null && instruction.isNotEmpty) ...[
+                              _beat(
+                                0.15,
+                                _ScoreCard(
+                                  level: widget.level,
+                                  best: widget.best,
+                                  isRecord: widget.isRecord,
+                                  reachedLabel: t('ui.game_over.i_reached'),
+                                  levelLabel: (n) =>
+                                      t('ui.game_over.level', {'n': '$n'}),
+                                  newBestLabel: t('ui.game_over.new_best'),
+                                  bestLabel: t('ui.game_over.best', {
+                                    'n': '${widget.best}',
+                                  }),
+                                  streakLabel: widget.bestStreak >= 3
+                                      ? t('ui.game_over.streak', {
+                                          'n': '${widget.bestStreak}',
+                                        })
+                                      : null,
+                                  intro: _intro,
+                                ),
+                              ),
+                              if (instruction != null &&
+                                  instruction.isNotEmpty) ...[
                                 const SizedBox(height: 12),
-                                _beat(0.3, _KilledByCard(
-                                  label: t('ui.game_over.killed_by'),
-                                  instruction: instruction,
-                                  reason: widget.failReason,
-                                )),
+                                _beat(
+                                  0.3,
+                                  _KilledByCard(
+                                    label: t('ui.game_over.killed_by'),
+                                    instruction: instruction,
+                                    reason: widget.failReason,
+                                  ),
+                                ),
                               ],
                             ],
                           ),
@@ -366,10 +381,7 @@ class _Chip extends StatelessWidget {
         borderRadius: Ays.radiusSmall,
         border: Border.all(color: color, width: 1.5),
       ),
-      child: Text(
-        text,
-        style: Ays.label(15, color: filled ? Ays.bg : color),
-      ),
+      child: Text(text, style: Ays.label(15, color: filled ? Ays.bg : color)),
     );
   }
 }
@@ -419,4 +431,3 @@ class _KilledByCard extends StatelessWidget {
     );
   }
 }
-

@@ -1,6 +1,6 @@
 ---
 tags: [development, testing]
-updated: 2026-10-03
+updated: 2026-10-06
 ---
 
 # Testing
@@ -11,7 +11,17 @@ flutter analyze       # must be clean, zero issues
 dart run tool/gen_protocol_fixtures.dart   # regenerate Swift golden fixtures (protocol change only)
 swift test             # from tvos/ — AYSProtocol (29) + AYSHostCore (63) = 92 cases, 4 skipped by
                         # default (real-socket tests — see AYS_RUN_NETWORK_TESTS below)
+swift test --package-path ios/iMessageExtensionCore  # 4 Stupid Streak core tests
 ```
+
+### `ios/iMessageExtensionCore` — asynchronous iMessage matches
+
+Four headless Swift tests cover the native extension's versioned URL codec and
+Messages size ceiling, identical sequences for identical seeds across all
+three difficulty bands, streak-then-time round judging, and match score
+aggregation. The `StupidStreak` simulator target build separately checks the
+UIKit/Messages controller and icon catalog. Actual turn delivery remains a
+two-device release gate; see [[iMessage Multiplayer]].
 
 ## Fixed: intermittent overflow in `app_flow_test.dart`
 
@@ -101,7 +111,8 @@ no widget-level test yet, see [[Multiplayer Development]] for that gap:
   advertiser (the tvOS/macOS host) and the native `NsdManager`/
   `NSNetServiceBrowser` plumbing `nsd` wraps.
 - `mp_home_screen_test.dart` — `roomCodeFromScannedValue` parses the
-  `areyoustupid://join?room=XXXX` QR payload, rejects anything else.
+  `https://pynkstudio.eu/ays/join?room=XXXX` QR payload and the legacy
+  `areyoustupid://join?room=XXXX`, rejects other hosts/paths/schemes.
   The same parser gates system-Camera links before navigation; native iOS and
   Android registration remains part of the Phase 10 physical-device pass.
 - `mp_permissions_test.dart` — the permissions UX with a fake
@@ -376,9 +387,29 @@ homonym labels and Savage-only negative-title threshold. Dart's
 names; `PresenterCareerStoreTests` cover cross-instance persistence and the
 shorter negative-title expiry; protocol codec coverage keeps optional join
 identity fields tolerant.
-The macOS host target builds with the AVFoundation/backend/cache controller.
+Name coverage also locks leetspeak normalization/blocklist resistance,
+low-confidence display-only fallback and AI-client responses; Swift host tests
+lock private best-capable-device routing.
+`PresenterLineBookTests` also require a complete usable offline book for all
+six presenter locales and verify unsupported locale fallback to English.
+They additionally verify that only the shipped named-result fact vocabulary
+survives manifest sanitization and every locale has mechanic-aware Savage
+copy. `PresenterEngineTests` require all 39 challenge ids to map to an
+editorial mechanic, keep mechanic copy out of Neutral mode, and prove the
+sole-wrong, still-zero and late-first-point cues from the engine's own ledger.
+They also lock Battle-versus-LSS wording, localized homonym labels, and the
+single combined cue emitted when a result awards a title.
+The `AYSHostUI` library (tvOS app + Flutter macOS board window) builds with
+the AVFoundation/backend/cache controller.
 Still manual: real TTS latency, weak-network expiry, voice quality, tvOS audio
 routing and the final bundled voice pack.
+
+### Generated SFX
+
+`sound_manager_test.dart` locks the five single-player cue mappings, the 32%
+gain contract and the global sound-setting gate. `swift test` compiles the
+shared host resource bundle and native player. Final loudness and overlap are
+still a real-headphone/TV check; automated tests cannot judge perceived level.
 
 ## Writing tests for a new challenge
 

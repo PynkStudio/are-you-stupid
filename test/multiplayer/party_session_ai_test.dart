@@ -14,7 +14,11 @@ void main() {
       final pair = InMemoryPartyTransport.pair();
       client = pair.$1;
       hostSide = pair.$2;
-      session = PartySession(transport: client, appName: 'test', appVersion: '1.0');
+      session = PartySession(
+        transport: client,
+        appName: 'test',
+        appVersion: '1.0',
+      );
     });
 
     tearDown(() => session.dispose());
@@ -23,9 +27,9 @@ void main() {
       final events = <PartyEvent>[];
       session.events.listen(events.add);
 
-      hostSide.send(PartyProtocol.encode(
-        const AiDirectorAssignment(directorPeerId: 'p1'),
-      ));
+      hostSide.send(
+        PartyProtocol.encode(const AiDirectorAssignment(directorPeerId: 'p1')),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(session.state.aiDirectorPeerId, 'p1');
@@ -33,15 +37,15 @@ void main() {
     });
 
     test('a null directorPeerId clears the assignment', () async {
-      hostSide.send(PartyProtocol.encode(
-        const AiDirectorAssignment(directorPeerId: 'p1'),
-      ));
+      hostSide.send(
+        PartyProtocol.encode(const AiDirectorAssignment(directorPeerId: 'p1')),
+      );
       await Future<void>.delayed(Duration.zero);
       expect(session.state.aiDirectorPeerId, 'p1');
 
-      hostSide.send(PartyProtocol.encode(
-        const AiDirectorAssignment(directorPeerId: null),
-      ));
+      hostSide.send(
+        PartyProtocol.encode(const AiDirectorAssignment(directorPeerId: null)),
+      );
       await Future<void>.delayed(Duration.zero);
       expect(session.state.aiDirectorPeerId, isNull);
     });
@@ -50,11 +54,15 @@ void main() {
       final events = <PartyEvent>[];
       session.events.listen(events.add);
 
-      hostSide.send(PartyProtocol.encode(const AiCommentary(
-        kind: 'elimination',
-        roundId: 'r1',
-        text: 'Gone, but not forgotten.',
-      )));
+      hostSide.send(
+        PartyProtocol.encode(
+          const AiCommentary(
+            kind: 'elimination',
+            roundId: 'r1',
+            text: 'Gone, but not forgotten.',
+          ),
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(session.state.lastAiCommentary?.text, 'Gone, but not forgotten.');
@@ -65,40 +73,48 @@ void main() {
       final events = <PartyEvent>[];
       session.events.listen(events.add);
 
-      hostSide.send(PartyProtocol.encode(AiChallengeRound(
-        roundId: 'r1',
-        proposal: const {
-          'id': 'ai.abc12',
-          'mechanic': {
-            'move': 'tap_true_color',
-            'action': 'tap',
-            'kind': 'mixed',
-            'sense_decoys': ['color'],
-          },
-          'instruction': 'TAP THE ONLY BLUE',
-          'elements': [
-            {
-              'id': 'e1',
-              'label': 'BLUE',
-              'color': 'blue',
-              'shape': 'circle',
-              'scale': 1.0,
-              'rotation': 0,
-              'dx': 0,
-              'dy': 0,
-              'opacity': 1.0,
-              'hidden': false,
+      hostSide.send(
+        PartyProtocol.encode(
+          AiChallengeRound(
+            roundId: 'r1',
+            proposal: const {
+              'id': 'ai.abc12',
+              'mechanic': {
+                'move': 'tap_true_color',
+                'action': 'tap',
+                'kind': 'mixed',
+                'sense_decoys': ['color'],
+              },
+              'instruction': 'TAP THE ONLY BLUE',
+              'elements': [
+                {
+                  'id': 'e1',
+                  'label': 'BLUE',
+                  'color': 'blue',
+                  'shape': 'circle',
+                  'scale': 1.0,
+                  'rotation': 0,
+                  'dx': 0,
+                  'dy': 0,
+                  'opacity': 1.0,
+                  'hidden': false,
+                },
+              ],
+              'correctAnswer': {'elementId': 'e1', 'startsCorrect': false},
+              'difficulty': {
+                'level': 1,
+                'timeLimitMs': 2500,
+                'trickType': 'none',
+              },
+              'failLine': {'en': 'THE ONLY BLUE WAS THE FIRST.'},
+              'seed': 1,
+              'source': 'ai',
             },
-          ],
-          'correctAnswer': {'elementId': 'e1', 'startsCorrect': false},
-          'difficulty': {'level': 1, 'timeLimitMs': 2500, 'trickType': 'none'},
-          'failLine': {'en': 'THE ONLY BLUE WAS THE FIRST.'},
-          'seed': 1,
-          'source': 'ai',
-        },
-        startAt: 5000,
-        durationMs: 4000,
-      )));
+            startAt: 5000,
+            durationMs: 4000,
+          ),
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       final received = events.whereType<PartyAiChallengeRoundEvent>().single;
@@ -108,31 +124,49 @@ void main() {
       expect(session.state.phase, PartyPhase.round);
     });
 
-    test('a malformed AI_CHALLENGE_ROUND surfaces an error and opens nothing', () async {
-      final events = <PartyEvent>[];
-      session.events.listen(events.add);
+    test(
+      'a malformed AI_CHALLENGE_ROUND surfaces an error and opens nothing',
+      () async {
+        final events = <PartyEvent>[];
+        session.events.listen(events.add);
 
-      hostSide.send(PartyProtocol.encode(AiChallengeRound(
-        roundId: 'r1',
-        proposal: const {'id': 'ai.abc12'}, // missing everything else
-        startAt: 5000,
-        durationMs: 4000,
-      )));
-      await Future<void>.delayed(Duration.zero);
+        hostSide.send(
+          PartyProtocol.encode(
+            AiChallengeRound(
+              roundId: 'r1',
+              proposal: const {'id': 'ai.abc12'}, // missing everything else
+              startAt: 5000,
+              durationMs: 4000,
+            ),
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
 
-      expect(session.state.round, isNull);
-      expect(session.state.lastError?.code, 'BAD_AI_PROPOSAL');
-      expect(events.whereType<PartyErrorEvent>(), hasLength(1));
-      expect(events.whereType<PartyAiChallengeRoundEvent>(), hasLength(1));
-    });
+        expect(session.state.round, isNull);
+        expect(session.state.lastError?.code, 'BAD_AI_PROPOSAL');
+        expect(events.whereType<PartyErrorEvent>(), hasLength(1));
+        expect(events.whereType<PartyAiChallengeRoundEvent>(), hasLength(1));
+      },
+    );
 
     test('sendAiCapabilities/sendAiRoundProposal/sendAiCommentaryProposal reach the host', () async {
       final lines = <String>[];
       hostSide.inbound.listen(lines.add);
 
-      session.sendAiCapabilities(aiAvailable: true, computeRank: 1, batteryPercent: 80);
-      session.sendAiRoundProposal(roundId: 'r1', proposal: const {'id': 'ai.abc12'});
-      session.sendAiCommentaryProposal(kind: 'wrong', roundId: 'r1', text: 'Nope.');
+      session.sendAiCapabilities(
+        aiAvailable: true,
+        computeRank: 1,
+        batteryPercent: 80,
+      );
+      session.sendAiRoundProposal(
+        roundId: 'r1',
+        proposal: const {'id': 'ai.abc12'},
+      );
+      session.sendAiCommentaryProposal(
+        kind: 'wrong',
+        roundId: 'r1',
+        text: 'Nope.',
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(lines, hasLength(3));

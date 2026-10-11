@@ -1,6 +1,6 @@
 ---
 tags: [development, setup, troubleshooting]
-updated: 2026-10-03
+updated: 2026-10-06
 ---
 
 # Getting Started
@@ -23,7 +23,7 @@ Dependencies: `shared_preferences` (persistence), `share_plus` (share sheet),
 Ads]]), `in_app_purchase` (the "remove ads" purchase, same doc), `url_launcher`
 (the PynkStudio links in Settings, see [[Services]]), `nsd` (native Bonjour/NSD
 room discovery), `mobile_scanner` (in-app QR join), and `app_links` (delivery
-of the Apple TV QR's `areyoustupid://` link from the system Camera app; all
+of the Apple TV QR's https universal link (and the legacy `areyoustupid://` link) from the system Camera app; all
 three multiplayer dependencies are covered by [[Multiplayer Client (Mobile)]]).
 Every one earns its
 place — no dependency added speculatively ([[Game Design Pillars]]).
@@ -42,6 +42,7 @@ flutter run -d <device-id>  # flutter devices to list them
 flutter analyze   # must report zero issues
 flutter test      # 199 tests across 21 suites — see [[Testing]]
 swift test        # from tvos/ — AYSProtocol (protocol mirror) + AYSHostCore (the Swift RoomHost authority), 45 cases (see [[Multiplayer Development]])
+swift test --package-path ios/iMessageExtensionCore  # Stupid Streak state/generator
 ```
 
 As of 2026-09-07, `flutter test` has 3 pre-existing failures in
@@ -56,6 +57,18 @@ flutter build apk --release        # verified working
 flutter build ios --release        # then archive in Xcode to ship
 ```
 
+The containing iOS target embeds the native `StupidStreak.appex`. To build the
+extension alone without signing:
+
+```bash
+xcodebuild -project ios/Runner.xcodeproj -target StupidStreak \
+  -configuration Debug -sdk iphonesimulator \
+  -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO build
+```
+
+See [[iMessage Multiplayer]] for its turn model and real-device release gate.
+
 ### Build number bumps itself
 
 `scripts/bump_build_number.sh` increments the `+N` in `pubspec.yaml`'s
@@ -64,26 +77,41 @@ iOS via `Generated.xcconfig`, Android via `flutter.versionCode`/`versionName`
 in Gradle — so one bump covers both. It runs automatically, no manual step:
 
 - **iOS:** wired as the `Runner` scheme's Archive pre-action
-  (`ios/Runner.xcodeproj/.../Runner.xcscheme`), so it fires on
-  `Product > Archive` in Xcode and on `flutter build ipa` alike, before the
-  build reads `pubspec.yaml`.
+  (`ios/Runner.xcodeproj/.../Runner.xcscheme`). It is reliable from Xcode's
+  `Product > Archive`. With `flutter build ipa`, Flutter generates
+  `Generated.xcconfig` before the scheme pre-action runs: the script advances
+  `pubspec.yaml`, but that archive can still retain the previous number. For a
+  CLI release, run the script manually before `flutter build ipa`; the archive
+  summary must show the intended number before upload.
+  The same script also pins the native Stupid Streak target to the version
+  being archived before advancing `pubspec.yaml`, because extension targets
+  do not inherit Flutter's generated version variables.
 - **Android:** wired into `android/app/build.gradle.kts` at configuration
   time, gated on the requested task being `assembleRelease` or
   `bundleRelease` — covers `flutter build apk/appbundle --release` and
   Android Studio's "Generate Signed Bundle". Must run before the `android {
   defaultConfig { versionCode = flutter.versionCode } }` block evaluates,
   since Gradle reads that at configuration time, not execution time — see
-  [[Decision Log]].
+  [[Decision Log]]. Same caveat as `flutter build ipa`: `flutter build
+  appbundle` writes `flutter.versionCode` into `android/local.properties`
+  *before* Gradle runs the bump, so the bundle keeps the previous number
+  while `pubspec.yaml` advances (observed 2026-10-06: the AAB was built as
+  `1.1.0` code 5, `pubspec.yaml` ended at `+6`). Harmless — codes still
+  increase by one per build — but read the real versionCode in Play Console,
+  not in `pubspec.yaml`.
 
 Run it by hand (`scripts/bump_build_number.sh`) if you need a bump outside
 either build path. It exits non-zero if `pubspec.yaml`'s version has no `+N`.
 
 ### Trying multiplayer locally (no TV host yet)
 
-The native tvOS/macOS host doesn't exist yet ([[Multiplayer Development]]
-Phase 4), so there's nothing on the LAN for the app's real Bonjour discovery
-to find. To exercise the mobile client (screens, real socket, game loop)
-anyway:
+The quickest real host is the Mac: `flutter run -d macos`, then
+MULTIPLAYER → HOST ON THIS MAC opens the native board window (the
+`AYSHostUI` package from `tvos/`, linked by `macos/Runner.xcodeproj`), and a
+phone or simulator on the same network can join it. The Apple TV host is
+`tvos/AYSHost.xcodeproj`, scheme `AYSHost-tvOS` ([[Multiplayer Host (tvOS)]]).
+To exercise the mobile client without any native host (screens, real socket,
+game loop):
 
 ```bash
 dart run tool/dev_multiplayer_host.dart        # prints its LAN address:port
@@ -171,6 +199,12 @@ glob and makes every command quoting-sensitive.
 (verified 2026-09-05, ~5 min on the first run). To silence the warning, install
 the command-line tools from Android Studio (SDK Manager → SDK Tools → Android
 SDK Command-line Tools), then:
+
+Without them `flutter build appbundle --release` also prints "Release app
+bundle failed to strip debug symbols from native libraries". The bundle is
+still valid and signed (it just ships the full native symbol files in
+`BUNDLE-METADATA/`, so the AAB is ~66 MB; Play strips it before delivery); installing cmdline-tools
+removes the warning.
 
 ```bash
 flutter doctor --android-licenses

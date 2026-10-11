@@ -29,11 +29,13 @@ Future<void> main() async {
   AiFeatureFlags.platformSupported = Platform.isIOS;
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Ays.bg,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Ays.bg,
+    ),
+  );
 
   // runApp fires immediately so the first frame is the animated splash, not
   // a blank/white one — AppServices.boot() (ads SDK, purchases, prefs) used
@@ -160,9 +162,12 @@ class _AreYouStupidAppState extends State<AreYouStupidApp> {
     // fall back to the mocks so boot doesn't hang on a platform channel
     // nobody answers.
     final isMobile = Platform.isAndroid || Platform.isIOS;
-    final AdProvider adProvider = isMobile ? AdMobAdProvider() : MockAdProvider();
-    final PurchaseProvider purchaseProvider =
-        isMobile ? IapPurchaseProvider() : MockPurchaseProvider();
+    final AdProvider adProvider = isMobile
+        ? AdMobAdProvider()
+        : MockAdProvider();
+    final PurchaseProvider purchaseProvider = isMobile
+        ? IapPurchaseProvider()
+        : MockPurchaseProvider();
     final services = await AppServices.boot(
       adProvider: adProvider,
       purchaseProvider: purchaseProvider,

@@ -1,29 +1,57 @@
+import 'dart:async';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 
 import 'settings_manager.dart';
 
-/// Audio without a single asset file: platform system sounds only.
-///
-/// Only [SystemSoundType.click] is wired to anything on either platform —
-/// `alert` and `tick` are silently ignored by the Flutter engine's own
-/// Android and iOS embedders, so every distinct cue here is built out of
-/// `click` and timing, never a different [SystemSoundType].
-///
-/// Swapping in real sfx later = implementing [SoundBackend] and passing it in.
+enum SoundCue { button, correct, wrong, levelUp, record }
+
 abstract class SoundBackend {
-  Future<void> click();
+  Future<void> play(SoundCue cue);
 }
 
-class SystemSoundBackend implements SoundBackend {
-  const SystemSoundBackend();
+/// Bundled, generated SFX. All files are deliberately mixed at 32% linear
+/// amplitude: the raw ElevenLabs masters are much too hot for headphones.
+class AssetSoundBackend implements SoundBackend {
+  static const volume = 0.32;
+  final List<AudioPlayer> _active = [];
+
+  static const _assets = <SoundCue, String>{
+    SoundCue.button: 'audio/sfx/button.mp3',
+    SoundCue.correct: 'audio/sfx/correct.mp3',
+    SoundCue.wrong: 'audio/sfx/wrong.mp3',
+    SoundCue.levelUp: 'audio/sfx/level_up.mp3',
+    SoundCue.record: 'audio/sfx/record.mp3',
+  };
 
   @override
-  Future<void> click() => SystemSound.play(SystemSoundType.click);
+  Future<void> play(SoundCue cue) async {
+    final player = AudioPlayer();
+    _active.add(player);
+    try {
+      await player.play(
+        AssetSource(_assets[cue]!),
+        volume: volume,
+        mode: PlayerMode.lowLatency,
+      );
+      unawaited(player.onPlayerComplete.first.then((_) => _release(player)));
+    } catch (_) {
+      await _release(player);
+      // Keep a safe audible fallback if a platform cannot decode the asset.
+      await SystemSound.play(SystemSoundType.click);
+    }
+  }
+
+  Future<void> _release(AudioPlayer player) async {
+    _active.remove(player);
+    await player.dispose();
+  }
 }
 
 class SoundManager {
-  SoundManager(this._settings, {SoundBackend backend = const SystemSoundBackend()})
-      : _backend = backend;
+  SoundManager(this._settings, {SoundBackend? backend})
+    : _backend = backend ?? AssetSoundBackend();
 
   final SettingsManager _settings;
   final SoundBackend _backend;
@@ -31,28 +59,22 @@ class SoundManager {
   bool get _on => _settings.soundEnabled;
 
   Future<void> button() async {
-    if (_on) await _backend.click();
+    if (_on) await _backend.play(SoundCue.button);
   }
 
   Future<void> correct() async {
-    if (_on) await _backend.click();
+    if (_on) await _backend.play(SoundCue.correct);
   }
 
   Future<void> wrong() async {
-    if (!_on) return;
-    await _backend.click();
-    await Future<void>.delayed(const Duration(milliseconds: 45));
-    await _backend.click();
+    if (_on) await _backend.play(SoundCue.wrong);
   }
 
   Future<void> levelUp() async {
-    if (_on) await _backend.click();
+    if (_on) await _backend.play(SoundCue.levelUp);
   }
 
   Future<void> record() async {
-    if (!_on) return;
-    await _backend.click();
-    await Future<void>.delayed(const Duration(milliseconds: 110));
-    await _backend.click();
+    if (_on) await _backend.play(SoundCue.record);
   }
 }

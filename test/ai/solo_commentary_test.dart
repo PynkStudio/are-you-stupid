@@ -18,14 +18,19 @@ void main() {
   group('isCommentaryLineValid — localized lines', () {
     test('a non-English line may use accented Latin letters', () {
       expect(
-        isCommentaryLineValid('Perfino un pesce ci sarebbe riuscito, però.',
-            CommentaryKind.wrong,
-            locale: AppLocale.it),
+        isCommentaryLineValid(
+          'Perfino un pesce ci sarebbe riuscito, però.',
+          CommentaryKind.wrong,
+          locale: AppLocale.it,
+        ),
         isTrue,
       );
       expect(
-        isCommentaryLineValid('¿En serio fallaste eso?', CommentaryKind.wrong,
-            locale: AppLocale.es),
+        isCommentaryLineValid(
+          '¿En serio fallaste eso?',
+          CommentaryKind.wrong,
+          locale: AppLocale.es,
+        ),
         isTrue,
       );
     });
@@ -39,26 +44,38 @@ void main() {
 
     test('emoji and non-Latin scripts are rejected in every locale', () {
       expect(
-        isCommentaryLineValid('Bravo 🎉', CommentaryKind.correct,
-            locale: AppLocale.it),
+        isCommentaryLineValid(
+          'Bravo 🎉',
+          CommentaryKind.correct,
+          locale: AppLocale.it,
+        ),
         isFalse,
       );
       expect(
-        isCommentaryLineValid('Привет.', CommentaryKind.correct,
-            locale: AppLocale.de),
+        isCommentaryLineValid(
+          'Привет.',
+          CommentaryKind.correct,
+          locale: AppLocale.de,
+        ),
         isFalse,
       );
     });
 
     test('localized meta-AI references are rejected', () {
       expect(
-        isCommentaryLineValid('Il modello è deluso.', CommentaryKind.wrong,
-            locale: AppLocale.it),
+        isCommentaryLineValid(
+          'Il modello è deluso.',
+          CommentaryKind.wrong,
+          locale: AppLocale.it,
+        ),
         isFalse,
       );
       expect(
-        isCommentaryLineValid('Die KI lacht dich aus.', CommentaryKind.wrong,
-            locale: AppLocale.de),
+        isCommentaryLineValid(
+          'Die KI lacht dich aus.',
+          CommentaryKind.wrong,
+          locale: AppLocale.de,
+        ),
         isFalse,
       );
     });
@@ -70,24 +87,33 @@ void main() {
   });
 
   group('CommentaryProvider.aiLine', () {
-    test('returns null instead of a static line when the model is unavailable',
-        () async {
-      final service = MockAppleAIService()
-        ..availability = const AppleAiAvailability('unavailable');
-      final provider =
-          CommentaryProvider(service: service, flags: await _flags());
+    test(
+      'returns null instead of a static line when the model is unavailable',
+      () async {
+        final service = MockAppleAIService()
+          ..availability = const AppleAiAvailability('unavailable');
+        final provider = CommentaryProvider(
+          service: service,
+          flags: await _flags(),
+        );
 
-      expect(
-        await provider.aiLine(kind: CommentaryKind.wrong, locale: AppLocale.it),
-        isNull,
-      );
-    });
+        expect(
+          await provider.aiLine(
+            kind: CommentaryKind.wrong,
+            locale: AppLocale.it,
+          ),
+          isNull,
+        );
+      },
+    );
 
     test('passes the locale and spicy setting through to the bridge', () async {
       final service = MockAppleAIService()
         ..nextCommentaryResult = const AppleAiTextResult.ok('"Che disastro."');
-      final provider =
-          CommentaryProvider(service: service, flags: await _flags());
+      final provider = CommentaryProvider(
+        service: service,
+        flags: await _flags(),
+      );
 
       final line = await provider.aiLine(
         kind: CommentaryKind.wrong,
@@ -105,7 +131,9 @@ void main() {
   group('SoloCommentator', () {
     test('keeps one wrong aside ready and serves it exactly once', () async {
       final service = MockAppleAIService()
-        ..nextCommentaryResult = const AppleAiTextResult.ok('Impressive, in a way.');
+        ..nextCommentaryResult = const AppleAiTextResult.ok(
+          'Impressive, in a way.',
+        );
       final commentator = SoloCommentator(
         provider: CommentaryProvider(service: service, flags: await _flags()),
       );
@@ -122,22 +150,26 @@ void main() {
       expect((payload['context'] as Map)['level'], 3);
     });
 
-    test('a locale change drops the aside written for the old language',
-        () async {
-      final service = MockAppleAIService()
-        ..nextCommentaryResult = const AppleAiTextResult.ok('Not great.');
-      final commentator = SoloCommentator(
-        provider: CommentaryProvider(service: service, flags: await _flags()),
-      );
-      commentator.warm(locale: AppLocale.en, allowSpicy: true, level: 1);
-      await _settle();
+    test(
+      'a locale change drops the aside written for the old language',
+      () async {
+        final service = MockAppleAIService()
+          ..nextCommentaryResult = const AppleAiTextResult.ok('Not great.');
+        final commentator = SoloCommentator(
+          provider: CommentaryProvider(service: service, flags: await _flags()),
+        );
+        commentator.warm(locale: AppLocale.en, allowSpicy: true, level: 1);
+        await _settle();
 
-      service.nextCommentaryResult = const AppleAiTextResult.ok('Non benissimo.');
-      commentator.warm(locale: AppLocale.it, allowSpicy: true, level: 2);
-      await _settle();
+        service.nextCommentaryResult = const AppleAiTextResult.ok(
+          'Non benissimo.',
+        );
+        commentator.warm(locale: AppLocale.it, allowSpicy: true, level: 2);
+        await _settle();
 
-      expect(commentator.takeWrongAside(), 'Non benissimo.');
-    });
+        expect(commentator.takeWrongAside(), 'Non benissimo.');
+      },
+    );
 
     test('flag off: no aside, no verdict, no bridge traffic', () async {
       final flags = await _flags();
@@ -155,7 +187,12 @@ void main() {
         await commentator.verdict(
           locale: AppLocale.en,
           allowSpicy: true,
-          run: const RunSummary(level: 4, best: 9, newBest: false, bestStreak: 0),
+          run: const RunSummary(
+            level: 4,
+            best: 9,
+            newBest: false,
+            bestStreak: 0,
+          ),
         ),
         isNull,
       );
@@ -164,8 +201,9 @@ void main() {
 
     test('the verdict is a gameOver line written from the run facts', () async {
       final service = MockAppleAIService()
-        ..nextCommentaryResult =
-            const AppleAiTextResult.ok('Level seven, beaten by a red square.');
+        ..nextCommentaryResult = const AppleAiTextResult.ok(
+          'Level seven, beaten by a red square.',
+        );
       final commentator = SoloCommentator(
         provider: CommentaryProvider(service: service, flags: await _flags()),
       );

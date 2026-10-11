@@ -43,31 +43,42 @@ void main() {
   });
 
   group('round auto-closes once every alive seat has answered (no downtime)', () {
-    test('closes as soon as the last alive seat answers, no completeRound() call', () {
-      final h = PartyHarness();
-      final a = h.addClient(name: 'Ana');
-      final b = h.addClient(name: 'Bob');
-      final c = h.addClient(name: 'Cid');
-      a.join(name: 'Ana');
-      b.join(name: 'Bob');
-      c.join(name: 'Cid');
-      a.ready();
-      b.ready();
-      c.ready();
-      h.host.startGame();
-      h.host.startRound(challengeId: 'tap_exactly_n', seed: 7, level: 2);
-      final n = a.correctTapCount()!;
+    test(
+      'closes as soon as the last alive seat answers, no completeRound() call',
+      () {
+        final h = PartyHarness();
+        final a = h.addClient(name: 'Ana');
+        final b = h.addClient(name: 'Bob');
+        final c = h.addClient(name: 'Cid');
+        a.join(name: 'Ana');
+        b.join(name: 'Bob');
+        c.join(name: 'Cid');
+        a.ready();
+        b.ready();
+        c.ready();
+        h.host.startGame();
+        h.host.startRound(challengeId: 'tap_exactly_n', seed: 7, level: 2);
+        final n = a.correctTapCount()!;
 
-      a.commitCount(n);
-      expect(a.state.phase, PartyPhase.round, reason: 'still waiting on Bob and Cid');
+        a.commitCount(n);
+        expect(
+          a.state.phase,
+          PartyPhase.round,
+          reason: 'still waiting on Bob and Cid',
+        );
 
-      b.commitCount(n);
-      expect(a.state.phase, PartyPhase.round, reason: 'still waiting on Cid');
+        b.commitCount(n);
+        expect(a.state.phase, PartyPhase.round, reason: 'still waiting on Cid');
 
-      c.commitCount(n);
-      // No explicit h.host.completeRound() anywhere above.
-      expect(a.state.phase, PartyPhase.playing, reason: 'the last answer should have closed the round on its own');
-    });
+        c.commitCount(n);
+        // No explicit h.host.completeRound() anywhere above.
+        expect(
+          a.state.phase,
+          PartyPhase.playing,
+          reason: 'the last answer should have closed the round on its own',
+        );
+      },
+    );
 
     test('ignores an eliminated seat — only alive seats are waited on', () {
       final h = PartyHarness(lives: 1);
@@ -94,33 +105,44 @@ void main() {
       h.host.startRound(challengeId: 'tap_exactly_n', seed: 2, level: 2);
       final n2 = a.correctTapCount()!;
       a.commitCount(n2);
-      expect(a.state.phase, PartyPhase.round, reason: 'still waiting on Bob; Cid is eliminated and never expected to answer');
+      expect(
+        a.state.phase,
+        PartyPhase.round,
+        reason: 'still waiting on Bob; Cid is eliminated and never expected to answer',
+      );
       b.commitCount(n2);
-      expect(a.state.phase, PartyPhase.playing, reason: 'Bob was the only other alive seat');
+      expect(
+        a.state.phase,
+        PartyPhase.playing,
+        reason: 'Bob was the only other alive seat',
+      );
     });
   });
 
   group('counting (count action) judging', () {
-    test('correct exact count passes; the host replies ROundResult correct', () {
-      final h = PartyHarness();
-      final a = h.addClient(name: 'Ana');
-      final b = h.addClient(name: 'Bob');
-      a.join(name: 'Ana');
-      b.join(name: 'Bob');
-      a.ready();
-      b.ready();
-      h.host.startGame();
-      h.host.startRound(challengeId: 'tap_exactly_n', seed: 7, level: 2);
+    test(
+      'correct exact count passes; the host replies ROundResult correct',
+      () {
+        final h = PartyHarness();
+        final a = h.addClient(name: 'Ana');
+        final b = h.addClient(name: 'Bob');
+        a.join(name: 'Ana');
+        b.join(name: 'Bob');
+        a.ready();
+        b.ready();
+        h.host.startGame();
+        h.host.startRound(challengeId: 'tap_exactly_n', seed: 7, level: 2);
 
-      // The client's rebuilt challenge reveals the canonical correct count.
-      final n = a.correctTapCount();
-      expect(n, isNotNull);
-      a.commitCount(n!);
+        // The client's rebuilt challenge reveals the canonical correct count.
+        final n = a.correctTapCount();
+        expect(n, isNotNull);
+        a.commitCount(n!);
 
-      h.host.completeRound();
-      final result = a.state.privateResult!;
-      expect(result.correct, isTrue);
-    });
+        h.host.completeRound();
+        final result = a.state.privateResult!;
+        expect(result.correct, isTrue);
+      },
+    );
 
     test('wrong count fails the round', () {
       final h = PartyHarness();

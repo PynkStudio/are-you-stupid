@@ -6,15 +6,17 @@ import 'base.dart';
 /// 34 — TAP LEFT. The buttons swap places while you reach for one.
 class LeftRightSwapChallenge extends BaseChallenge {
   LeftRightSwapChallenge(ChallengeParams p)
-      : super(
-          p,
-          id: 'left_right_swap',
-          tag: ChallengeTag.trick,
-          duration: p.pace(const Duration(milliseconds: 2600), floorMs: 1400),
-        ) {
+    : super(
+        p,
+        id: 'left_right_swap',
+        tag: ChallengeTag.trick,
+        duration: p.pace(const Duration(milliseconds: 2600), floorMs: 1400),
+      ) {
     _wantLeft = params.chance(0.5);
     instruction = p.tr(
-      _wantLeft ? 'challenge.left_right_swap.left' : 'challenge.left_right_swap.right',
+      _wantLeft
+          ? 'challenge.left_right_swap.left'
+          : 'challenge.left_right_swap.right',
     );
     layout = ChallengeLayout.row;
     targets = [
@@ -58,16 +60,18 @@ class LeftRightSwapChallenge extends BaseChallenge {
 /// 35 — the rule changes halfway through. Read again.
 class RuleFlipChallenge extends BaseChallenge {
   RuleFlipChallenge(ChallengeParams p)
-      : super(
-          p,
-          id: 'rule_flip',
-          tag: ChallengeTag.trick,
-          duration: p.pace(const Duration(milliseconds: 3200), floorMs: 1700),
-        ) {
+    : super(
+        p,
+        id: 'rule_flip',
+        tag: ChallengeTag.trick,
+        duration: p.pace(const Duration(milliseconds: 3200), floorMs: 1700),
+      ) {
     final colors = params.shuffled(kBasicColors);
     _first = colors[0];
     _second = colors[1];
-    instruction = p.tr('challenge.rule_flip.instruction', {'color': p.colorLabel(_first)});
+    instruction = p.tr('challenge.rule_flip.instruction', {
+      'color': p.colorLabel(_first),
+    });
     layout = ChallengeLayout.grid2x2;
     targets = honestColorTargets(colors, p.locale);
   }
@@ -83,10 +87,9 @@ class RuleFlipChallenge extends BaseChallenge {
   void onTick(Duration elapsed, ChallengeHost host) {
     if (!_flipped && elapsed >= _flipAt) {
       _flipped = true;
-      instruction = params.tr(
-        'challenge.rule_flip.instruction',
-        {'color': params.colorLabel(_second)},
-      );
+      instruction = params.tr('challenge.rule_flip.instruction', {
+        'color': params.colorLabel(_second),
+      });
       host.invalidate();
     }
   }
@@ -140,12 +143,12 @@ TapTargetChallenge buildIgnoreNext(ChallengeParams p) {
 /// 37 — TAP AS FAST AS POSSIBLE. Terms and conditions apply.
 class TooFastChallenge extends BaseChallenge {
   TooFastChallenge(ChallengeParams p)
-      : super(
-          p,
-          id: 'too_fast',
-          tag: ChallengeTag.trick,
-          duration: const Duration(milliseconds: 2600),
-        ) {
+    : super(
+        p,
+        id: 'too_fast',
+        tag: ChallengeTag.trick,
+        duration: const Duration(milliseconds: 2600),
+      ) {
     instruction = p.tr('challenge.too_fast.instruction');
     _hintText = p.tr('challenge.too_fast.hint');
     _goLabel = p.tr('common.go_label');
@@ -173,7 +176,12 @@ class TooFastChallenge extends BaseChallenge {
     if (!_go && elapsed >= _goAt) {
       _go = true;
       targets = [
-        TargetSpec(id: 'pad', label: _goLabel, color: GameColor.green, scale: 1.3),
+        TargetSpec(
+          id: 'pad',
+          label: _goLabel,
+          color: GameColor.green,
+          scale: 1.3,
+        ),
       ];
       host.invalidate();
     }
@@ -197,17 +205,16 @@ class TooFastChallenge extends BaseChallenge {
 /// 38/39 — TAP 1 → 2 → 3, or the exact opposite.
 class OrderChallenge extends BaseChallenge {
   OrderChallenge(ChallengeParams p, this.ascending, this.count)
-      : super(
-          p,
-          id: ascending ? 'tap_in_order' : 'tap_reverse_order',
-          tag: ChallengeTag.trick,
-          duration: p.pace(
-            Duration(milliseconds: 1100 * count),
-            floorMs: 1800,
-          ),
-        ) {
+    : super(
+        p,
+        id: ascending ? 'tap_in_order' : 'tap_reverse_order',
+        tag: ChallengeTag.trick,
+        duration: p.pace(Duration(milliseconds: 1100 * count), floorMs: 1800),
+      ) {
     instruction = p.tr(
-      ascending ? 'challenge.tap_in_order.instruction' : 'challenge.tap_reverse_order.instruction',
+      ascending
+          ? 'challenge.tap_in_order.instruction'
+          : 'challenge.tap_reverse_order.instruction',
     );
     hint = ascending ? null : _sequence.join(' → ');
     layout = ChallengeLayout.grid2x2;

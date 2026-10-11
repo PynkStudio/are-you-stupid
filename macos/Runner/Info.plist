@@ -24,8 +24,22 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>$(PRODUCT_COPYRIGHT)</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.games</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
+	<key>AYSPresenterBackendURL</key>
+	<string>$(AYS_PRESENTER_BACKEND_URL)</string>
+	<key>AYSPresenterAPIToken</key>
+	<string>$(AYS_PRESENTER_API_TOKEN)</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>ARE YOU STUPID? uses your local network to find and host party games. Nothing leaves your home.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_ays-party._tcp</string>
+	</array>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>

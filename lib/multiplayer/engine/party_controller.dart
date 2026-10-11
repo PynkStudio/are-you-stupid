@@ -23,11 +23,13 @@ class PartyController {
     if (round == null) return;
     final targets = round.view.targets;
     final indexOf = targets.indexWhere((t) => t.id == target.id);
-    session.submitTap(TapInfo(
-      targetId: target.id,
-      elapsed: _elapsed(round),
-      index: indexOf < 0 ? null : indexOf,
-    ));
+    session.submitTap(
+      TapInfo(
+        targetId: target.id,
+        elapsed: _elapsed(round),
+        index: indexOf < 0 ? null : indexOf,
+      ),
+    );
   }
 
   /// A tap landed on the background (no target).
@@ -37,6 +39,5 @@ class PartyController {
     session.submitTap(TapInfo(targetId: null, elapsed: _elapsed(round)));
   }
 
-  Duration _elapsed(PartyRound round) =>
-      session.runnerElapsed ?? Duration.zero;
+  Duration _elapsed(PartyRound round) => session.runnerElapsed ?? Duration.zero;
 }

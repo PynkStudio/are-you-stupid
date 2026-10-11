@@ -2,6 +2,8 @@
 /// Both stores must use this exact identifier for the entry to resolve.
 abstract final class IapProductIds {
   static const removeAds = 'ays_remove_ads';
+  static const partyPack = 'ays_party_pack';
+  static const partyBundle = 'ays_party_bundle';
 }
 
 enum PurchaseUpdateStatus { purchased, restored, pending, canceled, error }
@@ -40,6 +42,8 @@ abstract class PurchaseProvider {
 
   /// Null until the store has resolved the product (or if it never does).
   PurchaseProduct? get removeAdsProduct;
+  PurchaseProduct? get partyPackProduct;
+  PurchaseProduct? get partyBundleProduct;
 
   Stream<PurchaseUpdate> get purchaseUpdates;
 
@@ -49,6 +53,8 @@ abstract class PurchaseProvider {
   Future<void> refreshProduct();
 
   Future<void> buyRemoveAds();
+  Future<void> buyPartyPack();
+  Future<void> buyPartyBundle();
 
   Future<void> restorePurchases();
 }

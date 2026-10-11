@@ -1,6 +1,6 @@
 ---
 tags: [meta, rules, mandatory]
-updated: 2026-09-07
+updated: 2026-10-03
 ---
 
 # Documentation Rules
@@ -24,6 +24,7 @@ No "I'll document it later". No separate docs PR.
 | You changed… | You must update |
 |---|---|
 | Added / removed / renamed a challenge | [[Challenge Catalog]] (+ [[Adding a Challenge]] if the procedure changed) |
+| Added or changed challenge behaviour | Mirror it in `ios/iMessageExtensionCore/` and update [[iMessage Multiplayer]], or document a genuine platform exception there + in [[Decision Log]] |
 | `minLevel`, `weight`, speed, timing floors | [[Difficulty Curve]] and the row in [[Challenge Catalog]] |
 | Engine phases, timings, events | [[Game Engine]] |
 | `Challenge` / `ChallengeView` / `TapInfo` API | [[Challenge System]] and [[Adding a Challenge]] |

@@ -162,6 +162,11 @@ const Map<String, String> kStringsIt = {
   'ui.home.best_score_button': 'PUNTEGGIO MIGLIORE',
   'ui.home.settings': 'IMPOSTAZIONI',
   'ui.home.multiplayer': 'MULTIPLAYER',
+  'ui.mp.role.title': 'CHE VUOI FARE?',
+  'ui.mp.role.subtitle':
+      'Gioca su questo Mac o usalo come schermo della festa.',
+  'ui.mp.role.play': 'GIOCA SU QUESTO MAC',
+  'ui.mp.role.host': 'OSPITA SU QUESTO MAC',
   'ui.home.footer': 'NESSUN ACCOUNT. NESSUNA RETE. NESSUNA SCUSA.',
 
   'ui.game.level': 'LIVELLO {n}',
@@ -197,6 +202,16 @@ const Map<String, String> kStringsIt = {
       'Acquisto singolo. Niente più pubblicità, per sempre.',
   'ui.settings.remove_ads_owned': 'PUBBLICITÀ RIMOSSA',
   'ui.settings.remove_ads_owned_caption': 'Grazie per il supporto al gioco.',
+  'ui.settings.party_pack': 'PARTY PACK',
+  'ui.settings.party_pack_caption':
+      'Sblocca lobby da 16. Le pubblicità restano.',
+  'ui.settings.party_pack_owned': '16 GIOCATORI SBLOCCATI',
+  'ui.settings.party_pack_owned_caption':
+      'Basta un proprietario per tutta la lobby.',
+  'ui.settings.party_bundle': 'PARTY BUNDLE',
+  'ui.settings.party_bundle_caption': 'Lobby da 16 e niente pubblicità.',
+  'ui.settings.party_bundle_owned': 'PARTY BUNDLE ACQUISTATO',
+  'ui.settings.party_bundle_owned_caption': 'Lobby enorme. Zero interruzioni.',
   'ui.settings.restore_purchase': 'RIPRISTINA ACQUISTO',
   'ui.settings.remove_ads_restored': 'ACQUISTO RIPRISTINATO',
   'ui.settings.remove_ads_not_found': 'NESSUN ACQUISTO TROVATO',
@@ -221,11 +236,9 @@ const Map<String, String> kStringsIt = {
   'ui.settings.ai.mode.classic': 'CLASSICA',
   'ui.settings.ai.status.available':
       'La varietà delle sfide è attiva su questo dispositivo.',
-  'ui.settings.ai.status.supported_not_enabled':
-      'Il tuo dispositivo può farlo, ma Apple Intelligence è disattivata nelle Impostazioni.',
+  'ui.settings.ai.status.supported_not_enabled': 'Il tuo dispositivo può farlo, ma Apple Intelligence è disattivata nelle Impostazioni.',
   'ui.settings.ai.status.not_eligible': 'Non supportato su questo dispositivo.',
-  'ui.settings.ai.status.model_not_ready':
-      'Download del modello in corso. Modalità Classica attiva finché non è pronto.',
+  'ui.settings.ai.status.model_not_ready': 'Download del modello in corso. Modalità Classica attiva finché non è pronto.',
 
   'ui.stats.title': 'PUNTEGGIO MIGLIORE',
   'ui.stats.level': 'LIVELLO',
@@ -245,7 +258,8 @@ const Map<String, String> kStringsIt = {
   'ui.ad.no_thanks': 'NO GRAZIE',
 
   'ui.mp.home.title': 'MULTIPLAYER',
-  'ui.mp.home.tagline': 'INQUADRA IL QR CODE SULLA TV PER UNIRTI A UNA PARTITA.',
+  'ui.mp.home.tagline':
+      'INQUADRA IL QR CODE SULLA TV PER UNIRTI A UNA PARTITA.',
   'ui.mp.home.scan': 'SCANSIONA QR',
   'ui.mp.home.enter_code': 'INSERISCI CODICE STANZA',
   'ui.mp.home.back': 'INDIETRO',
@@ -262,14 +276,18 @@ const Map<String, String> kStringsIt = {
   'ui.mp.primer.title': 'PRIMA UNA COSA',
   'ui.mp.primer.body': 'PER GIOCARE SULLA TV, QUESTO TELEFONO HA BISOGNO DI:',
   'ui.mp.primer.network_title': 'RETE LOCALE',
-  'ui.mp.primer.network_body': 'PER TROVARE LA TV SULLA TUA WI-FI. NIENTE ESCE DA CASA TUA.',
+  'ui.mp.primer.network_body':
+      'PER TROVARE LA TV SULLA TUA WI-FI. NIENTE ESCE DA CASA TUA.',
   'ui.mp.primer.camera_title': 'FOTOCAMERA (FACOLTATIVA)',
-  'ui.mp.primer.camera_body': 'SOLO PER SCANSIONARE IL QR CODE. PUOI ANCHE SCRIVERE IL CODICE.',
+  'ui.mp.primer.camera_body':
+      'SOLO PER SCANSIONARE IL QR CODE. PUOI ANCHE SCRIVERE IL CODICE.',
   'ui.mp.primer.footer': 'IL TELEFONO TE LO CHIEDERÀ. TOCCA CONSENTI. NON È UNA DOMANDA TRABOCCHETTO.',
   'ui.mp.primer.continue': 'CONTINUA',
   'ui.mp.primer.not_now': 'NON ORA',
   'ui.mp.permission.network_denied': "L'ACCESSO ALLA RETE LOCALE È DISATTIVATO. SENZA, IL TELEFONO NON TROVA LA TV.",
   'ui.mp.permission.open_settings': 'APRI IMPOSTAZIONI',
+  'ui.mp.network.wifi_disconnected':
+      'NIENTE WI-FI. LA TV NON È TELEPATICA. COLLEGATI ALLA SUA RETE.',
 
   'ui.mp.scan.hint': 'INQUADRA CON LA CAMERA IL QR CODE SULLA TV.',
   'ui.mp.scan.permission_denied':
@@ -283,6 +301,21 @@ const Map<String, String> kStringsIt = {
   'ui.mp.join.playing_on': 'STAI GIOCANDO SU: {host}',
   'ui.mp.join.name_label': 'NOME GIOCATORE',
   'ui.mp.join.name_hint': 'IL TUO NOME',
+  'ui.mp.join.spoken_as': 'VERRÀ PRONUNCIATO COME: {name}',
+  'ui.mp.join.not_spoken':
+      'QUESTO NOME NON POTRÀ ESSERE PRONUNCIATO DAL PRESENTATORE.',
+  'ui.mp.join.nice_try': 'NICE TRY. SCEGLI UN ALTRO NOME.',
+  'ui.mp.join.nice_try_1': 'NICE TRY. IL PRESENTATORE NON CI CASCA.',
+  'ui.mp.join.nice_try_2': 'BEL TENTATIVO. ORA PROVA CON UN NOME.',
+  'ui.mp.join.nice_try_3': 'NO. QUELLO RESTA TRA TE E LA TASTIERA.',
+  'ui.mp.join.nice_try_4': 'CARINO. MA NON LO DIREMO AD ALTA VOCE.',
+  'ui.mp.join.nice_try_5': 'GIÀ VISTO DI PEGGIO. CAMBIA NOME.',
+  'ui.mp.name_card.title': 'COME TI CHIAMERÀ?',
+  'ui.mp.name_card.analyzing': 'IL PRESENTATORE STA VALUTANDO SE SA LEGGERE IL TUO NOME.',
+  'ui.mp.name_card.unknown': 'PER ORA NON OSERÀ PRONUNCIARLO.',
+  'ui.mp.name_card.pronunciation': 'PRONUNCIA: {name}',
+  'ui.mp.name_card.update': 'AGGIORNA NOME',
+  'ui.mp.name_card.tap_to_fix': 'IL PRESENTATORE NON SA COME CHIAMARTI. TOCCA QUI.',
   'ui.mp.join.waiting_host': "IN ATTESA DELL'HOST…",
   'ui.mp.join.join_button': 'ENTRA',
 
@@ -292,6 +325,19 @@ const Map<String, String> kStringsIt = {
   'ui.mp.lobby.not_ready': 'PRONTO?',
   'ui.mp.lobby.waiting_start': "IN ATTESA CHE L'HOST INIZI…",
   'ui.mp.lobby.leave': 'ESCI',
+  'ui.mp.party.full': 'LA LOBBY GRATIS È PIENA',
+  'ui.mp.party.one_unlocks':
+      'UN SOLO PARTY PACK SBLOCCA 16 GIOCATORI PER TUTTI.',
+  'ui.mp.party.buy': 'SBLOCCA 16 GIOCATORI · {price}',
+  'ui.mp.party.buy_bundle': '16 + ZERO PUBBLICITÀ · {price}',
+  'ui.mp.party.active': '✦ PARTY PACK ATTIVATO ✦',
+  'ui.mp.party.active_body':
+      'UN GIOCATORE HA APPENA SBLOCCATO 16 POSTI PER TUTTI.',
+  'ui.mp.result.rematch': 'RIVINCITA',
+  'ui.mp.adbreak.mine': 'TE LA SEI CERCATA.',
+  'ui.mp.adbreak.other': '{name} CI HA MANDATI IN PUBBLICITÀ.',
+  'ui.mp.adbreak.troll': 'LA PROSSIMA PESSIMA DECISIONE ARRIVA TRA POCO.',
+  'ui.mp.adbreak.buy_no_ads': 'BASTA INTERRUZIONI · {price}',
 
   'ui.mp.game.waiting_round': 'PREPARATI…',
   'ui.mp.game.correct': 'SÌ!',
@@ -309,7 +355,8 @@ const Map<String, String> kStringsIt = {
   'ui.mp.disconnect.rejected': 'IMPOSSIBILE ENTRARE: {reason}',
   'ui.mp.disconnect.menu': 'TORNA AL MENU',
 
-  'ui.mp.share.line1': 'Abbiamo giocato a MA SEI SCEMO? in TV. Ha vinto {name}.',
+  'ui.mp.share.line1':
+      'Abbiamo giocato a MA SEI SCEMO? in TV. Ha vinto {name}.',
   'ui.mp.share.line2': 'Pensi di poterci battere?',
 
   'share.line1': 'Ho raggiunto il Livello {level} in MA SEI SCEMO?',

@@ -18,8 +18,7 @@ void main() {
     test('the button painted with the named color wins', () {
       final c = buildTapColor(params());
       final wanted = c.view.instruction.split(' ').last;
-      final correct =
-          c.view.targets.firstWhere((t) => t.color.label == wanted);
+      final correct = c.view.targets.firstWhere((t) => t.color.label == wanted);
       final host = FakeHost();
       c.onTap(tapOn(correct.id), host);
       expect(host.passed, isTrue);
@@ -130,11 +129,7 @@ void main() {
     test('tapping after green wins', () {
       final c = WaitForGreenChallenge.build(params());
       final host = FakeHost();
-      advance(
-        c,
-        host,
-        to: c.duration - const Duration(milliseconds: 100),
-      );
+      advance(c, host, to: c.duration - const Duration(milliseconds: 100));
       c.onTap(tapOn('pad'), host);
       expect(host.passed, isTrue);
     });
@@ -181,8 +176,7 @@ void main() {
       final wantsLeft = c.view.instruction == 'TAP LEFT';
       // Tap the button currently sitting on the wanted side.
       c.onTap(
-        tapOn(c.view.targets[wantsLeft ? 0 : 1].id,
-            index: wantsLeft ? 0 : 1),
+        tapOn(c.view.targets[wantsLeft ? 0 : 1].id, index: wantsLeft ? 0 : 1),
         host,
       );
       expect(host.passed, isTrue);
@@ -221,8 +215,7 @@ void main() {
 
       advance(c, host, to: const Duration(milliseconds: 1400));
       expect(c.view.instruction, 'TAP THE COLOR');
-      final correct =
-          c.view.targets.firstWhere((t) => t.color == secret);
+      final correct = c.view.targets.firstWhere((t) => t.color == secret);
       c.onTap(tapOn(correct.id), host);
       expect(host.passed, isTrue);
     });

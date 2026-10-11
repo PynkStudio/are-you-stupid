@@ -32,28 +32,28 @@ void main() {
   group('envelope decay', () {
     test('a missing mechanic block throws FormatException', () {
       final json = _fixture().toJson()..remove('mechanic');
-      expect(() => ChallengeProposal.fromJson(json),
-          throwsFormatException);
+      expect(() => ChallengeProposal.fromJson(json), throwsFormatException);
     });
 
     test('an empty id throws FormatException', () {
       final json = _fixture().toJson()..['id'] = '';
-      expect(() => ChallengeProposal.fromJson(json),
-          throwsFormatException);
+      expect(() => ChallengeProposal.fromJson(json), throwsFormatException);
     });
 
     test('non-list elements throws FormatException', () {
       final json = _fixture().toJson()..['elements'] = 'oops';
-      expect(() => ChallengeProposal.fromJson(json),
-          throwsFormatException);
+      expect(() => ChallengeProposal.fromJson(json), throwsFormatException);
     });
 
-    test('unknown colors parse to null — a validator matter, not an exception', () {
-      final json = _fixture().toJson();
-      (json['elements'] as List).first['color'] = 'ultraviolet';
-      final p = ChallengeProposal.fromJson(json);
-      expect(p.elements.first.color, isNull);
-    });
+    test(
+      'unknown colors parse to null — a validator matter, not an exception',
+      () {
+        final json = _fixture().toJson();
+        (json['elements'] as List).first['color'] = 'ultraviolet';
+        final p = ChallengeProposal.fromJson(json);
+        expect(p.elements.first.color, isNull);
+      },
+    );
   });
 
   group('correctElement', () {
@@ -74,7 +74,12 @@ void main() {
       final a = AiElement(id: 'a', colorName: 'blue', shapeName: 'circle');
       final b = AiElement(id: 'b', colorName: 'blue', shapeName: 'circle');
       final bColor = AiElement(id: 'b', colorName: 'red', shapeName: 'circle');
-      final bSize = AiElement(id: 'b', colorName: 'blue', shapeName: 'circle', scale: 1.2);
+      final bSize = AiElement(
+        id: 'b',
+        colorName: 'blue',
+        shapeName: 'circle',
+        scale: 1.2,
+      );
 
       expect(a.differsFrom(b), isFalse);
       expect(a.differsFrom(bColor), isTrue);
@@ -102,11 +107,17 @@ void main() {
       for (final m in kMechanicVocabulary) {
         final hasNone = m.allowedTricks.contains(AiTrickType.none);
         if (m.requiresTrick) {
-          expect(hasNone, isFalse,
-              reason: 'requiresTrick mechanics never allow none: ${m.move}');
+          expect(
+            hasNone,
+            isFalse,
+            reason: 'requiresTrick mechanics never allow none: ${m.move}',
+          );
         } else {
-          expect(hasNone, isTrue,
-              reason: 'trick-free mechanics compose from none first: ${m.move}');
+          expect(
+            hasNone,
+            isTrue,
+            reason: 'trick-free mechanics compose from none first: ${m.move}',
+          );
         }
       }
     });
@@ -114,31 +125,31 @@ void main() {
 }
 
 ChallengeProposal _fixture() => ChallengeProposal.fromJson(const {
-      'id': 'ai.abc12',
-      'mechanic': {
-        'move': 'tap_true_color',
-        'action': 'tap',
-        'kind': 'mixed',
-        'sense_decoys': ['color', 'label'],
-      },
-      'instruction': 'TAP THE ONLY BLUE',
-      'elements': [
-        {
-          'id': 'e1',
-          'label': 'BLUE',
-          'color': 'blue',
-          'shape': 'circle',
-          'scale': 1.0,
-          'rotation': 0,
-          'dx': 0,
-          'dy': 0,
-          'opacity': 1.0,
-          'hidden': false,
-        },
-      ],
-      'correctAnswer': {'elementId': 'e1', 'startsCorrect': false},
-      'difficulty': {'level': 1, 'timeLimitMs': 2500, 'trickType': 'none'},
-      'failLine': {'en': 'THE ONLY BLUE WAS THE FIRST.'},
-      'seed': 1,
-      'source': 'ai',
-    });
+  'id': 'ai.abc12',
+  'mechanic': {
+    'move': 'tap_true_color',
+    'action': 'tap',
+    'kind': 'mixed',
+    'sense_decoys': ['color', 'label'],
+  },
+  'instruction': 'TAP THE ONLY BLUE',
+  'elements': [
+    {
+      'id': 'e1',
+      'label': 'BLUE',
+      'color': 'blue',
+      'shape': 'circle',
+      'scale': 1.0,
+      'rotation': 0,
+      'dx': 0,
+      'dy': 0,
+      'opacity': 1.0,
+      'hidden': false,
+    },
+  ],
+  'correctAnswer': {'elementId': 'e1', 'startsCorrect': false},
+  'difficulty': {'level': 1, 'timeLimitMs': 2500, 'trickType': 'none'},
+  'failLine': {'en': 'THE ONLY BLUE WAS THE FIRST.'},
+  'seed': 1,
+  'source': 'ai',
+});

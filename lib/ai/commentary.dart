@@ -55,11 +55,9 @@ enum CommentaryKind {
   /// ([[AI Commentary]] → length caps): 6 for the upbeat/short kinds, 12 for
   /// the roasted ones.
   int get maxWords => switch (this) {
-        CommentaryKind.correct ||
-        CommentaryKind.streak =>
-          6,
-        _ => 12,
-      };
+    CommentaryKind.correct || CommentaryKind.streak => 6,
+    _ => 12,
+  };
 }
 
 /// Strips what models habitually wrap a line in (quotes, guillemets,
@@ -119,9 +117,9 @@ class CommentaryProvider {
     required AppleAIService service,
     required AiFeatureFlags flags,
     Random? rng,
-  })  : _service = service,
-        _flags = flags,
-        _rng = rng ?? Random();
+  }) : _service = service,
+       _flags = flags,
+       _rng = rng ?? Random();
 
   final AppleAIService _service;
   final AiFeatureFlags _flags;
@@ -142,8 +140,14 @@ class CommentaryProvider {
     bool allowSpicy = true,
     String Function()? staticFallback,
   }) async {
-    final fallback = staticFallback ??
-        () => _defaultStaticFallback(kind, rng: _rng, allowSpicy: allowSpicy, locale: locale);
+    final fallback =
+        staticFallback ??
+        () => _defaultStaticFallback(
+          kind,
+          rng: _rng,
+          allowSpicy: allowSpicy,
+          locale: locale,
+        );
     return await aiLine(
           kind: kind,
           locale: locale,
@@ -221,7 +225,11 @@ String _defaultStaticFallback(
     case CommentaryKind.instantFailure:
     case CommentaryKind.elimination:
     case CommentaryKind.loser:
-      return Roasts.forMistake(rng: rng, allowSpicy: allowSpicy, locale: locale);
+      return Roasts.forMistake(
+        rng: rng,
+        allowSpicy: allowSpicy,
+        locale: locale,
+      );
     case CommentaryKind.gameOver:
       return Roasts.gameOver(rng: rng, allowSpicy: allowSpicy, locale: locale);
   }

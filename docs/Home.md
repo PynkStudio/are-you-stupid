@@ -1,6 +1,6 @@
 ---
 tags: [moc, index]
-updated: 2026-10-03
+updated: 2026-10-06
 ---
 
 # ARE YOU STUPID? — Documentation Home
@@ -49,7 +49,7 @@ repository MUST read [[Documentation Rules]] before touching code.**
 - [[Release Checklist]]
 
 ### Multiplayer — Apple TV party mode
-A 2–16 player party mode (8 free; Party Pack room unlock): tvOS host (or a macOS **board-only** host with AirPlay
+A 2–16 player party mode (8 free; Party Pack room unlock): tvOS host (or the Mac app's HOST ON THIS MAC board window, with AirPlay
 mirroring) + phones as controllers over the local network. **Phases 1–3
 landed (Dart determinism, protocol + host reference, Flutter join/lobby/game
 screens); Phase 4's Swift host (`RoomHost`, `Net/`, `QR/`, and now a real
@@ -71,6 +71,15 @@ phase-by-phase detail.
 - [[Multiplayer Host (tvOS)]] — the native SwiftUI host/display app
 - [[Multiplayer Client (Mobile)]] — the Flutter controller app
 - [[Multiplayer Development]] — phases, tests, simulation harness
+
+### Multiplayer — iMessage
+
+**Stupid Streak** is a shipped-in-code native Messages extension for an
+asynchronous 1v1 best-of-three: both people play the same deterministic
+sequence, longest streak wins each round, and difficulty accelerates sharply
+across rounds. It is backend-free and separate from the live board mode. The
+target and headless Swift tests build; a real two-device Messages pass remains
+open before release. See [[iMessage Multiplayer]].
 
 ### AI — dynamic game director
 Apple Intelligence (Foundation Models) on-device director: AI challenge
@@ -125,7 +134,7 @@ Implementation phases are tracked in [[Development Plan]].
 | Challenge templates | 39 shipped |
 | Persistence (best score, stats, settings) | Done |
 | Ads | Real, via AdMob (`AdMobAdProvider`) behind GDPR/UMP consent + ATT; `MockAdProvider` stays default for tests/local dev |
-| Sound / haptics | System sounds + platform haptics |
+| Sound / haptics | Reviewed generated SFX at 32% playback gain + platform haptics |
 | Sharing | OS share sheet via `share_plus` |
 | Backend | None. On purpose. |
 | Multiplayer party mode (Apple TV + macOS board host) | Phases 1–4 landed (Dart + Swift host, `Net/`, `QR/`, App/UI Xcode shell), Phases 5–7's rules landed. **Real challenge judging landed:** the "Phase 4 open question" (can Swift judge a Dart-generated challenge) is resolved by moving judging to the client entirely — `PartyChallengeRunner` drives the real single-player `Challenge` engine and reports the verdict, both hosts trust it (see [[Decision Log]]). Discovery uses `package:nsd`; hosts now advertise live room-card metadata and Multiplayer auto-suggests nearby devices with occupancy. Live standings, game-show lobby/game chrome, mode picker and no-downtime round flow have landed. Still open: dedicated elimination/share cards and a fresh real-device pass. See [[Multiplayer Development]] |
@@ -145,8 +154,11 @@ Implementation phases are tracked in [[Development Plan]].
 | iOS simulator | builds and runs via `flutter run`, hot reload included |
 
 **Release 1.0.0 is in store preparation.** One App Store record ships the
-iPhone/iPad game plus the Apple TV and Mac hosts (universal purchase);
-Google Play ships the Android game. The 2026-10-02 audit fixed GDPR consent,
+iPhone/iPad game, the Apple TV host and the Mac app (play or host from one
+app since 2026-10-05) (universal purchase);
+Google Play ships the Android game (Play Console app record, policy
+declarations and listing done 2026-10-06; a 14-day closed test gates
+production). The 2026-10-02 audit fixed GDPR consent,
 ATT timing, restore purchases, iPad orientation, localized permission
 prompts, the wrong-flash skip grace and the host apps' store config. What's
 left is store-console work and a real-device pass — see [[Release Checklist]].

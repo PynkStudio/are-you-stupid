@@ -50,11 +50,11 @@ enum AiExperienceMode {
   classic;
 
   static AiExperienceMode fromName(String? name) => switch (name) {
-        'genius' => AiExperienceMode.genius,
-        'focused' => AiExperienceMode.focused,
-        'classic' => AiExperienceMode.classic,
-        _ => AiExperienceMode.genius,
-      };
+    'genius' => AiExperienceMode.genius,
+    'focused' => AiExperienceMode.focused,
+    'classic' => AiExperienceMode.classic,
+    _ => AiExperienceMode.genius,
+  };
 }
 
 /// Local, reversible switches gating every AI use-case. See the mitigation

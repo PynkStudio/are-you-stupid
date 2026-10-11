@@ -90,9 +90,11 @@ class ServedChallengeStamp {
     decoys.sort((a, b) => a.id.compareTo(b.id));
     final tokens = <String>[];
     for (final d in decoys) {
-      tokens.add('${d.id}:${d.colorName}|${d.label}|${d.shapeName}'
-          '|${_fmt(d.scale)}|${_fmt(d.rotation)}|${_fmt(d.opacity)}'
-          '|${_fmt(d.dx)},${_fmt(d.dy)}');
+      tokens.add(
+        '${d.id}:${d.colorName}|${d.label}|${d.shapeName}'
+        '|${_fmt(d.scale)}|${_fmt(d.rotation)}|${_fmt(d.opacity)}'
+        '|${_fmt(d.dx)},${_fmt(d.dy)}',
+      );
     }
     return tokens.join(';');
   }
@@ -163,8 +165,10 @@ const Set<String> kMetaAiTokens = {'ai', 'model', 'generated', 'machine'};
 /// line, commentary) may use any Latin-script letter (accents, `ß`, `ç`),
 /// the typographic apostrophe and Spanish opening marks — nothing else.
 /// Ids and enum names stay [kAsciiAllowlist] in every locale.
-final RegExp kLatinAllowlist =
-    RegExp(r"^[\p{Script=Latin}0-9 ,.!?¡¿\-_`'’]+$", unicode: true);
+final RegExp kLatinAllowlist = RegExp(
+  r"^[\p{Script=Latin}0-9 ,.!?¡¿\-_`'’]+$",
+  unicode: true,
+);
 
 /// The allowlist for player-facing text in [locale].
 RegExp textAllowlistFor(AppLocale locale) =>
@@ -203,7 +207,8 @@ class ChallengeValidator {
 
   /// First-failing verdict in check order; [VerdictValid] when nothing fails.
   ChallengeVerdict validate(ChallengeProposal p, ValidationContext ctx) {
-    final v = _envelope(p, ctx) ??
+    final v =
+        _envelope(p, ctx) ??
         _instruction(p, ctx) ??
         _mechanicContract(p, ctx) ??
         _elementBounds(p) ??
@@ -294,7 +299,10 @@ class ChallengeValidator {
 
   // 3. Mechanic contract ----------------------------------------------------
 
-  ChallengeVerdict? _mechanicContract(ChallengeProposal p, ValidationContext ctx) {
+  ChallengeVerdict? _mechanicContract(
+    ChallengeProposal p,
+    ValidationContext ctx,
+  ) {
     if (p.mechanicContract == null) {
       return const VerdictExitChallenge(); // not in the vocabulary
     }
@@ -302,10 +310,12 @@ class ChallengeValidator {
     if (AiAction.parse(p.mechanic.action) != mech.action) {
       return VerdictInvalid('mechanic.action');
     }
-    if (p.mechanic.kind.isNotEmpty && AiKind.parse(p.mechanic.kind) != mech.kind) {
+    if (p.mechanic.kind.isNotEmpty &&
+        AiKind.parse(p.mechanic.kind) != mech.kind) {
       return VerdictInvalid('mechanic.kind');
     }
-    if (p.elements.length < mech.minElements || p.elements.length > mech.maxElements) {
+    if (p.elements.length < mech.minElements ||
+        p.elements.length > mech.maxElements) {
       return VerdictInvalid('mechanic.elements');
     }
     final trick = p.difficulty.trickType;
@@ -350,7 +360,9 @@ class ChallengeValidator {
       return VerdictInvalid('bounds.count');
     }
     for (final e in p.elements) {
-      if (e.scale < 0.45 || e.scale > 2.0) return VerdictInvalid('bounds.scale');
+      if (e.scale < 0.45 || e.scale > 2.0) {
+        return VerdictInvalid('bounds.scale');
+      }
       if (e.opacity < 0.35 || e.opacity > 1.0) {
         return VerdictInvalid('bounds.opacity');
       }
@@ -368,7 +380,9 @@ class ChallengeValidator {
   // 5. Time floor -----------------------------------------------------------
 
   ChallengeVerdict? _timeFloor(ChallengeProposal p, ValidationContext ctx) {
-    if (p.difficulty.timeLimitMs <= 0) return VerdictInvalid('time.nonPositive');
+    if (p.difficulty.timeLimitMs <= 0) {
+      return VerdictInvalid('time.nonPositive');
+    }
     if (p.difficulty.timeLimitMs > 8000) return VerdictInvalid('time.cap');
     final mech = p.mechanicContract;
     if (mech != null) {
@@ -412,7 +426,8 @@ class ChallengeValidator {
 
   ChallengeVerdict? _resolvability(ChallengeProposal p) {
     if (p.correctElement == null) return VerdictInvalid('solution.missing');
-    if (p.difficulty.trickType == AiTrickType.swap && !p.correctAnswer.startsCorrect) {
+    if (p.difficulty.trickType == AiTrickType.swap &&
+        !p.correctAnswer.startsCorrect) {
       return VerdictInvalid('solution.swap'); // must start correct, swap away
     }
     return null;
@@ -439,7 +454,10 @@ class ChallengeValidator {
   // helpers ----------------------------------------------------------------
 
   static void _dimsDiffering(
-      AiElement correct, AiElement e, Set<AiSenseDecoy> out) {
+    AiElement correct,
+    AiElement e,
+    Set<AiSenseDecoy> out,
+  ) {
     if (e.color != correct.color) out.add(AiSenseDecoy.color);
     if (e.label != correct.label) out.add(AiSenseDecoy.label);
     if (e.shape != correct.shape) out.add(AiSenseDecoy.shape);
@@ -447,7 +465,9 @@ class ChallengeValidator {
     if ((e.rotation - correct.rotation).abs() > 0.01) {
       out.add(AiSenseDecoy.rotation);
     }
-    if ((e.opacity - correct.opacity).abs() > 0.01) out.add(AiSenseDecoy.opacity);
+    if ((e.opacity - correct.opacity).abs() > 0.01) {
+      out.add(AiSenseDecoy.opacity);
+    }
     if ((e.dx - correct.dx).abs() > 0.01 || (e.dy - correct.dy).abs() > 0.01) {
       out.add(AiSenseDecoy.position);
     }

@@ -7,6 +7,7 @@ let package = Package(
     products: [
         .library(name: "AYSProtocol", targets: ["AYSProtocol"]),
         .library(name: "AYSHostCore", targets: ["AYSHostCore"]),
+        .library(name: "AYSHostUI", targets: ["AYSHostUI"]),
     ],
     targets: [
         .target(name: "AYSProtocol"),
@@ -16,6 +17,12 @@ let package = Package(
             resources: [.process("Fixtures")]
         ),
         .target(name: "AYSHostCore", dependencies: ["AYSProtocol"]),
+        .target(
+            name: "AYSHostUI",
+            dependencies: ["AYSHostCore", "AYSProtocol"],
+            path: "UI",
+            resources: [.process("Resources")]
+        ),
         .testTarget(
             name: "AYSHostCoreTests",
             dependencies: ["AYSHostCore", "AYSProtocol"]

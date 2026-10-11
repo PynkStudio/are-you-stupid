@@ -3,6 +3,12 @@ import 'package:flutter/services.dart';
 /// What the OS currently allows for local-network (Bonjour) access.
 enum LocalNetworkStatus { granted, denied, unknown }
 
+/// Whether the phone is currently using Wi-Fi for its active connection.
+///
+/// This intentionally does not expose SSID/BSSID: multiplayer only needs to
+/// explain that a LAN room cannot be found while the phone is off Wi-Fi.
+enum WifiConnectionStatus { connected, disconnected, unknown }
+
 /// Local-network permission probe + "open this app's Settings" shortcut,
 /// over the `ays/permissions` channel ([[Services]], [[Multiplayer Client
 /// (Mobile)]] "Permissions").
@@ -31,6 +37,21 @@ class LocalNetworkPermission {
       };
     } catch (_) {
       return LocalNetworkStatus.unknown;
+    }
+  }
+
+  Future<WifiConnectionStatus> wifiStatus() async {
+    try {
+      final raw = await _channel.invokeMethod<String>('wifiStatus');
+      return switch (raw) {
+        'connected' => WifiConnectionStatus.connected,
+        'disconnected' => WifiConnectionStatus.disconnected,
+        _ => WifiConnectionStatus.unknown,
+      };
+    } on PlatformException {
+      return WifiConnectionStatus.unknown;
+    } on MissingPluginException {
+      return WifiConnectionStatus.unknown;
     }
   }
 

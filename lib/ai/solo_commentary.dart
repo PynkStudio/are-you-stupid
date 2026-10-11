@@ -48,18 +48,18 @@ class RunSummary {
   final String? failReason;
 
   Map<String, Object?> toContext() => {
-        'levelReached': level,
-        'personalBest': best,
-        'newPersonalBest': newBest ? 'yes' : 'no',
-        'bestFastStreak': bestStreak,
-        if (failedInstruction != null) 'failedInstruction': failedInstruction,
-        if (failReason != null) 'whyTheyFailed': failReason,
-      };
+    'levelReached': level,
+    'personalBest': best,
+    'newPersonalBest': newBest ? 'yes' : 'no',
+    'bestFastStreak': bestStreak,
+    if (failedInstruction != null) 'failedInstruction': failedInstruction,
+    if (failReason != null) 'whyTheyFailed': failReason,
+  };
 }
 
 class SoloCommentator {
   SoloCommentator({required CommentaryProvider provider})
-      : _provider = provider {
+    : _provider = provider {
     _wrongRing = PrefetchLoop<String>(fetch: _fetchWrong, ringSize: 1);
   }
 
@@ -71,11 +71,11 @@ class SoloCommentator {
   int _level = 1;
 
   Future<String?> _fetchWrong() => _provider.aiLine(
-        kind: CommentaryKind.wrong,
-        locale: _locale,
-        allowSpicy: _allowSpicy,
-        context: {'level': _level},
-      );
+    kind: CommentaryKind.wrong,
+    locale: _locale,
+    allowSpicy: _allowSpicy,
+    context: {'level': _level},
+  );
 
   /// Call on every level start: keeps one `wrong` aside ready. A locale or
   /// spicy-roasts change drops the cached line (it was written for the old
@@ -104,11 +104,10 @@ class SoloCommentator {
     required AppLocale locale,
     required bool allowSpicy,
     required RunSummary run,
-  }) =>
-      _provider.aiLine(
-        kind: CommentaryKind.gameOver,
-        locale: locale,
-        allowSpicy: allowSpicy,
-        context: run.toContext(),
-      );
+  }) => _provider.aiLine(
+    kind: CommentaryKind.gameOver,
+    locale: locale,
+    allowSpicy: allowSpicy,
+    context: run.toContext(),
+  );
 }

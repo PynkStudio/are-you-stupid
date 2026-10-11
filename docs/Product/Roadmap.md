@@ -21,6 +21,11 @@ updated: 2026-10-03
   challenges, multiplayer AI Director; scripted fallback everywhere; off on
   Android, where phones still play AI rounds relayed by an iOS Director
   ([[Dynamic AI Director]], [[Feature Flags]])
+- **Stupid Streak for iMessage (code complete, release-gated)** — native
+  asynchronous 1v1, same seeded challenge streak for both players, three
+  disproportionately harder rounds, no backend ([[iMessage Multiplayer]]).
+  Simulator build and core tests pass; two-device Messages validation and
+  native-copy localization remain before store release.
 
 ## Next, in rough order of value
 
@@ -40,12 +45,30 @@ updated: 2026-10-03
 7. **Real sound design** — today only the system click exists
    ([[Services]]); general bundled cues still need a pillar exception beyond
    the narrowly approved [[Multiplayer Presenter]] fallback bank.
+8. **Localize Stupid Streak and run its two-device gate** — the native v1
+   extension currently has English copy; verify a complete six-message match
+   between physical devices before enabling it in the submitted build
+   ([[iMessage Multiplayer]]).
+
+## Demand-gated opportunities (not prioritized)
+
+- **Browser-based multiplayer host** — let groups without an Apple TV or Mac
+  run the shared board from a web page. This is documented as a possible
+  post-launch expansion, not committed roadmap work. Reconsider it only after
+  the game has reached a meaningful sustained average-user base and/or direct
+  user requests show that Apple-only host availability is materially blocking
+  parties. A production version would require a new WebSocket room service and
+  client transport because browsers cannot replace the current LAN TCP +
+  Bonjour host directly; see [[Multiplayer Product]]. No discovery, design or
+  implementation work is scheduled before those demand signals exist.
 
 ## Deliberately out of scope
 
 Login, general-purpose backend, cloud save, online leaderboard, subscriptions,
 characters, 3D, external art. The narrowly scoped optional presenter backend
-is the documented exception; see [[Multiplayer Presenter]].
+is the current exception; a browser multiplayer host is a separately documented
+demand-gated possibility, not an approved backend expansion. See
+[[Multiplayer Presenter]] and [[Multiplayer Product]].
 
 Note: the **multiplayer** slice is also explicitly scoped to keep out online
 matchmaking, accounts, cloud saves, global leaderboards, voice/video chat and

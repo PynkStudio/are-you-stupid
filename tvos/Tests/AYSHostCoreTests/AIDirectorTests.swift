@@ -13,6 +13,24 @@ import XCTest
 @testable import AYSProtocol
 
 final class AIDirectorTests: XCTestCase {
+    func testNameAnalysisRoutesToBestCapablePhoneAndBackOnlyToRequester() throws {
+        let (host, clients) = makeHarness(playerCount: 3)
+        let requester = clients[0]
+        let weak = clients[1]
+        let best = clients[2]
+        weak.sendAiCapabilities(aiAvailable: true, computeRank: 1)
+        best.sendAiCapabilities(aiAvailable: true, computeRank: 2)
+        XCTAssertEqual(host.aiCapabilities(for: best.selfId)?.aiAvailable, true)
+
+        requester.sendRaw(try PartyProtocol.encode(AiNameAnalysisRequest(requestId: "n1", displayName: "Lu☠ca")))
+        XCTAssertEqual(best.received.compactMap { $0 as? AiNameAnalysisRequest }.last?.requestId, "n1", "best received: \(best.received.map { $0.type })")
+        XCTAssertTrue(weak.received.compactMap { $0 as? AiNameAnalysisRequest }.isEmpty)
+
+        best.sendRaw(try PartyProtocol.encode(AiNameAnalysisResult(requestId: "n1", decision: "speakAlias", spokenName: "Luca", confidence: 0.94)))
+        XCTAssertEqual(requester.received.compactMap { $0 as? AiNameAnalysisResult }.last?.spokenName, "Luca")
+        XCTAssertTrue(weak.received.compactMap { $0 as? AiNameAnalysisResult }.isEmpty)
+    }
+
     func testAiCapabilitiesIsRememberedPerSeat() {
         let (host, clients) = makeHarness(playerCount: 2)
         let a = clients[0]

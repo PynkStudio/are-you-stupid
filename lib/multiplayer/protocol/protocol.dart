@@ -1264,6 +1264,93 @@ class AiCommentary extends PartyMessage {
       );
 }
 
+/// Bidirectional relay for ambiguous spoken-name analysis. The host forwards
+/// requests to the best AI-capable joined phone and routes its result only to
+/// the requester.
+class AiNameAnalysisRequest extends PartyMessage {
+  const AiNameAnalysisRequest({
+    required this.requestId,
+    required this.displayName,
+    int ts = 0,
+  }) : super(ts);
+  final String requestId;
+  final String displayName;
+  @override
+  String get type => 'AI_NAME_ANALYSIS_REQUEST';
+  @override
+  Map<String, Object?> toWire() => {
+    ...super.toWire(),
+    'requestId': requestId,
+    'displayName': displayName,
+  };
+  static AiNameAnalysisRequest fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      AiNameAnalysisRequest(
+        requestId: w['requestId'] as String? ?? '',
+        displayName: w['displayName'] as String? ?? '',
+        ts: ts,
+      );
+}
+
+class AiNameAnalysisResult extends PartyMessage {
+  const AiNameAnalysisResult({
+    required this.requestId,
+    required this.decision,
+    this.spokenName,
+    required this.confidence,
+    int ts = 0,
+  }) : super(ts);
+  final String requestId;
+  final String decision;
+  final String? spokenName;
+  final double confidence;
+  @override
+  String get type => 'AI_NAME_ANALYSIS_RESULT';
+  @override
+  Map<String, Object?> toWire() => {
+    ...super.toWire(),
+    'requestId': requestId,
+    'decision': decision,
+    if (spokenName != null) 'spokenName': spokenName,
+    'confidence': confidence,
+  };
+  static AiNameAnalysisResult fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      AiNameAnalysisResult(
+        requestId: w['requestId'] as String? ?? '',
+        decision: w['decision'] as String? ?? 'displayOnly',
+        spokenName: w['spokenName'] as String?,
+        confidence: (w['confidence'] as num?)?.toDouble() ?? 0,
+        ts: ts,
+      );
+}
+
+class PlayerIdentityUpdate extends PartyMessage {
+  const PlayerIdentityUpdate({
+    required this.playerName,
+    this.spokenName,
+    required this.speechPolicy,
+    int ts = 0,
+  }) : super(ts);
+  final String playerName;
+  final String? spokenName;
+  final String speechPolicy;
+  @override
+  String get type => 'PLAYER_IDENTITY_UPDATE';
+  @override
+  Map<String, Object?> toWire() => {
+    ...super.toWire(),
+    'playerName': playerName,
+    if (spokenName != null) 'spokenName': spokenName,
+    'speechPolicy': speechPolicy,
+  };
+  static PlayerIdentityUpdate fromWire(Map<String, Object?> w, {int ts = 0}) =>
+      PlayerIdentityUpdate(
+        playerName: w['playerName'] as String? ?? '',
+        spokenName: w['spokenName'] as String?,
+        speechPolicy: w['speechPolicy'] as String? ?? 'displayOnly',
+        ts: ts,
+      );
+}
+
 // ------------------------------------------------------------------- Codec
 
 /// The JSONL codec shared by host, client, mirrors and tests.
@@ -1360,6 +1447,12 @@ abstract final class PartyProtocol {
         return DecodedOk(AiCommentaryProposal.fromWire(wire, ts: ts));
       case 'AI_COMMENTARY':
         return DecodedOk(AiCommentary.fromWire(wire, ts: ts));
+      case 'AI_NAME_ANALYSIS_REQUEST':
+        return DecodedOk(AiNameAnalysisRequest.fromWire(wire, ts: ts));
+      case 'AI_NAME_ANALYSIS_RESULT':
+        return DecodedOk(AiNameAnalysisResult.fromWire(wire, ts: ts));
+      case 'PLAYER_IDENTITY_UPDATE':
+        return DecodedOk(PlayerIdentityUpdate.fromWire(wire, ts: ts));
       default:
         return DecodedUnknownType(type);
     }

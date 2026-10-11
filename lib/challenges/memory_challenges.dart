@@ -12,11 +12,11 @@ abstract class _ShowThenAskChallenge extends BaseChallenge {
     required this.blankFor,
     required Duration answerWindow,
   }) : super(
-          p,
-          id: id,
-          tag: ChallengeTag.memory,
-          duration: showFor + blankFor + answerWindow,
-        );
+         p,
+         id: id,
+         tag: ChallengeTag.memory,
+         duration: showFor + blankFor + answerWindow,
+       );
 
   final Duration showFor;
   final Duration blankFor;
@@ -54,15 +54,15 @@ abstract class _ShowThenAskChallenge extends BaseChallenge {
 /// 26 — REMEMBER: BLUE.
 class RememberColorChallenge extends _ShowThenAskChallenge {
   RememberColorChallenge(ChallengeParams p)
-      : _secret = p.pick(kBasicColors),
-        _options = p.shuffled(kBasicColors),
-        super(
-          p,
-          id: 'remember_color',
-          showFor: const Duration(milliseconds: 900),
-          blankFor: const Duration(milliseconds: 420),
-          answerWindow: p.pace(const Duration(milliseconds: 2400), floorMs: 1200),
-        );
+    : _secret = p.pick(kBasicColors),
+      _options = p.shuffled(kBasicColors),
+      super(
+        p,
+        id: 'remember_color',
+        showFor: const Duration(milliseconds: 900),
+        blankFor: const Duration(milliseconds: 420),
+        answerWindow: p.pace(const Duration(milliseconds: 2400), floorMs: 1200),
+      );
 
   final GameColor _secret;
   final List<GameColor> _options;
@@ -72,9 +72,7 @@ class RememberColorChallenge extends _ShowThenAskChallenge {
     instruction = params.tr('common.remember_label');
     layout = ChallengeLayout.single;
     showTimer = false;
-    targets = [
-      TargetSpec(id: 'show', label: '', color: _secret, scale: 1.35),
-    ];
+    targets = [TargetSpec(id: 'show', label: '', color: _secret, scale: 1.35)];
   }
 
   @override
@@ -97,10 +95,9 @@ class RememberColorChallenge extends _ShowThenAskChallenge {
       host.pass();
     } else {
       host.fail(
-        reason: params.tr(
-          'challenge.remember_color.fail',
-          {'color': params.colorLabel(_secret)},
-        ),
+        reason: params.tr('challenge.remember_color.fail', {
+          'color': params.colorLabel(_secret),
+        }),
       );
     }
   }
@@ -109,14 +106,14 @@ class RememberColorChallenge extends _ShowThenAskChallenge {
 /// 27 — REMEMBER: 7.
 class RememberNumberChallenge extends _ShowThenAskChallenge {
   RememberNumberChallenge(ChallengeParams p)
-      : _secret = 10 + p.rng.nextInt(89),
-        super(
-          p,
-          id: 'remember_number',
-          showFor: const Duration(milliseconds: 950),
-          blankFor: const Duration(milliseconds: 450),
-          answerWindow: p.pace(const Duration(milliseconds: 2600), floorMs: 1300),
-        ) {
+    : _secret = 10 + p.rng.nextInt(89),
+      super(
+        p,
+        id: 'remember_number',
+        showFor: const Duration(milliseconds: 950),
+        blankFor: const Duration(milliseconds: 450),
+        answerWindow: p.pace(const Duration(milliseconds: 2600), floorMs: 1300),
+      ) {
     final options = <int>{_secret};
     while (options.length < 4) {
       final noise = _secret + (p.rng.nextInt(21) - 10);
@@ -161,13 +158,13 @@ class RememberNumberChallenge extends _ShowThenAskChallenge {
 /// 28 — a burst of colors. Only the last one matters.
 class LastColorChallenge extends BaseChallenge {
   LastColorChallenge(ChallengeParams p, this._sequence, Duration answerWindow)
-      : super(
-          p,
-          id: 'last_color',
-          tag: ChallengeTag.memory,
-          duration: Duration(milliseconds: _sequence.length * _stepMs) +
-              answerWindow,
-        ) {
+    : super(
+        p,
+        id: 'last_color',
+        tag: ChallengeTag.memory,
+        duration:
+            Duration(milliseconds: _sequence.length * _stepMs) + answerWindow,
+      ) {
     instruction = p.tr('common.watch_label');
     layout = ChallengeLayout.single;
     showTimer = false;
@@ -199,9 +196,7 @@ class LastColorChallenge extends BaseChallenge {
     }
     if (step != _index) {
       _index = step;
-      targets = [
-        TargetSpec(id: 'show', color: _sequence[_index], scale: 1.35),
-      ];
+      targets = [TargetSpec(id: 'show', color: _sequence[_index], scale: 1.35)];
       host.invalidate();
     }
   }
@@ -240,14 +235,14 @@ class LastColorChallenge extends BaseChallenge {
 /// 29 — one button lights up. Then they all look the same again.
 class RememberPositionChallenge extends _ShowThenAskChallenge {
   RememberPositionChallenge(ChallengeParams p)
-      : _lit = p.rng.nextInt(4),
-        super(
-          p,
-          id: 'remember_position',
-          showFor: const Duration(milliseconds: 850),
-          blankFor: const Duration(milliseconds: 400),
-          answerWindow: p.pace(const Duration(milliseconds: 2400), floorMs: 1200),
-        );
+    : _lit = p.rng.nextInt(4),
+      super(
+        p,
+        id: 'remember_position',
+        showFor: const Duration(milliseconds: 850),
+        blankFor: const Duration(milliseconds: 400),
+        answerWindow: p.pace(const Duration(milliseconds: 2400), floorMs: 1200),
+      );
 
   final int _lit;
 

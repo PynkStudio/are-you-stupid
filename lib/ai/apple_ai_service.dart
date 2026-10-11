@@ -76,12 +76,12 @@ class AppleAiError {
 /// `requestFinalRound`, `requestMultiplayerHost`).
 class AppleAiProposalResult {
   const AppleAiProposalResult.ok(this.proposal, {this.unitId})
-      : ok = true,
-        error = null;
+    : ok = true,
+      error = null;
 
   const AppleAiProposalResult.fail(this.error, {this.unitId})
-      : ok = false,
-        proposal = null;
+    : ok = false,
+      proposal = null;
 
   final bool ok;
   final String? unitId;
@@ -97,12 +97,12 @@ class AppleAiProposalResult {
 /// Result of a text call (`requestCommentary`).
 class AppleAiTextResult {
   const AppleAiTextResult.ok(this.text, {this.unitId})
-      : ok = true,
-        error = null;
+    : ok = true,
+      error = null;
 
   const AppleAiTextResult.fail(this.error, {this.unitId})
-      : ok = false,
-        text = null;
+    : ok = false,
+      text = null;
 
   final bool ok;
   final String? unitId;
@@ -138,6 +138,13 @@ abstract class AppleAIService {
     AppleAiPayload context = const {},
   });
 
+  /// Classifies one ambiguous display name into a safe spoken identity.
+  Future<AppleAiPayload?> analyzeSpokenName({
+    required String unitId,
+    required String displayName,
+    required AppLocale locale,
+  });
+
   /// The game-ending question built on this player's profile.
   Future<AppleAiProposalResult> requestFinalRound({
     required String unitId,
@@ -168,7 +175,7 @@ abstract class AppleAIService {
 /// Real transport over `ays/apple_intelligence`.
 class AppleAiMethodChannel implements AppleAIService {
   AppleAiMethodChannel({MethodChannel? channel})
-      : _channel = channel ?? const MethodChannel(kAppleIntelligenceChannel);
+    : _channel = channel ?? const MethodChannel(kAppleIntelligenceChannel);
 
   final MethodChannel _channel;
 
@@ -209,6 +216,22 @@ class AppleAiMethodChannel implements AppleAIService {
       'context': context,
     });
     return _decodeTextResult(_asMap(raw), unitId);
+  }
+
+  @override
+  Future<AppleAiPayload?> analyzeSpokenName({
+    required String unitId,
+    required String displayName,
+    required AppLocale locale,
+  }) async {
+    final raw = await _invoke('analyzeSpokenName', {
+      'unitId': unitId,
+      'displayName': displayName,
+      'locale': locale.code,
+    });
+    final json = _asMap(raw);
+    if (json == null || json['ok'] != true) return null;
+    return json.map((key, value) => MapEntry(key.toString(), value));
   }
 
   @override
@@ -282,22 +305,28 @@ class AppleAiMethodChannel implements AppleAIService {
       raw is Map ? Map<Object?, Object?>.from(raw) : null;
 
   AppleAiProposalResult _decodeProposalResult(
-      Map<Object?, Object?>? json, String unitId) {
+    Map<Object?, Object?>? json,
+    String unitId,
+  ) {
     if (json == null) {
-      return AppleAiProposalResult.fail(const AppleAiError('unavailable'),
-          unitId: unitId);
+      return AppleAiProposalResult.fail(
+        const AppleAiError('unavailable'),
+        unitId: unitId,
+      );
     }
     final ok = (json['ok'] as bool?) ?? false;
     if (!ok) {
       return AppleAiProposalResult.fail(
-          AppleAiError.fromJson(json) ?? const AppleAiError('unknown'),
-          unitId: unitId);
+        AppleAiError.fromJson(json) ?? const AppleAiError('unknown'),
+        unitId: unitId,
+      );
     }
     final proposal = json['proposal'];
     if (proposal is! Map) {
       return AppleAiProposalResult.fail(
-          const AppleAiError('decodingFailure', retryable: false),
-          unitId: unitId);
+        const AppleAiError('decodingFailure', retryable: false),
+        unitId: unitId,
+      );
     }
     return AppleAiProposalResult.ok(
       Map<String, dynamic>.from(proposal),
@@ -305,22 +334,29 @@ class AppleAiMethodChannel implements AppleAIService {
     );
   }
 
-  AppleAiTextResult _decodeTextResult(Map<Object?, Object?>? json, String unitId) {
+  AppleAiTextResult _decodeTextResult(
+    Map<Object?, Object?>? json,
+    String unitId,
+  ) {
     if (json == null) {
-      return AppleAiTextResult.fail(const AppleAiError('unavailable'),
-          unitId: unitId);
+      return AppleAiTextResult.fail(
+        const AppleAiError('unavailable'),
+        unitId: unitId,
+      );
     }
     final ok = (json['ok'] as bool?) ?? false;
     if (!ok) {
       return AppleAiTextResult.fail(
-          AppleAiError.fromJson(json) ?? const AppleAiError('unknown'),
-          unitId: unitId);
+        AppleAiError.fromJson(json) ?? const AppleAiError('unknown'),
+        unitId: unitId,
+      );
     }
     final text = json['text'];
     if (text is! String || text.isEmpty) {
       return AppleAiTextResult.fail(
-          const AppleAiError('decodingFailure', retryable: false),
-          unitId: unitId);
+        const AppleAiError('decodingFailure', retryable: false),
+        unitId: unitId,
+      );
     }
     return AppleAiTextResult.ok(text, unitId: unitId);
   }
@@ -339,12 +375,14 @@ class MockAppleAIService implements AppleAIService {
   AppleAiProposalResult? nextFinalRoundResult;
   AppleAiProposalResult? nextMultiplayerHostResult;
   AppleAiTextResult? nextCommentaryResult;
+  AppleAiPayload? nextNameAnalysisResult;
 
   bool cancelUnitResult = true;
   bool feedbackResult = true;
 
   final AppleAiProposalResult _defaultFail = const AppleAiProposalResult.fail(
-      AppleAiError('unavailable'));
+    AppleAiError('unavailable'),
+  );
 
   /// method → list of payloads received (each a per-call copy, in order).
   final Map<String, List<AppleAiPayload>> calls = {};
@@ -357,13 +395,30 @@ class MockAppleAIService implements AppleAIService {
   Future<AppleAiAvailability> available() async => availability;
 
   @override
+  Future<AppleAiPayload?> analyzeSpokenName({
+    required String unitId,
+    required String displayName,
+    required AppLocale locale,
+  }) async {
+    _log('analyzeSpokenName', {
+      'unitId': unitId,
+      'displayName': displayName,
+      'locale': locale.code,
+    });
+    return nextNameAnalysisResult;
+  }
+
+  @override
   Future<AppleAiProposalResult> requestChallenge({
     required String unitId,
     required AppLocale locale,
     AppleAiPayload profile = const {},
   }) async {
-    _log('requestChallenge',
-        {'unitId': unitId, 'locale': locale.code, 'profile': profile});
+    _log('requestChallenge', {
+      'unitId': unitId,
+      'locale': locale.code,
+      'profile': profile,
+    });
     return nextChallengeResult ?? _defaultFail;
   }
 
@@ -374,8 +429,12 @@ class MockAppleAIService implements AppleAIService {
     required String kind,
     AppleAiPayload context = const {},
   }) async {
-    _log('requestCommentary',
-        {'unitId': unitId, 'locale': locale.code, 'kind': kind, 'context': context});
+    _log('requestCommentary', {
+      'unitId': unitId,
+      'locale': locale.code,
+      'kind': kind,
+      'context': context,
+    });
     return nextCommentaryResult ??
         const AppleAiTextResult.fail(AppleAiError('unavailable'));
   }
@@ -386,8 +445,11 @@ class MockAppleAIService implements AppleAIService {
     required AppLocale locale,
     AppleAiPayload profile = const {},
   }) async {
-    _log('requestFinalRound',
-        {'unitId': unitId, 'locale': locale.code, 'profile': profile});
+    _log('requestFinalRound', {
+      'unitId': unitId,
+      'locale': locale.code,
+      'profile': profile,
+    });
     return nextFinalRoundResult ?? _defaultFail;
   }
 
@@ -397,8 +459,11 @@ class MockAppleAIService implements AppleAIService {
     required AppLocale locale,
     AppleAiPayload profile = const {},
   }) async {
-    _log('requestMultiplayerHost',
-        {'unitId': unitId, 'locale': locale.code, 'profile': profile});
+    _log('requestMultiplayerHost', {
+      'unitId': unitId,
+      'locale': locale.code,
+      'profile': profile,
+    });
     return nextMultiplayerHostResult ?? _defaultFail;
   }
 

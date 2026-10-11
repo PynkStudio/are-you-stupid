@@ -13,14 +13,7 @@ import 'game_state.dart';
 
 /// Things the engine shouts about. The UI layer wires these to sound, haptics
 /// and persistence — the engine itself knows nothing about them.
-enum GameEvent {
-  runStarted,
-  levelStarted,
-  correct,
-  wrong,
-  gameOver,
-  continued,
-}
+enum GameEvent { runStarted, levelStarted, correct, wrong, gameOver, continued }
 
 typedef GameEventListener = void Function(GameEvent event, GameState state);
 
@@ -30,8 +23,8 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
     required ChallengeProvider provider,
     Random? random,
     this.locale = AppLocale.en,
-  })  : _provider = provider,
-        _rng = random ?? Random();
+  }) : _provider = provider,
+       _rng = random ?? Random();
 
   /// Where the next challenge comes from. The engine never knows the source —
   /// compatible from the engine's by-document posture, `core/` stays source-
@@ -121,8 +114,7 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
       // Contract: a composed provider (Fallback → scripted) never returns
       // null. Defend anyway: stay in the intro beat and re-ask next tick —
       // a broken composition shows up as a stuck intro, never a crash.
-      assert(false,
-          'ChallengeProvider.next() returned null at level $level');
+      assert(false, 'ChallengeProvider.next() returned null at level $level');
       return;
     }
     final milestoneKey = Difficulty.milestoneKey(level);
@@ -219,7 +211,8 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
   @override
   void pass({String? note}) {
     if (_state.phase != GamePhase.playing) return;
-    final fast = _state.duration.inMilliseconds > 0 &&
+    final fast =
+        _state.duration.inMilliseconds > 0 &&
         _state.elapsed.inMilliseconds < _state.duration.inMilliseconds * 0.45;
     final streak = fast ? _state.fastStreak + 1 : 0;
     _phaseElapsed = Duration.zero;
@@ -240,7 +233,8 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
     _phaseElapsed = Duration.zero;
     _state = _state.copyWith(
       phase: GamePhase.wrong,
-      flashMessage: reason ??
+      flashMessage:
+          reason ??
           Roasts.forMistake(rng: _rng, allowSpicy: spicyRoasts, locale: locale),
       fastStreak: 0,
     );
@@ -253,10 +247,6 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
 }
 
 extension on TapInfo {
-  TapInfo copyWithElapsed(Duration elapsed) => TapInfo(
-        targetId: targetId,
-        elapsed: elapsed,
-        kind: kind,
-        index: index,
-      );
+  TapInfo copyWithElapsed(Duration elapsed) =>
+      TapInfo(targetId: targetId, elapsed: elapsed, kind: kind, index: index);
 }

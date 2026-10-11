@@ -1,6 +1,6 @@
 ---
 tags: [ai, architecture, ios, swift]
-updated: 2026-10-02
+updated: 2026-10-06
 ---
 
 # Foundation Models Integration
@@ -163,6 +163,7 @@ Dart never sees the session.
 | `available` | none | `{ state: "available"\|"unavailable", reason?: string }` |
 | `requestChallenge` | `{ unitId, locale, profile }` | `{ ok: bool, proposal?: challengeJson, error?: { code, retryable } }` |
 | `requestCommentary` | `{ unitId, locale, kind, context }` — `locale` is the output language; `context` carries the moment's facts plus `spicy` and `recentLines` ([[AI Commentary]]) | `{ ok: bool, text?: string, error?: ... }` |
+| `analyzeSpokenName` | `{ unitId, displayName, locale }` | `{ decision, spokenName?, confidence }`; Dart validates the result before it becomes a spoken identity |
 | `requestFinalRound` / `requestMultiplayerHost` | profiles + per-spec context | same `ok/proposal` shape |
 | `cancelUnit` | `{ unitId }` | `true` (best-effort; generation is a single await that completes or is discarded) |
 | `feedback` | `{ sentiment, issue, excerpt }` | `true` (best-effort; nothing depends on it) |

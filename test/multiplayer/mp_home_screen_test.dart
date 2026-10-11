@@ -7,17 +7,11 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('roomCodeFromScannedValue', () {
     test('extracts the room code from a valid deep link', () {
-      expect(
-        roomCodeFromScannedValue('areyoustupid://join?room=7f4k'),
-        '7F4K',
-      );
+      expect(roomCodeFromScannedValue('areyoustupid://join?room=7f4k'), '7F4K');
     });
 
     test('uppercases the extracted code', () {
-      expect(
-        roomCodeFromScannedValue('areyoustupid://join?room=abcd'),
-        'ABCD',
-      );
+      expect(roomCodeFromScannedValue('areyoustupid://join?room=abcd'), 'ABCD');
     });
 
     test('trims surrounding whitespace before matching', () {
@@ -37,7 +31,36 @@ void main() {
 
     test('returns null for a code that is not exactly 4 characters', () {
       expect(roomCodeFromScannedValue('areyoustupid://join?room=7F4'), isNull);
-      expect(roomCodeFromScannedValue('areyoustupid://join?room=7F4KK'), isNull);
+      expect(
+        roomCodeFromScannedValue('areyoustupid://join?room=7F4KK'),
+        isNull,
+      );
+    });
+
+    test('extracts the room code from the universal link the TV/Mac QR shows', () {
+      expect(
+        roomCodeFromScannedValue('https://pynkstudio.eu/ays/join?room=7f4k'),
+        '7F4K',
+      );
+      expect(
+        roomCodeFromScannedValue('https://www.pynkstudio.eu/ays/join/?room=AB3D'),
+        'AB3D',
+      );
+    });
+
+    test('rejects https links on another host or path', () {
+      expect(
+        roomCodeFromScannedValue('https://evil.example/ays/join?room=7F4K'),
+        isNull,
+      );
+      expect(
+        roomCodeFromScannedValue('http://pynkstudio.eu/ays/join?room=7F4K'),
+        isNull,
+      );
+      expect(
+        roomCodeFromScannedValue('https://pynkstudio.eu/join?room=7F4K'),
+        isNull,
+      );
     });
 
     test('returns null for the wrong scheme', () {

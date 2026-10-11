@@ -24,18 +24,18 @@ class AppServices {
     AdProvider? adProvider,
     PurchaseProvider? purchaseProvider,
     this.localNetwork = const LocalNetworkPermission(),
-  })  : sound = SoundManager(settings),
-        haptics = HapticManager(settings),
-        share = const ShareManager(),
-        purchases = PurchaseManager(
-          provider: purchaseProvider ?? MockPurchaseProvider(),
-          settings: settings,
-        ),
-        ads = AdManager(
-          provider: adProvider ?? MockAdProvider(),
-          scores: scores,
-          settings: settings,
-        );
+  }) : sound = SoundManager(settings),
+       haptics = HapticManager(settings),
+       share = const ShareManager(),
+       purchases = PurchaseManager(
+         provider: purchaseProvider ?? MockPurchaseProvider(),
+         settings: settings,
+       ),
+       ads = AdManager(
+         provider: adProvider ?? MockAdProvider(),
+         scores: scores,
+         settings: settings,
+       );
 
   final SettingsManager settings;
   final ScoreManager scores;
@@ -63,9 +63,10 @@ class AppServices {
     );
     // Purchases only read the store — never block the splash on a slow or
     // unreachable StoreKit/Play Billing. Settings retries the product later.
-    await services.purchases
-        .initialize()
-        .timeout(const Duration(seconds: 4), onTimeout: () {});
+    await services.purchases.initialize().timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {},
+    );
     // Ads are *not* started here: consent (UMP) and the iOS ATT prompt are
     // native UI and must appear over a real, active screen — see
     // [startAds] and `main.dart`.
@@ -78,8 +79,7 @@ class AppServices {
   Future<void> startAds() => ads.initialize();
 
   static AppServices of(BuildContext context) {
-    final scope =
-        context.dependOnInheritedWidgetOfExactType<ServicesScope>();
+    final scope = context.dependOnInheritedWidgetOfExactType<ServicesScope>();
     assert(scope != null, 'ServicesScope missing above this widget');
     return scope!.services;
   }

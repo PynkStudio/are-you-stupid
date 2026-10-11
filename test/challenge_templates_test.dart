@@ -46,8 +46,11 @@ void main() {
           );
 
           final view = challenge.view;
-          expect(view.instruction.split(' ').length, lessThanOrEqualTo(8),
-              reason: '${template.id} instruction is too long');
+          expect(
+            view.instruction.split(' ').length,
+            lessThanOrEqualTo(8),
+            reason: '${template.id} instruction is too long',
+          );
           for (final t in view.targets) {
             expect(t.scale, greaterThan(0));
             expect(t.opacity, inInclusiveRange(0.2, 1.0));
@@ -72,8 +75,11 @@ void main() {
       challenge.onStart(host);
       // Let it run out untouched: it must resolve one way or the other.
       advance(challenge, host, to: challenge.duration);
-      expect(host.settled, isTrue,
-          reason: '${template.id} never resolves on timeout');
+      expect(
+        host.settled,
+        isTrue,
+        reason: '${template.id} never resolves on timeout',
+      );
     }
   });
 }

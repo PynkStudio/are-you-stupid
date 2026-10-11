@@ -13,10 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../support/party_host_reference.dart';
 
-Future<PartySession> _connectAndJoin(
-  int port, {
-  required String name,
-}) async {
+Future<PartySession> _connectAndJoin(int port, {required String name}) async {
   final transport = await SocketPartyTransport.connect(
     InternetAddress.loopbackIPv4.address,
     port,
@@ -27,13 +24,13 @@ Future<PartySession> _connectAndJoin(
     appVersion: '0',
   );
   session.connect();
-  await session.events.firstWhere((e) => e is PartyHandshakeEvent).timeout(
-        const Duration(seconds: 3),
-      );
+  await session.events
+      .firstWhere((e) => e is PartyHandshakeEvent)
+      .timeout(const Duration(seconds: 3));
   session.joinRoom(playerName: name, emoji: '🟢');
-  await session.events.firstWhere((e) => e is PartyJoinedEvent).timeout(
-        const Duration(seconds: 3),
-      );
+  await session.events
+      .firstWhere((e) => e is PartyJoinedEvent)
+      .timeout(const Duration(seconds: 3));
   return session;
 }
 
@@ -50,7 +47,9 @@ void main() {
       );
 
       final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-      server.listen((socket) => host.attachClient(SocketPartyTransport(socket)));
+      server.listen(
+        (socket) => host.attachClient(SocketPartyTransport(socket)),
+      );
       addTearDown(server.close);
 
       final a = await _connectAndJoin(server.port, name: 'Massimo');
@@ -78,12 +77,12 @@ void main() {
       // Nobody answers — completeRound() judges both as a timeout and, with
       // battleRounds: 1, the host declares GAME_END right away.
       host.completeRound();
-      await a.events.firstWhere((e) => e is PartyGameEndEvent).timeout(
-            const Duration(seconds: 3),
-          );
-      await b.events.firstWhere((e) => e is PartyGameEndEvent).timeout(
-            const Duration(seconds: 3),
-          );
+      await a.events
+          .firstWhere((e) => e is PartyGameEndEvent)
+          .timeout(const Duration(seconds: 3));
+      await b.events
+          .firstWhere((e) => e is PartyGameEndEvent)
+          .timeout(const Duration(seconds: 3));
 
       expect(a.state.phase, PartyPhase.gameEnded);
       expect(b.state.phase, PartyPhase.gameEnded);

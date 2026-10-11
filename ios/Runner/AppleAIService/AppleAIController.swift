@@ -69,6 +69,20 @@ public final class AppleAIController: NSObject {
                     kind: kind, locale: locale, context: context)
                 await MainActor.run { result(payload) }
             }
+        case "analyzeSpokenName":
+            guard
+                let args = call.arguments as? [String: Any],
+                let displayName = args["displayName"] as? String
+            else {
+                result(AYSAppleAIResponse.error(code: "decodingFailure", retryable: false))
+                return
+            }
+            let locale = args["locale"] as? String ?? "en"
+            Task {
+                let payload = await AYSNameAnalysisService.analyze(
+                    displayName: displayName, locale: locale)
+                await MainActor.run { result(payload) }
+            }
         case "requestChallenge":
             guard let args = call.arguments as? [String: Any] else {
                 result(AYSAppleAIResponse.error(code: "decodingFailure", retryable: false))

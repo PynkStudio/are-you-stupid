@@ -37,7 +37,8 @@ const Map<String, String> kStringsDe = {
   'challenge.dont_tap_color_shifting.hint': 'SIE ÄNDERN SICH STÄNDIG',
   'challenge.dont_tap_color_shifting.wrong': 'DAS WAR {color}.',
   'challenge.dont_tap_color_shifting.late': 'DU MUSSTEST ETWAS TIPPEN.',
-  'challenge.tap_unwritten_color.instruction': 'TIPPE DIE NICHT GESCHRIEBENE FARBE',
+  'challenge.tap_unwritten_color.instruction':
+      'TIPPE DIE NICHT GESCHRIEBENE FARBE',
   'challenge.tap_unwritten_color.wrong': 'IHR NAME STAND GENAU DA.',
 
   'challenge.tap_word_button.instruction': 'TIPPE AUF DAS MIT „{word}“',
@@ -162,6 +163,11 @@ const Map<String, String> kStringsDe = {
   'ui.home.best_score_button': 'BESTWERT',
   'ui.home.settings': 'EINSTELLUNGEN',
   'ui.home.multiplayer': 'MULTIPLAYER',
+  'ui.mp.role.title': 'WAS HAST DU VOR?',
+  'ui.mp.role.subtitle':
+      'Spiele auf diesem Mac oder nutze ihn als Partybildschirm.',
+  'ui.mp.role.play': 'AUF DIESEM MAC SPIELEN',
+  'ui.mp.role.host': 'AUF DIESEM MAC HOSTEN',
   'ui.home.footer': 'KEIN KONTO. KEIN INTERNET. KEINE AUSREDEN.',
 
   'ui.game.level': 'LEVEL {n}',
@@ -196,6 +202,16 @@ const Map<String, String> kStringsDe = {
   'ui.settings.remove_ads_caption': 'Einmaliger Kauf. Nie wieder Werbung.',
   'ui.settings.remove_ads_owned': 'WERBUNG ENTFERNT',
   'ui.settings.remove_ads_owned_caption': 'Danke für die Unterstützung.',
+  'ui.settings.party_pack': 'PARTY PACK',
+  'ui.settings.party_pack_caption': 'Schaltet 16 Spieler frei. Werbung bleibt.',
+  'ui.settings.party_pack_owned': '16 SPIELER FREIGESCHALTET',
+  'ui.settings.party_pack_owned_caption':
+      'Ein Besitzer reicht für die ganze Lobby.',
+  'ui.settings.party_bundle': 'PARTY BUNDLE',
+  'ui.settings.party_bundle_caption': '16 Spieler und keine Werbung.',
+  'ui.settings.party_bundle_owned': 'PARTY BUNDLE GEKAUFT',
+  'ui.settings.party_bundle_owned_caption':
+      'Große Lobby. Keine Unterbrechungen.',
   'ui.settings.restore_purchase': 'KAUF WIEDERHERSTELLEN',
   'ui.settings.remove_ads_restored': 'KAUF WIEDERHERGESTELLT',
   'ui.settings.remove_ads_not_found': 'KEIN KAUF GEFUNDEN',
@@ -205,12 +221,10 @@ const Map<String, String> kStringsDe = {
   'ui.settings.privacy_choices': 'WERBE-DATENSCHUTZ',
   'ui.settings.reset_stats': 'STATISTIK ZURÜCKSETZEN',
   'ui.settings.back': 'ZURÜCK',
-  'ui.settings.footer':
-      'OFFLINE. KEIN KONTO. NICHTS VERLÄSST DIESES TELEFON.',
+  'ui.settings.footer': 'OFFLINE. KEIN KONTO. NICHTS VERLÄSST DIESES TELEFON.',
   'ui.settings.made_by': 'Erstellt von PynkStudio',
   'ui.settings.reset_title': 'ALLES ZURÜCKSETZEN?',
-  'ui.settings.reset_body':
-      'Bestes Level, Versuche und Serien. Weg damit.',
+  'ui.settings.reset_body': 'Bestes Level, Versuche und Serien. Weg damit.',
   'ui.settings.keep': 'BEHALTEN',
   'ui.settings.reset': 'ZURÜCKSETZEN',
 
@@ -220,11 +234,9 @@ const Map<String, String> kStringsDe = {
   'ui.settings.ai.mode.classic': 'KLASSISCH',
   'ui.settings.ai.status.available':
       'Die Herausforderungsvielfalt ist auf diesem Gerät aktiviert.',
-  'ui.settings.ai.status.supported_not_enabled':
-      'Dein Gerät kann das, aber Apple Intelligence ist in den Einstellungen deaktiviert.',
+  'ui.settings.ai.status.supported_not_enabled': 'Dein Gerät kann das, aber Apple Intelligence ist in den Einstellungen deaktiviert.',
   'ui.settings.ai.status.not_eligible': 'Auf diesem Gerät nicht unterstützt.',
-  'ui.settings.ai.status.model_not_ready':
-      'Modell wird heruntergeladen. Klassischer Modus aktiv, bis es bereit ist.',
+  'ui.settings.ai.status.model_not_ready': 'Modell wird heruntergeladen. Klassischer Modus aktiv, bis es bereit ist.',
 
   'ui.stats.title': 'BESTWERT',
   'ui.stats.level': 'LEVEL',
@@ -261,14 +273,19 @@ const Map<String, String> kStringsDe = {
   'ui.mp.primer.title': 'ERST MAL KURZ',
   'ui.mp.primer.body': 'UM AUF DEM TV ZU SPIELEN, BRAUCHT DIESES HANDY:',
   'ui.mp.primer.network_title': 'LOKALES NETZWERK',
-  'ui.mp.primer.network_body': 'UM DEN TV IN DEINEM WLAN ZU FINDEN. NICHTS VERLÄSST DEIN ZUHAUSE.',
+  'ui.mp.primer.network_body':
+      'UM DEN TV IN DEINEM WLAN ZU FINDEN. NICHTS VERLÄSST DEIN ZUHAUSE.',
   'ui.mp.primer.camera_title': 'KAMERA (OPTIONAL)',
-  'ui.mp.primer.camera_body': 'NUR ZUM SCANNEN DES QR-CODES. DU KANNST DEN CODE AUCH EINTIPPEN.',
-  'ui.mp.primer.footer': 'DEIN HANDY WIRD FRAGEN. TIPP AUF ERLAUBEN. ES IST KEINE FANGFRAGE.',
+  'ui.mp.primer.camera_body':
+      'NUR ZUM SCANNEN DES QR-CODES. DU KANNST DEN CODE AUCH EINTIPPEN.',
+  'ui.mp.primer.footer':
+      'DEIN HANDY WIRD FRAGEN. TIPP AUF ERLAUBEN. ES IST KEINE FANGFRAGE.',
   'ui.mp.primer.continue': 'WEITER',
   'ui.mp.primer.not_now': 'NICHT JETZT',
   'ui.mp.permission.network_denied': 'ZUGRIFF AUFS LOKALE NETZWERK IST AUS. OHNE IHN FINDET DIESES HANDY DEN TV NICHT.',
   'ui.mp.permission.open_settings': 'EINSTELLUNGEN ÖFFNEN',
+  'ui.mp.network.wifi_disconnected':
+      'KEIN WLAN. DER FERNSEHER KANN KEINE GEDANKEN LESEN. NUTZ SEIN NETZ.',
 
   'ui.mp.scan.hint': 'RICHTE DIE KAMERA AUF DEN QR-CODE AUF DEM TV.',
   'ui.mp.scan.permission_denied':
@@ -282,6 +299,20 @@ const Map<String, String> kStringsDe = {
   'ui.mp.join.playing_on': 'DU SPIELST AUF: {host}',
   'ui.mp.join.name_label': 'SPIELERNAME',
   'ui.mp.join.name_hint': 'DEIN NAME',
+  'ui.mp.join.spoken_as': 'WIRD AUSGESPROCHEN ALS: {name}',
+  'ui.mp.join.not_spoken': 'DER MODERATOR KANN DIESEN NAMEN NICHT AUSSPRECHEN.',
+  'ui.mp.join.nice_try': 'NETTER VERSUCH. NIMM EINEN ANDEREN NAMEN.',
+  'ui.mp.join.nice_try_1': 'NETTER VERSUCH. DER MODERATOR FÄLLT NICHT DARAUF REIN.',
+  'ui.mp.join.nice_try_2': 'GUTER VERSUCH. JETZT PROBIER EINEN NAMEN.',
+  'ui.mp.join.nice_try_3': 'NEIN. DAS BLEIBT ZWISCHEN DIR UND DER TASTATUR.',
+  'ui.mp.join.nice_try_4': 'SÜSS. ABER DAS SAGEN WIR NICHT LAUT.',
+  'ui.mp.join.nice_try_5': 'SCHON SCHLIMMERES GESEHEN. ÄNDERE DEN NAMEN.',
+  'ui.mp.name_card.title': 'WIE SOLL ES DICH NENNEN?',
+  'ui.mp.name_card.analyzing': 'DER MODERATOR PRÜFT, OB ER DEINEN NAMEN LESEN KANN.',
+  'ui.mp.name_card.unknown': 'VORERST WIRD ER IHN NICHT AUSSPRECHEN.',
+  'ui.mp.name_card.pronunciation': 'AUSSPRACHE: {name}',
+  'ui.mp.name_card.update': 'NAMEN ÄNDERN',
+  'ui.mp.name_card.tap_to_fix': 'DER MODERATOR WEISS NICHT, WIE DU HEISST. HIER TIPPEN.',
   'ui.mp.join.waiting_host': 'WARTE AUF HOST…',
   'ui.mp.join.join_button': 'BEITRETEN',
 
@@ -291,6 +322,19 @@ const Map<String, String> kStringsDe = {
   'ui.mp.lobby.not_ready': 'BEREIT?',
   'ui.mp.lobby.waiting_start': 'WARTE, BIS DER HOST STARTET…',
   'ui.mp.lobby.leave': 'VERLASSEN',
+  'ui.mp.party.full': 'DIE KOSTENLOSE LOBBY IST VOLL',
+  'ui.mp.party.one_unlocks':
+      'EIN PARTY PACK SCHALTET 16 SPIELER FÜR ALLE FREI.',
+  'ui.mp.party.buy': '16 SPIELER FREISCHALTEN · {price}',
+  'ui.mp.party.buy_bundle': '16 + KEINE WERBUNG · {price}',
+  'ui.mp.party.active': '✦ PARTY PACK AKTIVIERT ✦',
+  'ui.mp.party.active_body':
+      'EIN SPIELER HAT 16 PLÄTZE FÜR ALLE FREIGESCHALTET.',
+  'ui.mp.result.rematch': 'REVANCHE',
+  'ui.mp.adbreak.mine': 'DU WOLLTEST DAS SO.',
+  'ui.mp.adbreak.other': '{name} SCHICKT UNS IN DIE WERBUNG.',
+  'ui.mp.adbreak.troll': 'DIE NÄCHSTE SCHLECHTE ENTSCHEIDUNG KOMMT GLEICH.',
+  'ui.mp.adbreak.buy_no_ads': 'KEINE UNTERBRECHUNGEN MEHR · {price}',
 
   'ui.mp.game.waiting_round': 'MACH DICH BEREIT…',
   'ui.mp.game.correct': 'JA!',

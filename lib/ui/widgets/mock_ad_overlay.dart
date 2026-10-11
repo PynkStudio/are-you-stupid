@@ -11,7 +11,11 @@ import 'balanced_text.dart';
 /// Placeholder ad unit. Same timing and same flow as a real one, so swapping
 /// in a network SDK changes nothing about the UX.
 class MockAdOverlay extends StatefulWidget {
-  const MockAdOverlay({super.key, required this.seconds, required this.rewarded});
+  const MockAdOverlay({
+    super.key,
+    required this.seconds,
+    required this.rewarded,
+  });
 
   final int seconds;
   final bool rewarded;
@@ -82,8 +86,10 @@ class _MockAdOverlayState extends State<MockAdOverlay> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          BalancedText(t('ui.ad.your_ad_here'),
-                              style: Ays.title(46)),
+                          BalancedText(
+                            t('ui.ad.your_ad_here'),
+                            style: Ays.title(46),
+                          ),
                           const SizedBox(height: 12),
                           Text(
                             widget.rewarded

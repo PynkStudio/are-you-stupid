@@ -26,6 +26,10 @@ enum BoardScreen: Equatable {
     case gameEnd(GameEnd)
 }
 
+enum PresenterOutputMode: String, CaseIterable {
+    case off, mute, voice
+}
+
 @MainActor
 final class HostViewModel: ObservableObject {
     @Published private(set) var roomCode: String
@@ -61,17 +65,48 @@ final class HostViewModel: ObservableObject {
     /// (`rematch()` returns to `.lobby` without resetting it) so the host
     /// doesn't have to re-pick it every time.
     @Published var selectedMode: GameMode = .stupidBattle
+    @Published private(set) var presenterOutputMode: PresenterOutputMode = .voice
+    @Published private(set) var presenterIntensity: PresenterIntensity = .savage
 
     private let host: RoomHost
     private let server = NWListenerServer()
     private let advertisedDeviceName: String
+    private let presenterPacks = PresenterPackStore()
     private let presenterEngine = PresenterEngine(intensity: .savage)
-    private let presenterAudio = PresenterAudioController()
+    private let presenterAudio: PresenterAudioController
+    private let soundEffects = HostSoundEffects()
     private let presenterCareers = PresenterCareerStore()
     private var announcedPersonas: Set<String> = []
+    /// `ROUND_RESULTS` intentionally contains outcomes only. Preserve the
+    /// verified challenge id from `ROUND_START` so presenter copy can roast
+    /// the actual mechanic without widening the wire protocol.
+    private var challengeIdByRound: [String: String] = [:]
 
     var readyCount: Int { roster.filter(\.ready).count }
     var canStart: Bool { readyCount >= 2 && screen == .lobby }
+    var presenterLocale: String { presenterPacks.locale }
+    var presenterLocales: [String] { OfflinePresenterPack.supportedLocales }
+
+    func selectPresenterLocale(_ locale: String) {
+        guard screen == .lobby else { return }
+        presenterPacks.selectLocale(locale)
+        presenterEngine.lineBook = presenterPacks.book
+        objectWillChange.send()
+        syncPresenterPack(force: true)
+    }
+
+    func selectPresenterOutputMode(_ mode: PresenterOutputMode) {
+        guard screen == .lobby else { return }
+        presenterOutputMode = mode
+        UserDefaults.standard.set(mode.rawValue, forKey: "presenter.output")
+    }
+
+    func selectPresenterIntensity(_ intensity: PresenterIntensity) {
+        guard screen == .lobby, presenterOutputMode != .off else { return }
+        presenterIntensity = intensity
+        presenterEngine.intensity = intensity
+        UserDefaults.standard.set(intensity.rawValue, forKey: "presenter.intensity")
+    }
 
     /// Standings sorted for display: highest score (Battle) or most lives
     /// then highest score (LSS) first, ties broken by name so the order
@@ -101,12 +136,31 @@ final class HostViewModel: ObservableObject {
             clock: SystemHostClock(),
             judge: RoundDurationProvider()
         )
+        presenterAudio = PresenterAudioController(packs: presenterPacks)
+        let legacyMode = UserDefaults.standard.string(forKey: "presenter.mode")
+        presenterOutputMode = PresenterOutputMode(rawValue: UserDefaults.standard.string(forKey: "presenter.output") ?? "")
+            ?? (legacyMode == "off" ? .off : legacyMode == "mute" ? .mute : .voice)
+        presenterIntensity = PresenterIntensity(rawValue: UserDefaults.standard.string(forKey: "presenter.intensity") ?? "")
+            ?? (legacyMode == "neutral" ? .neutral : .savage)
+        presenterEngine.intensity = presenterIntensity
+        presenterEngine.lineBook = presenterPacks.book
         host.onBroadcast = { [weak self] message in
             Task { @MainActor in self?.handle(message) }
         }
     }
 
+    /// Pulls the latest published presenter pack in the background. A new
+    /// book is applied immediately in the lobby, otherwise at the next match
+    /// start, so copy never changes mid-match.
+    private func syncPresenterPack(force: Bool = false) {
+        Task { [weak self] in
+            guard let self, await self.presenterPacks.sync(force: force), self.screen == .lobby else { return }
+            self.presenterEngine.lineBook = self.presenterPacks.book
+        }
+    }
+
     func startHosting() async {
+        syncPresenterPack()
         server.onNewTransport = { [weak self] transport in
             self?.host.attachClient(transport)
         }
@@ -126,7 +180,11 @@ final class HostViewModel: ObservableObject {
 
     func startGame() {
         standings = [:]
+        challengeIdByRound = [:]
         lastAiCommentary = nil
+        presenterEngine.lineBook = presenterPacks.book
+        presenterEngine.beginMatch()
+        syncPresenterPack()
         do {
             try host.startGame(mode: selectedMode)
             try host.startNextRound(level: 5)
@@ -220,8 +278,10 @@ final class HostViewModel: ObservableObject {
             announceReturningPlayers(m.players)
             refreshAdvertisement()
         case let m as RoomPerks:
+            let justUnlockedPartyPack = !partyPackActive && m.partyPackActive
             maxPlayers = m.maxPlayers
             partyPackActive = m.partyPackActive
+            if justUnlockedPartyPack { soundEffects.play(.partyPack) }
             refreshAdvertisement()
         case let m as AdBreakStarted:
             adBreakPlayerName = name(for: m.playerId)
@@ -229,6 +289,8 @@ final class HostViewModel: ObservableObject {
             adBreakPlayerName = nil
             rematch()
         case let m as RoundStart:
+            soundEffects.play(.roundStart)
+            challengeIdByRound[m.roundId] = m.challengeId
             screen = .round(roundId: m.roundId)
             countdownState = nil
             lastAiCommentary = nil
@@ -241,11 +303,16 @@ final class HostViewModel: ObservableObject {
             presentRoundResults(m)
             scheduleAutoAdvance(afterRoundId: m.roundId)
         case let m as PlayerScore:
+            if let previousLives = standings[m.playerId]?.lives,
+               let lives = m.lives, previousLives > 0, lives == 0 {
+                soundEffects.play(.elimination)
+            }
             standings[m.playerId] = m
         case let m as PlayerLeave:
             roster.removeAll { $0.playerId == m.playerId }
             refreshAdvertisement()
         case let m as GameEnd:
+            soundEffects.play(.winner)
             screen = .gameEnd(m)
             let winner = roster.first(where: { $0.playerId == m.winnerId }).map(presenterPlayer)
             if let winnerId = m.winnerId {
@@ -291,10 +358,18 @@ final class HostViewModel: ObservableObject {
     }
 
     private func presentRoundResults(_ results: RoundResults) {
+        let remainingLives = Dictionary(uniqueKeysWithValues: results.results.compactMap { result -> (String, Int)? in
+            guard selectedMode == .lastStupidStanding,
+                  let previous = standings[result.playerId]?.lives else { return nil }
+            return (result.playerId, max(0, previous - (result.correct ? 0 : 1)))
+        })
         let fact = PresenterRoundFact(
             roundId: results.roundId,
             correctPlayerIds: results.results.filter(\.correct).map(\.playerId),
-            wrongPlayerIds: results.results.filter { !$0.correct }.map(\.playerId)
+            wrongPlayerIds: results.results.filter { !$0.correct }.map(\.playerId),
+            challengeId: challengeIdByRound.removeValue(forKey: results.roundId),
+            mode: selectedMode == .lastStupidStanding ? .lastStupidStanding : .battle,
+            remainingLivesByPlayer: remainingLives
         )
         for cue in presenterEngine.roundResult(fact, players: roster.map(presenterPlayer)) {
             present(cue)
@@ -302,6 +377,12 @@ final class HostViewModel: ObservableObject {
     }
 
     private func present(_ cue: PresenterCue) {
+        guard presenterOutputMode != .off else { return }
+        if presenterOutputMode == .mute {
+            guard isRelevant(cue) else { return }
+            lastAiCommentary = cue.text
+            return
+        }
         presenterAudio.play(cue, intensity: presenterEngine.intensity, stillRelevant: { [weak self] in
             self?.isRelevant(cue) == true
         }, onPlayback: { [weak self] in

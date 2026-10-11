@@ -38,8 +38,9 @@ class Roasts {
     AppLocale locale = AppLocale.en,
   }) {
     final r = rng ?? _rng;
-    final pool =
-        !allowSpicy || r.nextDouble() < 0.55 ? neutral(locale) : spicy(locale);
+    final pool = !allowSpicy || r.nextDouble() < 0.55
+        ? neutral(locale)
+        : spicy(locale);
     return pool[r.nextInt(pool.length)];
   }
 
@@ -49,8 +50,9 @@ class Roasts {
     AppLocale locale = AppLocale.en,
   }) {
     final r = rng ?? _rng;
-    final pool =
-        !allowSpicy || r.nextDouble() < 0.5 ? neutral(locale) : spicy(locale);
+    final pool = !allowSpicy || r.nextDouble() < 0.5
+        ? neutral(locale)
+        : spicy(locale);
     return pool[r.nextInt(pool.length)];
   }
 

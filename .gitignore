@@ -67,3 +67,10 @@ tvos/.swiftpm/
 # ios/Runner.xcodeproj above.
 tvos/AYSHost.xcodeproj/xcuserdata/
 tvos/AYSHost.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Presenter backend token (shared with the pynkstudio.eu Vercel project)
+tvos/Config/Presenter.secrets.xcconfig
+
+# Build artifacts
+ios/iMessageExtensionCore/.build/
+__pycache__/

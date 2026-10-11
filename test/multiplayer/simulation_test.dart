@@ -38,7 +38,8 @@ void main() {
       while (h.host.inGame && round++ < 20) {
         h.host.startRound(challengeId: 'dont_tap', seed: 100 + round, level: 2);
         final alive = clients.where(
-          (c) => !(c.state.standings[c.state.selfClientId]?.eliminated ?? false),
+          (c) =>
+              !(c.state.standings[c.state.selfClientId]?.eliminated ?? false),
         );
         for (final c in alive) {
           // dont_tap: doing nothing is correct. P1 self-reports that via its
@@ -59,7 +60,10 @@ void main() {
         expect(c.state.phase, PartyPhase.gameEnded);
       }
       expect(h.host.inGame, isFalse);
-      expect(clients.first.state.gameEnd!.winnerId, clients.first.state.selfClientId);
+      expect(
+        clients.first.state.gameEnd!.winnerId,
+        clients.first.state.selfClientId,
+      );
     });
 
     test('eliminated players keep their seat as spectators', () {

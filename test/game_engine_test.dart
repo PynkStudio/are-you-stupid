@@ -23,13 +23,13 @@ class _StubChallenge extends Challenge {
 
   @override
   ChallengeView get view => const ChallengeView(
-        instruction: 'TAP GOOD',
-        layout: ChallengeLayout.row,
-        targets: [
-          TargetSpec(id: 'good'),
-          TargetSpec(id: 'bad'),
-        ],
-      );
+    instruction: 'TAP GOOD',
+    layout: ChallengeLayout.row,
+    targets: [
+      TargetSpec(id: 'good'),
+      TargetSpec(id: 'bad'),
+    ],
+  );
 
   @override
   void onTap(TapInfo tap, ChallengeHost host) {
@@ -42,23 +42,23 @@ class _StubChallenge extends Challenge {
 }
 
 GameEngine buildEngine() => GameEngine(
-      provider: FallbackChallengeProvider(
-        scripted: ScriptedChallengeProvider(
-          generator: ChallengeGenerator(
-            templates: [
-              ChallengeTemplate(
-                id: 'stub',
-                tag: ChallengeTag.color,
-                build: _StubChallenge.new,
-                starter: true,
-              ),
-            ],
-            random: Random(1),
+  provider: FallbackChallengeProvider(
+    scripted: ScriptedChallengeProvider(
+      generator: ChallengeGenerator(
+        templates: [
+          ChallengeTemplate(
+            id: 'stub',
+            tag: ChallengeTag.color,
+            build: _StubChallenge.new,
+            starter: true,
           ),
-        ),
+        ],
+        random: Random(1),
       ),
-      random: Random(1),
-    );
+    ),
+  ),
+  random: Random(1),
+);
 
 void tick(GameEngine e, int ms) {
   for (var i = 0; i < ms ~/ 16; i++) {
@@ -192,8 +192,7 @@ void main() {
     expect(events.last, GameEvent.gameOver);
   });
 
-  test('pace note fires once, at level 6 (no timer) and level 10 (faster)',
-      () {
+  test('pace note fires once, at level 6 (no timer) and level 10 (faster)', () {
     final engine = buildEngine();
     engine.startRun();
     tick(engine, 600); // level 1
@@ -207,8 +206,7 @@ void main() {
         default:
           expect(engine.state.paceNote, isNull, reason: 'level $level');
       }
-      engine
-          .handleTap(const TapInfo(targetId: 'good', elapsed: Duration.zero));
+      engine.handleTap(const TapInfo(targetId: 'good', elapsed: Duration.zero));
       tick(engine, 300);
     }
   });
@@ -239,8 +237,10 @@ void main() {
         'asymptote', () {
       expect(Difficulty.speedForLevel(10), Difficulty.speedForLevel(19));
       expect(Difficulty.speedForLevel(20), Difficulty.speedForLevel(29));
-      expect(Difficulty.speedForLevel(19),
-          lessThan(Difficulty.speedForLevel(20)));
+      expect(
+        Difficulty.speedForLevel(19),
+        lessThan(Difficulty.speedForLevel(20)),
+      );
       // The old formula capped at 2.35; the new tail stays gentler than that
       // forever, matching the "leave a bit more time" request.
       expect(Difficulty.speedForLevel(1000), lessThan(2.35));
@@ -253,8 +253,7 @@ void main() {
       expect(Difficulty.allowsTricks(6), isTrue);
     });
 
-    test('milestone key fires at level 6 (no timer) and level 10 (faster)',
-        () {
+    test('milestone key fires at level 6 (no timer) and level 10 (faster)', () {
       expect(Difficulty.milestoneKey(5), isNull);
       expect(Difficulty.milestoneKey(6), 'ui.game.milestone.no_timer');
       expect(Difficulty.milestoneKey(7), isNull);
@@ -270,8 +269,10 @@ void main() {
         templates: kChallengeTemplates,
         random: Random(42),
       );
-      final starters =
-          kChallengeTemplates.where((t) => t.starter).map((t) => t.id).toSet();
+      final starters = kChallengeTemplates
+          .where((t) => t.starter)
+          .map((t) => t.id)
+          .toSet();
       for (var i = 0; i < 200; i++) {
         for (final level in [1, 2, 3]) {
           expect(starters, contains(generator.next(level).id));

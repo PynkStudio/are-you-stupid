@@ -11,7 +11,10 @@ import '../ai/challenge_validator_test.dart' show baseProposal;
 
 Future<void> _settle() => Future<void>.delayed(Duration.zero);
 
-Future<AiFeatureFlags> _flags({bool enabled = true, bool multiplayerDirectorEnabled = true}) async {
+Future<AiFeatureFlags> _flags({
+  bool enabled = true,
+  bool multiplayerDirectorEnabled = true,
+}) async {
   SharedPreferences.setMockInitialValues({});
   final flags = await AiFeatureFlags.load();
   await flags.setChallengeGenerationEnabled(enabled);
@@ -21,7 +24,13 @@ Future<AiFeatureFlags> _flags({bool enabled = true, bool multiplayerDirectorEnab
 }
 
 class _Harness {
-  _Harness(this.client, this.hostSide, this.session, this.service, this.director);
+  _Harness(
+    this.client,
+    this.hostSide,
+    this.session,
+    this.service,
+    this.director,
+  );
 
   final InMemoryPartyTransport client;
   final InMemoryPartyTransport hostSide;
@@ -39,9 +48,15 @@ class _Harness {
     final pair = InMemoryPartyTransport.pair();
     final client = pair.$1;
     final hostSide = pair.$2;
-    final session = PartySession(transport: client, appName: 'test', appVersion: '1.0');
+    final session = PartySession(
+      transport: client,
+      appName: 'test',
+      appVersion: '1.0',
+    );
     final service = MockAppleAIService()
-      ..availability = AppleAiAvailability(aiAvailable ? 'available' : 'unavailable');
+      ..availability = AppleAiAvailability(
+        aiAvailable ? 'available' : 'unavailable',
+      );
     final flags = await _flags(
       enabled: flagsEnabled,
       multiplayerDirectorEnabled: multiplayerDirectorEnabled,
@@ -73,10 +88,31 @@ class _Harness {
 }
 
 void main() {
+  test('an AI-capable phone answers a relayed name-analysis request', () async {
+    final h = await _Harness.create();
+    h.service.nextNameAnalysisResult = const {
+      'ok': true,
+      'decision': 'speakAlias',
+      'spokenName': 'Luca',
+      'confidence': 0.94,
+    };
+    await h.receive(
+      const AiNameAnalysisRequest(requestId: 'n1', displayName: 'Lu☠ca'),
+    );
+    await _settle();
+
+    final result = h.sentToHost.whereType<AiNameAnalysisResult>().single;
+    expect(result.requestId, 'n1');
+    expect(result.spokenName, 'Luca');
+    h.dispose();
+  });
+
   group('PartyAiDirector — capability announcement', () {
     test('announces availability once, right after joining', () async {
       final h = await _Harness.create(aiAvailable: true);
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
+      await h.receive(
+        const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+      );
 
       final announced = h.sentToHost.whereType<AiCapabilities>().single;
       expect(announced.aiAvailable, isTrue);
@@ -85,22 +121,32 @@ void main() {
       h.dispose();
     });
 
-    test('announces unavailable when the model is not available on this device', () async {
-      final h = await _Harness.create(aiAvailable: false);
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
+    test(
+      'announces unavailable when the model is not available on this device',
+      () async {
+        final h = await _Harness.create(aiAvailable: false);
+        await h.receive(
+          const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+        );
 
-      final announced = h.sentToHost.whereType<AiCapabilities>().single;
-      expect(announced.aiAvailable, isFalse);
-      expect(announced.computeRank, 0);
+        final announced = h.sentToHost.whereType<AiCapabilities>().single;
+        expect(announced.aiAvailable, isFalse);
+        expect(announced.computeRank, 0);
 
-      h.dispose();
-    });
+        h.dispose();
+      },
+    );
   });
 
   group('PartyAiDirector — aiMultiplayerDirectorEnabled gate', () {
     test('announces unavailable regardless of real device availability when the flag is off', () async {
-      final h = await _Harness.create(aiAvailable: true, multiplayerDirectorEnabled: false);
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
+      final h = await _Harness.create(
+        aiAvailable: true,
+        multiplayerDirectorEnabled: false,
+      );
+      await h.receive(
+        const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+      );
 
       final announced = h.sentToHost.whereType<AiCapabilities>().single;
       expect(announced.aiAvailable, isFalse);
@@ -110,16 +156,20 @@ void main() {
     test('never generates a round even if somehow named Director while the flag is off', () async {
       final h = await _Harness.create(multiplayerDirectorEnabled: false);
       h.service.nextChallengeResult = AppleAiProposalResult.ok(baseProposal());
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
+      await h.receive(
+        const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+      );
       await h.receive(const AiDirectorAssignment(directorPeerId: 'p1'));
-      await h.receive(RoundStart(
-        roundId: 'r1',
-        challengeId: 'tap_color',
-        seed: 1,
-        startAt: 0,
-        durationMs: 2000,
-        config: const {'level': 5},
-      ));
+      await h.receive(
+        RoundStart(
+          roundId: 'r1',
+          challengeId: 'tap_color',
+          seed: 1,
+          startAt: 0,
+          durationMs: 2000,
+          config: const {'level': 5},
+        ),
+      );
 
       expect(h.sentToHost.whereType<AiRoundProposal>(), isEmpty);
       h.dispose();
@@ -130,54 +180,73 @@ void main() {
     test('does nothing when this phone is not the elected Director', () async {
       final h = await _Harness.create();
       h.service.nextChallengeResult = AppleAiProposalResult.ok(baseProposal());
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
-      await h.receive(const AiDirectorAssignment(directorPeerId: 'someone-else'));
-      await h.receive(RoundStart(
-        roundId: 'r1',
-        challengeId: 'tap_color',
-        seed: 1,
-        startAt: 0,
-        durationMs: 2000,
-        config: const {'level': 5},
-      ));
+      await h.receive(
+        const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+      );
+      await h.receive(
+        const AiDirectorAssignment(directorPeerId: 'someone-else'),
+      );
+      await h.receive(
+        RoundStart(
+          roundId: 'r1',
+          challengeId: 'tap_color',
+          seed: 1,
+          startAt: 0,
+          durationMs: 2000,
+          config: const {'level': 5},
+        ),
+      );
 
       expect(h.sentToHost.whereType<AiRoundProposal>(), isEmpty);
       h.dispose();
     });
 
-    test('generates and sends a validated round once elected Director', () async {
-      final h = await _Harness.create();
-      h.service.nextChallengeResult = AppleAiProposalResult.ok(baseProposal());
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
-      await h.receive(const AiDirectorAssignment(directorPeerId: 'p1'));
-      await h.receive(RoundStart(
-        roundId: 'r1',
-        challengeId: 'tap_color',
-        seed: 1,
-        startAt: 0,
-        durationMs: 2000,
-        config: const {'level': 5},
-      ));
+    test(
+      'generates and sends a validated round once elected Director',
+      () async {
+        final h = await _Harness.create();
+        h.service.nextChallengeResult = AppleAiProposalResult.ok(
+          baseProposal(),
+        );
+        await h.receive(
+          const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+        );
+        await h.receive(const AiDirectorAssignment(directorPeerId: 'p1'));
+        await h.receive(
+          RoundStart(
+            roundId: 'r1',
+            challengeId: 'tap_color',
+            seed: 1,
+            startAt: 0,
+            durationMs: 2000,
+            config: const {'level': 5},
+          ),
+        );
 
-      final proposal = h.sentToHost.whereType<AiRoundProposal>().single;
-      expect(proposal.proposal['id'], 'ai.abc12');
+        final proposal = h.sentToHost.whereType<AiRoundProposal>().single;
+        expect(proposal.proposal['id'], 'ai.abc12');
 
-      h.dispose();
-    });
+        h.dispose();
+      },
+    );
 
     test('flag off never touches the bridge for generation', () async {
       final h = await _Harness.create(flagsEnabled: false);
       h.service.nextChallengeResult = AppleAiProposalResult.ok(baseProposal());
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
+      await h.receive(
+        const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+      );
       await h.receive(const AiDirectorAssignment(directorPeerId: 'p1'));
-      await h.receive(RoundStart(
-        roundId: 'r1',
-        challengeId: 'tap_color',
-        seed: 1,
-        startAt: 0,
-        durationMs: 2000,
-        config: const {'level': 5},
-      ));
+      await h.receive(
+        RoundStart(
+          roundId: 'r1',
+          challengeId: 'tap_color',
+          seed: 1,
+          startAt: 0,
+          durationMs: 2000,
+          config: const {'level': 5},
+        ),
+      );
 
       expect(h.service.calls.containsKey('requestChallenge'), isFalse);
       expect(h.sentToHost.whereType<AiRoundProposal>(), isEmpty);
@@ -189,16 +258,20 @@ void main() {
       h.service.nextChallengeResult = AppleAiProposalResult.ok(
         baseProposal(id: 'not-a-valid-id'),
       );
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
+      await h.receive(
+        const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+      );
       await h.receive(const AiDirectorAssignment(directorPeerId: 'p1'));
-      await h.receive(RoundStart(
-        roundId: 'r1',
-        challengeId: 'tap_color',
-        seed: 1,
-        startAt: 0,
-        durationMs: 2000,
-        config: const {'level': 5},
-      ));
+      await h.receive(
+        RoundStart(
+          roundId: 'r1',
+          challengeId: 'tap_color',
+          seed: 1,
+          startAt: 0,
+          durationMs: 2000,
+          config: const {'level': 5},
+        ),
+      );
 
       expect(h.sentToHost.whereType<AiRoundProposal>(), isEmpty);
       h.dispose();
@@ -208,11 +281,17 @@ void main() {
   group('PartyAiDirector — commentary', () {
     test('an elimination sends a validated AI commentary proposal', () async {
       final h = await _Harness.create();
-      h.service.nextCommentaryResult = const AppleAiTextResult.ok('Gone, but not forgotten.');
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
+      h.service.nextCommentaryResult = const AppleAiTextResult.ok(
+        'Gone, but not forgotten.',
+      );
+      await h.receive(
+        const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+      );
       await h.receive(const AiDirectorAssignment(directorPeerId: 'p1'));
 
-      await h.receive(const PlayerEliminated(roundId: 'r1', playerId: 'p2', livesLeft: 0));
+      await h.receive(
+        const PlayerEliminated(roundId: 'r1', playerId: 'p2', livesLeft: 0),
+      );
 
       final proposal = h.sentToHost.whereType<AiCommentaryProposal>().single;
       expect(proposal.kind, 'elimination');
@@ -220,28 +299,41 @@ void main() {
       h.dispose();
     });
 
-    test('a static-fallback line (model unavailable) is never sent to the host', () async {
-      final h = await _Harness.create(aiAvailable: false);
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
-      await h.receive(const AiDirectorAssignment(directorPeerId: 'p1'));
+    test(
+      'a static-fallback line (model unavailable) is never sent to the host',
+      () async {
+        final h = await _Harness.create(aiAvailable: false);
+        await h.receive(
+          const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+        );
+        await h.receive(const AiDirectorAssignment(directorPeerId: 'p1'));
 
-      await h.receive(const PlayerEliminated(roundId: 'r1', playerId: 'p2', livesLeft: 0));
+        await h.receive(
+          const PlayerEliminated(roundId: 'r1', playerId: 'p2', livesLeft: 0),
+        );
 
-      expect(h.sentToHost.whereType<AiCommentaryProposal>(), isEmpty);
-      h.dispose();
-    });
+        expect(h.sentToHost.whereType<AiCommentaryProposal>(), isEmpty);
+        h.dispose();
+      },
+    );
 
     test('winning the match sends winner-kind commentary', () async {
       final h = await _Harness.create();
-      h.service.nextCommentaryResult = const AppleAiTextResult.ok('Never in doubt.');
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
+      h.service.nextCommentaryResult = const AppleAiTextResult.ok(
+        'Never in doubt.',
+      );
+      await h.receive(
+        const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+      );
       await h.receive(const AiDirectorAssignment(directorPeerId: 'p1'));
 
-      await h.receive(const GameEnd(
-        mode: GameMode.stupidBattle,
-        results: [GameResultEntry(playerId: 'p1', score: 300, standing: 1)],
-        winnerId: 'p1',
-      ));
+      await h.receive(
+        const GameEnd(
+          mode: GameMode.stupidBattle,
+          results: [GameResultEntry(playerId: 'p1', score: 300, standing: 1)],
+          winnerId: 'p1',
+        ),
+      );
 
       final proposal = h.sentToHost.whereType<AiCommentaryProposal>().single;
       expect(proposal.kind, 'winner');
@@ -255,11 +347,17 @@ void main() {
       // the model on phones the host would just ignore anyway (only the
       // elected Director's proposal is accepted — see `RoomHost.onAiCommentaryProposal`).
       final h = await _Harness.create();
-      h.service.nextCommentaryResult = const AppleAiTextResult.ok('Gone, but not forgotten.');
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
+      h.service.nextCommentaryResult = const AppleAiTextResult.ok(
+        'Gone, but not forgotten.',
+      );
+      await h.receive(
+        const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+      );
       // No AiDirectorAssignment naming 'p1' — this phone was never elected.
 
-      await h.receive(const PlayerEliminated(roundId: 'r1', playerId: 'p2', livesLeft: 0));
+      await h.receive(
+        const PlayerEliminated(roundId: 'r1', playerId: 'p2', livesLeft: 0),
+      );
 
       expect(h.sentToHost.whereType<AiCommentaryProposal>(), isEmpty);
       h.dispose();
@@ -268,14 +366,18 @@ void main() {
     test('losing the match sends loser-kind commentary', () async {
       final h = await _Harness.create();
       h.service.nextCommentaryResult = const AppleAiTextResult.ok('So close.');
-      await h.receive(const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []));
+      await h.receive(
+        const PlayerJoined(selfClientId: 'p1', roomId: 'R', players: []),
+      );
       await h.receive(const AiDirectorAssignment(directorPeerId: 'p1'));
 
-      await h.receive(const GameEnd(
-        mode: GameMode.stupidBattle,
-        results: [GameResultEntry(playerId: 'p2', score: 300, standing: 1)],
-        winnerId: 'p2',
-      ));
+      await h.receive(
+        const GameEnd(
+          mode: GameMode.stupidBattle,
+          results: [GameResultEntry(playerId: 'p2', score: 300, standing: 1)],
+          winnerId: 'p2',
+        ),
+      );
 
       final proposal = h.sentToHost.whereType<AiCommentaryProposal>().single;
       expect(proposal.kind, 'loser');

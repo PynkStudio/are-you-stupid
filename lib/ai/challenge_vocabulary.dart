@@ -30,38 +30,38 @@ enum AiAction {
 
   /// Wire name (`tap_many`, `donot_tap`, ...).
   String get wire => switch (this) {
-        AiAction.tap => 'tap',
-        AiAction.tapMany => 'tap_many',
-        AiAction.hold => 'hold',
-        AiAction.doNotTap => 'donot_tap',
-        AiAction.tapSequence => 'tap_sequence',
-        AiAction.tapUntilStop => 'tap_until_stop',
-        AiAction.colorPick => 'color_pick',
-      };
+    AiAction.tap => 'tap',
+    AiAction.tapMany => 'tap_many',
+    AiAction.hold => 'hold',
+    AiAction.doNotTap => 'donot_tap',
+    AiAction.tapSequence => 'tap_sequence',
+    AiAction.tapUntilStop => 'tap_until_stop',
+    AiAction.colorPick => 'color_pick',
+  };
 
   /// null for anything outside the vocabulary.
   static AiAction? parse(String? value) => switch (value) {
-        'tap' => AiAction.tap,
-        'tap_many' => AiAction.tapMany,
-        'hold' => AiAction.hold,
-        'donot_tap' => AiAction.doNotTap,
-        'tap_sequence' => AiAction.tapSequence,
-        'tap_until_stop' => AiAction.tapUntilStop,
-        'color_pick' => AiAction.colorPick,
-        _ => null,
-      };
+    'tap' => AiAction.tap,
+    'tap_many' => AiAction.tapMany,
+    'hold' => AiAction.hold,
+    'donot_tap' => AiAction.doNotTap,
+    'tap_sequence' => AiAction.tapSequence,
+    'tap_until_stop' => AiAction.tapUntilStop,
+    'color_pick' => AiAction.colorPick,
+    _ => null,
+  };
 
   /// Verbs an instruction must contain for this action to read as the
   /// mechanic's imperative ([[AI Challenge Validator]] → instruction check).
   List<String> get imperativeVerbs => switch (this) {
-        AiAction.tap => const ['TAP'],
-        AiAction.tapMany => const ['TAP', 'EACH', 'ALL', 'EVERY'],
-        AiAction.hold => const ['HOLD'],
-        AiAction.doNotTap => const ['DON\'T', 'DONT', 'DO NOT', 'DO', 'AVOID'],
-        AiAction.tapSequence => const ['TAP', 'REPEAT', 'ORDER', 'SEQUENCE'],
-        AiAction.tapUntilStop => const ['TAP'],
-        AiAction.colorPick => const ['TAP', 'SELECT', 'PICK'],
-      };
+    AiAction.tap => const ['TAP'],
+    AiAction.tapMany => const ['TAP', 'EACH', 'ALL', 'EVERY'],
+    AiAction.hold => const ['HOLD'],
+    AiAction.doNotTap => const ['DON\'T', 'DONT', 'DO NOT', 'DO', 'AVOID'],
+    AiAction.tapSequence => const ['TAP', 'REPEAT', 'ORDER', 'SEQUENCE'],
+    AiAction.tapUntilStop => const ['TAP'],
+    AiAction.colorPick => const ['TAP', 'SELECT', 'PICK'],
+  };
 
   /// [imperativeVerbs] in the player's language: AI challenges are written
   /// in every game locale ([[Localization and Language]]). Verbs follow the
@@ -147,29 +147,29 @@ enum AiKind {
   timing;
 
   String get wire => switch (this) {
-        AiKind.mixed => 'mixed',
-        AiKind.perception => 'perception',
-        AiKind.sequence => 'sequence',
-        AiKind.trick => 'trick',
-        AiKind.counting => 'counting',
-        AiKind.ruleFlip => 'rule_flip',
-        AiKind.memory => 'memory',
-        AiKind.hold => 'hold',
-        AiKind.timing => 'timing',
-      };
+    AiKind.mixed => 'mixed',
+    AiKind.perception => 'perception',
+    AiKind.sequence => 'sequence',
+    AiKind.trick => 'trick',
+    AiKind.counting => 'counting',
+    AiKind.ruleFlip => 'rule_flip',
+    AiKind.memory => 'memory',
+    AiKind.hold => 'hold',
+    AiKind.timing => 'timing',
+  };
 
   static AiKind? parse(String? value) => switch (value) {
-        'mixed' => AiKind.mixed,
-        'perception' => AiKind.perception,
-        'sequence' => AiKind.sequence,
-        'trick' => AiKind.trick,
-        'counting' => AiKind.counting,
-        'rule_flip' => AiKind.ruleFlip,
-        'memory' => AiKind.memory,
-        'hold' => AiKind.hold,
-        'timing' => AiKind.timing,
-        _ => null,
-      };
+    'mixed' => AiKind.mixed,
+    'perception' => AiKind.perception,
+    'sequence' => AiKind.sequence,
+    'trick' => AiKind.trick,
+    'counting' => AiKind.counting,
+    'rule_flip' => AiKind.ruleFlip,
+    'memory' => AiKind.memory,
+    'hold' => AiKind.hold,
+    'timing' => AiKind.timing,
+    _ => null,
+  };
 }
 
 /// Trick variants a proposal may compose. Mirrors the scripted "tricks
@@ -186,25 +186,25 @@ enum AiTrickType {
   requiresAnomaly;
 
   String get wire => switch (this) {
-        AiTrickType.none => 'none',
-        AiTrickType.swap => 'swap',
-        AiTrickType.fakeButton => 'fake_button',
-        AiTrickType.sequence => 'sequence',
-        AiTrickType.ruleFlip => 'rule_flip',
-        AiTrickType.colorShifts => 'color_shifts',
-        AiTrickType.requiresAnomaly => 'requires_anomaly',
-      };
+    AiTrickType.none => 'none',
+    AiTrickType.swap => 'swap',
+    AiTrickType.fakeButton => 'fake_button',
+    AiTrickType.sequence => 'sequence',
+    AiTrickType.ruleFlip => 'rule_flip',
+    AiTrickType.colorShifts => 'color_shifts',
+    AiTrickType.requiresAnomaly => 'requires_anomaly',
+  };
 
   static AiTrickType? parse(String? value) => switch (value) {
-        'none' => AiTrickType.none,
-        'swap' => AiTrickType.swap,
-        'fake_button' => AiTrickType.fakeButton,
-        'sequence' => AiTrickType.sequence,
-        'rule_flip' => AiTrickType.ruleFlip,
-        'color_shifts' => AiTrickType.colorShifts,
-        'requires_anomaly' => AiTrickType.requiresAnomaly,
-        _ => null,
-      };
+    'none' => AiTrickType.none,
+    'swap' => AiTrickType.swap,
+    'fake_button' => AiTrickType.fakeButton,
+    'sequence' => AiTrickType.sequence,
+    'rule_flip' => AiTrickType.ruleFlip,
+    'color_shifts' => AiTrickType.colorShifts,
+    'requires_anomaly' => AiTrickType.requiresAnomaly,
+    _ => null,
+  };
 
   /// Whether the engine needs this trick for the round to be playable.
   bool get isNone => this == AiTrickType.none;
@@ -222,20 +222,20 @@ enum AiShape {
   String get wire => name;
 
   static AiShape? parse(String? value) => switch (value) {
-        'rect' => AiShape.rect,
-        'circle' => AiShape.circle,
-        'triangle' => AiShape.triangle,
-        'diamond' => AiShape.diamond,
-        _ => null,
-      };
+    'rect' => AiShape.rect,
+    'circle' => AiShape.circle,
+    'triangle' => AiShape.triangle,
+    'diamond' => AiShape.diamond,
+    _ => null,
+  };
 
   /// This shape maps 1:1 to a renderable [TargetShape].
   TargetShape toTargetShape() => switch (this) {
-        AiShape.rect => TargetShape.rect,
-        AiShape.circle => TargetShape.circle,
-        AiShape.triangle => TargetShape.triangle,
-        AiShape.diamond => TargetShape.diamond,
-      };
+    AiShape.rect => TargetShape.rect,
+    AiShape.circle => TargetShape.circle,
+    AiShape.triangle => TargetShape.triangle,
+    AiShape.diamond => TargetShape.diamond,
+  };
 }
 
 /// Semantic colors a proposal may use. Same set as the engine's [GameColor];
@@ -254,29 +254,29 @@ enum AiColor {
   String get wire => name;
 
   static AiColor? parse(String? value) => switch (value) {
-        'red' => AiColor.red,
-        'blue' => AiColor.blue,
-        'green' => AiColor.green,
-        'yellow' => AiColor.yellow,
-        'purple' => AiColor.purple,
-        'orange' => AiColor.orange,
-        'pink' => AiColor.pink,
-        'white' => AiColor.white,
-        'slate' => AiColor.slate,
-        _ => null,
-      };
+    'red' => AiColor.red,
+    'blue' => AiColor.blue,
+    'green' => AiColor.green,
+    'yellow' => AiColor.yellow,
+    'purple' => AiColor.purple,
+    'orange' => AiColor.orange,
+    'pink' => AiColor.pink,
+    'white' => AiColor.white,
+    'slate' => AiColor.slate,
+    _ => null,
+  };
 
   GameColor toGameColor() => switch (this) {
-        AiColor.red => GameColor.red,
-        AiColor.blue => GameColor.blue,
-        AiColor.green => GameColor.green,
-        AiColor.yellow => GameColor.yellow,
-        AiColor.purple => GameColor.purple,
-        AiColor.orange => GameColor.orange,
-        AiColor.pink => GameColor.pink,
-        AiColor.white => GameColor.white,
-        AiColor.slate => GameColor.slate,
-      };
+    AiColor.red => GameColor.red,
+    AiColor.blue => GameColor.blue,
+    AiColor.green => GameColor.green,
+    AiColor.yellow => GameColor.yellow,
+    AiColor.purple => GameColor.purple,
+    AiColor.orange => GameColor.orange,
+    AiColor.pink => GameColor.pink,
+    AiColor.white => GameColor.white,
+    AiColor.slate => GameColor.slate,
+  };
 }
 
 /// The dims a sense decoy may play on, with the wire names proposals use.
@@ -290,27 +290,27 @@ enum AiSenseDecoy {
   position;
 
   String get wire => switch (this) {
-        AiSenseDecoy.color => 'color',
-        AiSenseDecoy.label => 'label',
-        AiSenseDecoy.shape => 'shape',
-        AiSenseDecoy.scale => 'size', // the docs' example uses "size"
-        AiSenseDecoy.rotation => 'rotation',
-        AiSenseDecoy.opacity => 'opacity',
-        AiSenseDecoy.position => 'position',
-      };
+    AiSenseDecoy.color => 'color',
+    AiSenseDecoy.label => 'label',
+    AiSenseDecoy.shape => 'shape',
+    AiSenseDecoy.scale => 'size', // the docs' example uses "size"
+    AiSenseDecoy.rotation => 'rotation',
+    AiSenseDecoy.opacity => 'opacity',
+    AiSenseDecoy.position => 'position',
+  };
 
   /// Canonical dimension names the validator compares against element fields.
   /// "size" is accepted as an alias for [AiSenseDecoy.scale].
   static AiSenseDecoy? parse(String? value) => switch (value) {
-        'color' => AiSenseDecoy.color,
-        'label' => AiSenseDecoy.label,
-        'shape' => AiSenseDecoy.shape,
-        'size' || 'scale' => AiSenseDecoy.scale,
-        'rotation' => AiSenseDecoy.rotation,
-        'opacity' => AiSenseDecoy.opacity,
-        'position' => AiSenseDecoy.position,
-        _ => null,
-      };
+    'color' => AiSenseDecoy.color,
+    'label' => AiSenseDecoy.label,
+    'shape' => AiSenseDecoy.shape,
+    'size' || 'scale' => AiSenseDecoy.scale,
+    'rotation' => AiSenseDecoy.rotation,
+    'opacity' => AiSenseDecoy.opacity,
+    'position' => AiSenseDecoy.position,
+    _ => null,
+  };
 }
 
 /// One mechanic in the controlled vocabulary, with the **judging contract**
@@ -446,7 +446,8 @@ const List<ChallengeMechanic> kMechanicVocabulary = [
     kind: AiKind.memory,
     senseDecoys: [AiSenseDecoy.position, AiSenseDecoy.shape],
     floorMs: 1200,
-    correctCount: null, // each round's answer is the growing sequence's next step
+    correctCount:
+        null, // each round's answer is the growing sequence's next step
     tag: ChallengeTag.memory,
   ),
   ChallengeMechanic(
@@ -470,8 +471,9 @@ const List<ChallengeMechanic> kMechanicVocabulary = [
 ];
 
 /// move → [ChallengeMechanic], for the validator's vocabulary lookup.
-final Map<String, ChallengeMechanic> kMechanicByMove =
-    {for (final m in kMechanicVocabulary) m.move: m};
+final Map<String, ChallengeMechanic> kMechanicByMove = {
+  for (final m in kMechanicVocabulary) m.move: m,
+};
 
 /// The move ids eligible right now — backs `GetAvailableMechanicsTool`
 /// ([[Dynamic Profiles and Tool Calling]]). The doc describes this as
@@ -481,9 +483,9 @@ final Map<String, ChallengeMechanic> kMechanicByMove =
 /// the one real filter applied here: a `requiresTrick` mechanic is only
 /// eligible when [allowTricks] is true.
 List<String> availableMechanicMoves({required bool allowTricks}) => [
-      for (final m in kMechanicVocabulary)
-        if (!m.requiresTrick || allowTricks) m.move,
-    ];
+  for (final m in kMechanicVocabulary)
+    if (!m.requiresTrick || allowTricks) m.move,
+];
 
 /// Whether the model may write challenges in [locale]. Every game locale
 /// is on since 2026-10-02 — the on-device model supports all six

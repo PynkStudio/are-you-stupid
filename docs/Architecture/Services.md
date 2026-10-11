@@ -1,6 +1,6 @@
 ---
 tags: [architecture, services]
-updated: 2026-10-02
+updated: 2026-10-06
 ---
 
 # Services
@@ -17,12 +17,12 @@ final services = AppServices.of(context);
 |---|---|---|
 | `SettingsManager` | sound / vibration / savage mode / language | `ChangeNotifier`, SharedPreferences |
 | `ScoreManager` | best level, attempts, average, streak, ad counter | `ChangeNotifier`, SharedPreferences |
-| `SoundManager` | correct / wrong / level / record / button | platform system sounds, no assets |
+| `SoundManager` | correct / wrong / level / record / button | bundled generated SFX through `audioplayers`, fixed 32% gain |
 | `HapticManager` | correct / wrong / record / tap | `HapticFeedback` |
 | `ShareManager` | share text + OS share sheet | `share_plus` |
 | `AdManager` | *policy*: when ads may show; consent (UMP) + ATT before the SDK starts | started post-frame via `AppServices.startAds()`, never during the splash — see [[Monetization and Ads]] |
-| `PurchaseManager` | *policy*: buy/restore the "remove ads" IAP | `ChangeNotifier`, see [[Monetization and Ads]] |
-| `LocalNetworkPermission` | multiplayer Local Network status probe + "open this app's Settings" | `ays/permissions` MethodChannel (`PermissionsController.swift`, `MainActivity.kt`); never throws, `unknown` when the channel is missing — see [[Multiplayer Client (Mobile)]] "Permissions" |
+| `PurchaseManager` | *policy*: buy/restore Remove Ads + Party Pack + Party Bundle IAPs | `ChangeNotifier`, see [[Monetization and Ads]] |
+| `LocalNetworkPermission` | multiplayer Local Network permission + active Wi-Fi transport probes, and "open this app's Settings" | `ays/permissions` MethodChannel (`PermissionsController.swift`, `MainActivity.kt`); never exposes SSID/BSSID, never throws, and returns `unknown` when the channel or a reliable platform answer is missing — see [[Multiplayer Client (Mobile)]] "Permissions" |
 | `AppleAIService` (Phase 2) | on-device Foundation Models client via the `ays/apple_intelligence` MethodChannel | `lib/ai/apple_ai_service.dart` + `AppleAIController.swift`; `available` real, generation stubbed until Phases 4–5 ([[Foundation Models Integration]]); `MockAppleAIService` for tests |
 
 The **dynamic AI director** itself is *not* a service — it's the
@@ -63,28 +63,15 @@ pages were verified live on 2026-10-02. The URL pair is owned by
 privacy policy stays a single URL for every locale; it's deliberately
 English-only.
 
-## Sound without assets
+## Generated sound effects
 
-`SoundManager` talks to a `SoundBackend`. The default `SystemSoundBackend` uses
-`SystemSound.play()`. To ship real sfx later, implement `SoundBackend` and pass
-it to the constructor — nothing else changes.
-
-**Only `SystemSoundType.click` actually plays anything.** The Flutter engine's
-own Android (`PlatformPlugin.playSystemSound`) and iOS
-(`FlutterPlatformPlugin.playSystemSound`) implementations only handle `click`
-(iOS also handles `tick`, Android doesn't); `alert` is a silent no-op on both
-platforms — confirmed by reading the engine source, not assumed. `SoundBackend`
-therefore exposes `click()` only, and every distinct cue (`correct`, `wrong`,
-`record`, ...) is built from repeated clicks with different timing, never a
-different `SystemSoundType`. `wrong()` originally called the non-existent
-`alert()` and produced no sound at all on either platform — fixed by making it
-two clicks 45 ms apart instead.
-
-Even a working `click()` is quiet and, on Android, gated behind the system
-"Touch sounds" setting (`Settings.System.SOUND_EFFECTS_ENABLED`) — off by
-default on many devices, and entirely outside this app's control without
-bundling real audio, which [[Game Design Pillars]] rules out. Don't expect it
-to sound like game SFX; it's a UI click, at best.
+`SoundManager` maps its five semantic `SoundCue`s to reviewed MP3s under
+`assets/audio/sfx/`; `AssetSoundBackend` plays them through `audioplayers` in
+low-latency mode. Every play supplies a hard-coded `0.32` linear gain because
+the generated masters are uncomfortably loud at full scale in headphones.
+Decode failure falls back to the platform click rather than surfacing an error
+or affecting play. `SoundBackend` remains injectable so tests assert semantic
+selection and the Settings gate without invoking a platform audio plugin.
 
 ## Settings gate everything
 

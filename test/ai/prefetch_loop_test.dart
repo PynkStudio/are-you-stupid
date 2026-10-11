@@ -10,46 +10,57 @@ void main() {
       expect(loop.popNext(), isNull);
     });
 
-    test('maybeStart fills the ring, popNext drains it (single-read pop)', () async {
-      var calls = 0;
-      final loop = PrefetchLoop<int>(fetch: () async {
-        calls++;
-        return calls;
-      });
+    test(
+      'maybeStart fills the ring, popNext drains it (single-read pop)',
+      () async {
+        var calls = 0;
+        final loop = PrefetchLoop<int>(
+          fetch: () async {
+            calls++;
+            return calls;
+          },
+        );
 
-      loop.maybeStart();
-      await Future<void>.delayed(Duration.zero);
-      expect(loop.popNext(), 1);
-      expect(loop.popNext(), isNull); // popped once, not re-servable
-    });
+        loop.maybeStart();
+        await Future<void>.delayed(Duration.zero);
+        expect(loop.popNext(), 1);
+        expect(loop.popNext(), isNull); // popped once, not re-servable
+      },
+    );
 
-    test('does not start a second fetch while one is already in flight', () async {
-      var inFlight = 0;
-      var maxConcurrent = 0;
-      final completer = Completer<int?>();
-      final loop = PrefetchLoop<int>(
-        fetch: () {
-          inFlight++;
-          maxConcurrent = inFlight > maxConcurrent ? inFlight : maxConcurrent;
-          return completer.future.whenComplete(() => inFlight--);
-        },
-      );
+    test(
+      'does not start a second fetch while one is already in flight',
+      () async {
+        var inFlight = 0;
+        var maxConcurrent = 0;
+        final completer = Completer<int?>();
+        final loop = PrefetchLoop<int>(
+          fetch: () {
+            inFlight++;
+            maxConcurrent = inFlight > maxConcurrent ? inFlight : maxConcurrent;
+            return completer.future.whenComplete(() => inFlight--);
+          },
+        );
 
-      loop.maybeStart();
-      loop.maybeStart(); // no-op: already fetching
-      loop.maybeStart();
-      completer.complete(1);
-      await Future<void>.delayed(Duration.zero);
+        loop.maybeStart();
+        loop.maybeStart(); // no-op: already fetching
+        loop.maybeStart();
+        completer.complete(1);
+        await Future<void>.delayed(Duration.zero);
 
-      expect(maxConcurrent, 1);
-    });
+        expect(maxConcurrent, 1);
+      },
+    );
 
     test('does not start a new fetch once the ring is full', () async {
       var calls = 0;
-      final loop = PrefetchLoop<int>(fetch: () async {
-        calls++;
-        return calls;
-      }, ringSize: 1);
+      final loop = PrefetchLoop<int>(
+        fetch: () async {
+          calls++;
+          return calls;
+        },
+        ringSize: 1,
+      );
 
       loop.maybeStart();
       await Future<void>.delayed(Duration.zero);
@@ -62,10 +73,12 @@ void main() {
 
     test('a null fetch result leaves the ring empty and retryable', () async {
       var calls = 0;
-      final loop = PrefetchLoop<int>(fetch: () async {
-        calls++;
-        return calls == 1 ? null : 42;
-      });
+      final loop = PrefetchLoop<int>(
+        fetch: () async {
+          calls++;
+          return calls == 1 ? null : 42;
+        },
+      );
 
       loop.maybeStart();
       await Future<void>.delayed(Duration.zero);
@@ -77,23 +90,28 @@ void main() {
     });
 
     test('a thrown fetch error is swallowed, not propagated', () async {
-      final loop = PrefetchLoop<int>(fetch: () async => throw StateError('boom'));
+      final loop = PrefetchLoop<int>(
+        fetch: () async => throw StateError('boom'),
+      );
       loop.maybeStart();
       await Future<void>.delayed(Duration.zero);
       expect(loop.popNext(), isNull); // no crash, just a miss
     });
 
-    test('invalidate clears the ring and discards a result already in flight', () async {
-      final completer = Completer<int?>();
-      final loop = PrefetchLoop<int>(fetch: () => completer.future);
+    test(
+      'invalidate clears the ring and discards a result already in flight',
+      () async {
+        final completer = Completer<int?>();
+        final loop = PrefetchLoop<int>(fetch: () => completer.future);
 
-      loop.maybeStart();
-      loop.invalidate(); // the in-flight fetch below is now stale
-      completer.complete(99);
-      await Future<void>.delayed(Duration.zero);
+        loop.maybeStart();
+        loop.invalidate(); // the in-flight fetch below is now stale
+        completer.complete(99);
+        await Future<void>.delayed(Duration.zero);
 
-      expect(loop.popNext(), isNull); // discarded, not stored
-    });
+        expect(loop.popNext(), isNull); // discarded, not stored
+      },
+    );
 
     test('invalidate lets a fresh fetch start immediately, not waiting on the stale one', () async {
       final staleCompleter = Completer<int?>();
@@ -118,10 +136,13 @@ void main() {
 
     test('respects a custom ringSize', () async {
       var calls = 0;
-      final loop = PrefetchLoop<int>(fetch: () async {
-        calls++;
-        return calls;
-      }, ringSize: 2);
+      final loop = PrefetchLoop<int>(
+        fetch: () async {
+          calls++;
+          return calls;
+        },
+        ringSize: 2,
+      );
 
       loop.maybeStart();
       await Future<void>.delayed(Duration.zero);

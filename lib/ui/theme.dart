@@ -27,44 +27,46 @@ class Ays {
   static const warning = yellow;
 
   static Color of(GameColor c) => switch (c) {
-        GameColor.red => red,
-        GameColor.blue => blue,
-        GameColor.green => green,
-        GameColor.yellow => yellow,
-        GameColor.purple => purple,
-        GameColor.orange => orange,
-        GameColor.pink => pink,
-        GameColor.white => ink,
-        GameColor.slate => surfaceHigh,
-      };
+    GameColor.red => red,
+    GameColor.blue => blue,
+    GameColor.green => green,
+    GameColor.yellow => yellow,
+    GameColor.purple => purple,
+    GameColor.orange => orange,
+    GameColor.pink => pink,
+    GameColor.white => ink,
+    GameColor.slate => surfaceHigh,
+  };
 
   /// Readable label color on top of a given paint.
   static Color inkOn(GameColor c) => switch (c) {
-        GameColor.yellow || GameColor.white || GameColor.green => const Color(0xFF0B0B0F),
-        _ => ink,
-      };
+    GameColor.yellow ||
+    GameColor.white ||
+    GameColor.green => const Color(0xFF0B0B0F),
+    _ => ink,
+  };
 
   // -------------------------------------------------------------------- type
   // System font on purpose: zero assets, instant load.
   static const String? _family = null;
 
   static TextStyle title(double size) => TextStyle(
-        fontFamily: _family,
-        fontSize: size,
-        height: 0.92,
-        fontWeight: FontWeight.w900,
-        letterSpacing: -1.5,
-        color: ink,
-      );
+    fontFamily: _family,
+    fontSize: size,
+    height: 0.92,
+    fontWeight: FontWeight.w900,
+    letterSpacing: -1.5,
+    color: ink,
+  );
 
   static TextStyle instruction(double size) => TextStyle(
-        fontFamily: _family,
-        fontSize: size,
-        height: 1.0,
-        fontWeight: FontWeight.w900,
-        letterSpacing: -0.8,
-        color: ink,
-      );
+    fontFamily: _family,
+    fontSize: size,
+    height: 1.0,
+    fontWeight: FontWeight.w900,
+    letterSpacing: -0.8,
+    color: ink,
+  );
 
   static TextStyle label(double size, {Color? color, FontWeight? weight}) =>
       TextStyle(
@@ -76,12 +78,12 @@ class Ays {
       );
 
   static TextStyle mono(double size, {Color? color}) => TextStyle(
-        fontFamily: _family,
-        fontSize: size,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.4,
-        color: color ?? inkDim,
-      );
+    fontFamily: _family,
+    fontSize: size,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 1.4,
+    color: color ?? inkDim,
+  );
 
   // ------------------------------------------------------------------ shapes
   static const radius = BorderRadius.all(Radius.circular(26));

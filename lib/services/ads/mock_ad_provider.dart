@@ -28,10 +28,8 @@ class MockAdProvider implements AdProvider {
         opaque: true,
         barrierDismissible: false,
         transitionDuration: const Duration(milliseconds: 180),
-        pageBuilder: (_, _, _) => MockAdOverlay(
-          seconds: rewarded ? 5 : 3,
-          rewarded: rewarded,
-        ),
+        pageBuilder: (_, _, _) =>
+            MockAdOverlay(seconds: rewarded ? 5 : 3, rewarded: rewarded),
       ),
     );
     return result ?? false;

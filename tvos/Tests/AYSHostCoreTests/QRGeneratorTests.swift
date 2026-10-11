@@ -17,8 +17,8 @@ final class QRGeneratorTests: XCTestCase {
     func testJoinDeepLinkMatchesTheClientContract() {
         // Mirrors lib/ui/screens/multiplayer/mp_home_screen.dart's
         // `_deepLinkRoomCode` regex exactly.
-        XCTAssertEqual(QRGenerator.joinDeepLink(roomCode: "7f4k"), "areyoustupid://join?room=7F4K")
-        XCTAssertEqual(QRGenerator.joinDeepLink(roomCode: "  aB3d  "), "areyoustupid://join?room=AB3D")
+        XCTAssertEqual(QRGenerator.joinDeepLink(roomCode: "7f4k"), "https://pynkstudio.eu/ays/join?room=7F4K")
+        XCTAssertEqual(QRGenerator.joinDeepLink(roomCode: "  aB3d  "), "https://pynkstudio.eu/ays/join?room=AB3D")
     }
 
     func testProducesAnImageOfTheExpectedScaledSize() throws {

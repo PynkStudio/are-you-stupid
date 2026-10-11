@@ -14,10 +14,9 @@ TapTargetChallenge buildTapColor(ChallengeParams p) {
     id: 'tap_color',
     tag: ChallengeTag.color,
     duration: p.pace(const Duration(milliseconds: 2200)),
-    instruction: p.tr(
-      'challenge.tap_color.instruction',
-      {'color': p.colorLabel(target)},
-    ),
+    instruction: p.tr('challenge.tap_color.instruction', {
+      'color': p.colorLabel(target),
+    }),
     targets: targets,
     correctIds: {correct},
   );
@@ -31,14 +30,14 @@ class MovingColorChallenge extends TapTargetChallenge {
     required super.targets,
     required super.correctIds,
   }) : super(
-          p,
-          id: 'tap_color_moving',
-          tag: ChallengeTag.color,
-          duration: p.pace(const Duration(milliseconds: 2600)),
-        );
+         p,
+         id: 'tap_color_moving',
+         tag: ChallengeTag.color,
+         duration: p.pace(const Duration(milliseconds: 2600)),
+       );
 
   late final List<double> _phases = [
-    for (var i = 0; i < targets.length; i++) i * 1.7 + params.rng.nextDouble()
+    for (var i = 0; i < targets.length; i++) i * 1.7 + params.rng.nextDouble(),
   ];
 
   @override
@@ -61,10 +60,9 @@ class MovingColorChallenge extends TapTargetChallenge {
     final targets = honestColorTargets(colors, p.locale);
     return MovingColorChallenge(
       p,
-      instruction: p.tr(
-        'challenge.tap_color_moving.instruction',
-        {'color': p.colorLabel(target)},
-      ),
+      instruction: p.tr('challenge.tap_color_moving.instruction', {
+        'color': p.colorLabel(target),
+      }),
       targets: targets,
       correctIds: {targets[colors.indexOf(target)].id},
     );
@@ -73,7 +71,7 @@ class MovingColorChallenge extends TapTargetChallenge {
 
 /// Builds a set of buttons where paint and word deliberately disagree.
 ({List<TargetSpec> targets, int paintIndex, int wordIndex, GameColor color})
-    _conflictingSet(ChallengeParams p) {
+_conflictingSet(ChallengeParams p) {
   final paints = p.shuffled(kBasicColors);
   final color = p.pick(paints);
   final paintIndex = paints.indexOf(color);
@@ -102,10 +100,9 @@ TapTargetChallenge buildTapActualColor(ChallengeParams p) {
     id: 'tap_actual_color',
     tag: ChallengeTag.color,
     duration: p.pace(const Duration(milliseconds: 2400)),
-    instruction: p.tr(
-      'challenge.tap_actual_color.instruction',
-      {'color': p.colorLabel(set.color)},
-    ),
+    instruction: p.tr('challenge.tap_actual_color.instruction', {
+      'color': p.colorLabel(set.color),
+    }),
     targets: set.targets,
     correctIds: {set.targets[set.paintIndex].id},
     wrongReason: p.tr('challenge.tap_actual_color.wrong'),
@@ -120,10 +117,9 @@ TapTargetChallenge buildTapTheWord(ChallengeParams p) {
     id: 'tap_the_word',
     tag: ChallengeTag.word,
     duration: p.pace(const Duration(milliseconds: 2600)),
-    instruction: p.tr(
-      'challenge.tap_the_word.instruction',
-      {'color': p.colorLabel(set.color)},
-    ),
+    instruction: p.tr('challenge.tap_the_word.instruction', {
+      'color': p.colorLabel(set.color),
+    }),
     targets: set.targets,
     correctIds: {set.targets[set.wordIndex].id},
     wrongReason: p.tr('challenge.tap_the_word.wrong'),
@@ -144,10 +140,9 @@ TapTargetChallenge buildDontTapColor(ChallengeParams p) {
     id: 'dont_tap_color',
     tag: ChallengeTag.color,
     duration: p.pace(const Duration(milliseconds: 2400)),
-    instruction: p.tr(
-      'challenge.dont_tap_color.instruction',
-      {'color': p.colorLabel(banned)},
-    ),
+    instruction: p.tr('challenge.dont_tap_color.instruction', {
+      'color': p.colorLabel(banned),
+    }),
     targets: targets,
     correctIds: correct,
     wrongReason: p.tr('challenge.dont_tap_color.wrong'),
@@ -158,16 +153,15 @@ TapTargetChallenge buildDontTapColor(ChallengeParams p) {
 /// 6 — DON'T TAP RED, while every button keeps repainting itself.
 class ShiftingColorsChallenge extends BaseChallenge {
   ShiftingColorsChallenge(ChallengeParams p)
-      : super(
-          p,
-          id: 'dont_tap_color_shifting',
-          tag: ChallengeTag.color,
-          duration: p.pace(const Duration(milliseconds: 3200), floorMs: 1500),
-        ) {
-    instruction = p.tr(
-      'challenge.dont_tap_color_shifting.instruction',
-      {'color': p.colorLabel(GameColor.red)},
-    );
+    : super(
+        p,
+        id: 'dont_tap_color_shifting',
+        tag: ChallengeTag.color,
+        duration: p.pace(const Duration(milliseconds: 3200), floorMs: 1500),
+      ) {
+    instruction = p.tr('challenge.dont_tap_color_shifting.instruction', {
+      'color': p.colorLabel(GameColor.red),
+    });
     hint = p.tr('challenge.dont_tap_color_shifting.hint');
     layout = ChallengeLayout.grid2x2;
     _repaint();
@@ -202,10 +196,9 @@ class ShiftingColorsChallenge extends BaseChallenge {
     if (hit == null) return;
     if (hit.color == GameColor.red) {
       host.fail(
-        reason: params.tr(
-          'challenge.dont_tap_color_shifting.wrong',
-          {'color': params.colorLabel(GameColor.red)},
-        ),
+        reason: params.tr('challenge.dont_tap_color_shifting.wrong', {
+          'color': params.colorLabel(GameColor.red),
+        }),
       );
     } else {
       host.pass();
@@ -213,9 +206,8 @@ class ShiftingColorsChallenge extends BaseChallenge {
   }
 
   @override
-  void onTimeout(ChallengeHost host) => host.fail(
-        reason: params.tr('challenge.dont_tap_color_shifting.late'),
-      );
+  void onTimeout(ChallengeHost host) =>
+      host.fail(reason: params.tr('challenge.dont_tap_color_shifting.late'));
 }
 
 /// 7 — four color words, four paints, one paint nobody wrote down.

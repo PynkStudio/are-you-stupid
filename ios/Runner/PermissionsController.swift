@@ -7,6 +7,7 @@
 //  "Permissions"). Dart side: lib/services/local_network_permission.dart.
 //
 //  - `localNetworkStatus` -> "granted" | "denied" | "unknown"
+//  - `wifiStatus`         -> "connected" | "disconnected" | "unknown"
 //  - `openAppSettings`    -> Bool (opened this app's page in Settings)
 //
 //  iOS has no API that reads the Local Network permission, so the status is
@@ -46,6 +47,22 @@ final class PermissionsController: NSObject {
                 self?.probes.removeAll { $0 === probe }
                 result(status)
             }
+        case "wifiStatus":
+#if targetEnvironment(simulator)
+            // The simulator normally reaches the LAN through the Mac rather
+            // than an iPhone Wi-Fi interface, so reporting "off Wi-Fi" would
+            // be a false warning during development.
+            result("unknown")
+#else
+            let monitor = NWPathMonitor(requiredInterfaceType: .wifi)
+            monitor.pathUpdateHandler = { path in
+                monitor.cancel()
+                DispatchQueue.main.async {
+                    result(path.status == .satisfied ? "connected" : "disconnected")
+                }
+            }
+            monitor.start(queue: DispatchQueue(label: "ays.wifi-status"))
+#endif
         case "openAppSettings":
             guard let url = URL(string: UIApplication.openSettingsURLString) else {
                 result(false)

@@ -10,9 +10,8 @@ class ChallengeGenerator {
     required List<ChallengeTemplate> templates,
     Random? random,
     this.locale = AppLocale.en,
-  })  : _templates = templates,
-        _rng = random ?? Random();
-
+  }) : _templates = templates,
+       _rng = random ?? Random();
 
   final List<ChallengeTemplate> _templates;
   final Random _rng;

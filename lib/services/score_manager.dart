@@ -23,8 +23,7 @@ class ScoreManager extends ChangeNotifier {
   int get bestStreak => _prefs.getInt(_kStreak) ?? 0;
   int get runsSinceAd => _prefs.getInt(_kRunsSinceAd) ?? 0;
 
-  double get averageLevel =>
-      totalAttempts == 0 ? 0 : _levelSum / totalAttempts;
+  double get averageLevel => totalAttempts == 0 ? 0 : _levelSum / totalAttempts;
 
   /// Records a finished run. Returns true when it is a new personal best.
   ///

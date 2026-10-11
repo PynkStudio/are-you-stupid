@@ -21,9 +21,14 @@ import Foundation
 
 public enum QRGenerator {
     /// Mirrors lib/ui/screens/multiplayer/mp_home_screen.dart's
-    /// `_deepLinkRoomCode` contract exactly: `areyoustupid://join?room=XXXX`.
+    /// `_deepLinkRoomCode` contract: a universal link,
+    /// `https://pynkstudio.eu/ays/join?room=XXXX`. An https URL — not the
+    /// app's custom scheme — because players (and App Review) scan the TV
+    /// with the system camera: with the app installed iOS opens it straight
+    /// into the room (applinks:pynkstudio.eu), without it the page offers the
+    /// App Store. A custom scheme there reads "No usable data found".
     public static func joinDeepLink(roomCode: String) -> String {
-        "areyoustupid://join?room=\(roomCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased())"
+        "https://pynkstudio.eu/ays/join?room=\(roomCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased())"
     }
 
     /// Renders `text` as a QR code and returns it as a `CGImage`, scaled up

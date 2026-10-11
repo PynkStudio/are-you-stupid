@@ -28,9 +28,11 @@ class MpBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        decoration: const BoxDecoration(gradient: Ays.pageGradient),
-        child: SafeArea(child: Padding(padding: padding, child: child)),
-      );
+    decoration: const BoxDecoration(gradient: Ays.pageGradient),
+    child: SafeArea(
+      child: Padding(padding: padding, child: child),
+    ),
+  );
 }
 
 const _kAvatarColors = [
@@ -135,7 +137,10 @@ class MpTextField extends StatelessWidget {
 /// Camera (optional, QR only) *before* the OS asks. Resolves true on
 /// CONTINUE, false on NOT NOW ([[Multiplayer Client (Mobile)]]
 /// "Permissions").
-Future<bool> showMpPermissionsPrimer(BuildContext context, AppLocale locale) async {
+Future<bool> showMpPermissionsPrimer(
+  BuildContext context,
+  AppLocale locale,
+) async {
   String t(String key) => Strings.t(locale, key);
   final accepted = await showDialog<bool>(
     context: context,
@@ -200,7 +205,11 @@ Future<bool> showMpPermissionsPrimer(BuildContext context, AppLocale locale) asy
 }
 
 class _PrimerItem extends StatelessWidget {
-  const _PrimerItem({required this.icon, required this.title, required this.body});
+  const _PrimerItem({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
 
   final IconData icon;
   final String title;
@@ -208,54 +217,61 @@ class _PrimerItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: Ays.ink, size: 28),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: Ays.label(16, weight: FontWeight.w900)),
-                const SizedBox(height: 4),
-                Text(body, style: Ays.label(13, color: Ays.inkDim)),
-              ],
-            ),
-          ),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Icon(icon, color: Ays.ink, size: 28),
+      const SizedBox(width: 14),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Ays.label(16, weight: FontWeight.w900)),
+            const SizedBox(height: 4),
+            Text(body, style: Ays.label(13, color: Ays.inkDim)),
+          ],
+        ),
+      ),
+    ],
+  );
 }
 
-/// A denied-permission notice with one fix-it action (OPEN SETTINGS).
+/// A multiplayer preflight notice, optionally with one fix-it action.
 class MpPermissionNotice extends StatelessWidget {
   const MpPermissionNotice({
     super.key,
     required this.message,
-    required this.actionLabel,
-    required this.onAction,
+    this.actionLabel,
+    this.onAction,
   });
 
   final String message;
-  final String actionLabel;
-  final VoidCallback onAction;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Ays.surface,
-          borderRadius: Ays.radiusSmall,
-          border: Border.all(color: Ays.warning, width: 2),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(message, textAlign: TextAlign.center, style: Ays.label(14)),
-            const SizedBox(height: 12),
-            AysButton(label: actionLabel, height: 52, fontSize: 17, onTap: onAction),
-          ],
-        ),
-      );
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Ays.surface,
+      borderRadius: Ays.radiusSmall,
+      border: Border.all(color: Ays.warning, width: 2),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(message, textAlign: TextAlign.center, style: Ays.label(14)),
+        if (actionLabel != null && onAction != null) ...[
+          const SizedBox(height: 12),
+          AysButton(
+            label: actionLabel!,
+            height: 52,
+            fontSize: 17,
+            onTap: onAction!,
+          ),
+        ],
+      ],
+    ),
+  );
 }
 
 /// Leaves the room (best-effort) and disposes [session], then pops every

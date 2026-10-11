@@ -1,0 +1,9 @@
+// Presenter backend (PynkStudio) for the tvOS board and the Mac board window.
+// See docs/Product/Multiplayer Presenter.md. `//` starts an xcconfig comment,
+// hence the `$()` inside the URL.
+AYS_PRESENTER_BACKEND_URL = https:/$()/pynkstudio.eu
+
+// The shared token lives in the untracked Presenter.secrets.xcconfig. Without
+// it the presenter stays offline (bundled pack, subtitles, system speech).
+AYS_PRESENTER_API_TOKEN =
+#include? "Presenter.secrets.xcconfig"

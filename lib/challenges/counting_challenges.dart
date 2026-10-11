@@ -73,12 +73,12 @@ class ExactTapsChallenge extends BaseChallenge {
   }
 
   static ExactTapsChallenge twice(ChallengeParams p) => ExactTapsChallenge(
-        p,
-        required_: 2,
-        id: 'tap_twice',
-        duration: p.pace(const Duration(milliseconds: 2600), floorMs: 1400),
-        instruction: p.tr('challenge.tap_twice.instruction'),
-      );
+    p,
+    required_: 2,
+    id: 'tap_twice',
+    duration: p.pace(const Duration(milliseconds: 2600), floorMs: 1400),
+    instruction: p.tr('challenge.tap_twice.instruction'),
+  );
 
   static ExactTapsChallenge exactly(ChallengeParams p) {
     final n = 3 + p.rng.nextInt(4); // 3..6
@@ -88,10 +88,7 @@ class ExactTapsChallenge extends BaseChallenge {
       id: 'tap_exactly_n',
       // Counting-under-pressure: a bit more room than a plain reaction tap.
       duration: p.pace(const Duration(milliseconds: 4000), floorMs: 2100),
-      instruction: p.tr(
-        'challenge.tap_exactly_n.instruction',
-        {'n': '$n'},
-      ),
+      instruction: p.tr('challenge.tap_exactly_n.instruction', {'n': '$n'}),
     );
   }
 }
@@ -99,12 +96,12 @@ class ExactTapsChallenge extends BaseChallenge {
 /// 15 — TAP AS FAST AS YOU CAN. Reach the count before the timer dies.
 class SpamTapsChallenge extends BaseChallenge {
   SpamTapsChallenge(ChallengeParams p, this.goal)
-      : super(
-          p,
-          id: 'spam_taps',
-          tag: ChallengeTag.reaction,
-          duration: p.pace(const Duration(milliseconds: 2600), floorMs: 1500),
-        ) {
+    : super(
+        p,
+        id: 'spam_taps',
+        tag: ChallengeTag.reaction,
+        duration: p.pace(const Duration(milliseconds: 2600), floorMs: 1500),
+      ) {
     instruction = p.tr('challenge.spam_taps.instruction', {'n': '$goal'});
     layout = ChallengeLayout.single;
     targets = [
@@ -179,7 +176,9 @@ TapTargetChallenge buildMath(ChallengeParams p) {
     // Actual arithmetic needs a beat longer than reading a color off a button.
     duration: p.pace(const Duration(milliseconds: 3600), floorMs: 1700),
     instruction: p.tr(
-      plus ? 'challenge.math.instruction_plus' : 'challenge.math.instruction_minus',
+      plus
+          ? 'challenge.math.instruction_plus'
+          : 'challenge.math.instruction_minus',
       {'a': '$a', 'b': '$b'},
     ),
     targets: numberTargets(list),
@@ -192,10 +191,9 @@ TapTargetChallenge buildMath(ChallengeParams p) {
 TapTargetChallenge buildCountShapes(ChallengeParams p) {
   final circles = 2 + p.rng.nextInt(5); // 2..6
   final triangles = 1 + p.rng.nextInt(4);
-  final soup = p.shuffled([
-    ...List.filled(circles, '●'),
-    ...List.filled(triangles, '▲'),
-  ]).join(' ');
+  final soup = p
+      .shuffled([...List.filled(circles, '●'), ...List.filled(triangles, '▲')])
+      .join(' ');
 
   final options = <int>{circles};
   while (options.length < 4) {

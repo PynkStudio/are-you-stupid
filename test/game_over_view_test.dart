@@ -36,8 +36,9 @@ void main() {
         ),
       );
 
-  testWidgets('shows the run recap: level, best, streak, killed-by',
-      (tester) async {
+  testWidgets('shows the run recap: level, best, streak, killed-by', (
+    tester,
+  ) async {
     await tester.pumpWidget(card());
     await tester.pumpAndSettle();
 
@@ -56,16 +57,18 @@ void main() {
     expect(find.text('KILLED BY'), findsNothing);
   });
 
-  testWidgets('an AI verdict ready at appearance is the headline',
-      (tester) async {
+  testWidgets('an AI verdict ready at appearance is the headline', (
+    tester,
+  ) async {
     await tester.pumpWidget(card(aiVerdict: 'Seven levels of pure luck.'));
     await tester.pumpAndSettle();
 
     expect(find.text('SEVEN LEVELS OF PURE LUCK.'), findsOneWidget);
   });
 
-  testWidgets('a verdict arriving during the input lock swaps in',
-      (tester) async {
+  testWidgets('a verdict arriving during the input lock swaps in', (
+    tester,
+  ) async {
     await tester.pumpWidget(card());
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpWidget(card(aiVerdict: 'Late but fair.'));
@@ -74,8 +77,9 @@ void main() {
     expect(find.text('LATE BUT FAIR.'), findsOneWidget);
   });
 
-  testWidgets('a verdict arriving after the lock never moves the headline',
-      (tester) async {
+  testWidgets('a verdict arriving after the lock never moves the headline', (
+    tester,
+  ) async {
     await tester.pumpWidget(card());
     await tester.pumpAndSettle(); // past the 600 ms lock
     await tester.pumpWidget(card(aiVerdict: 'Too late.'));

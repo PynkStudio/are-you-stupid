@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, overview]
-updated: 2026-10-03
+updated: 2026-10-06
 ---
 
 # Multiplayer Architecture
@@ -10,8 +10,9 @@ The party mode that turns the iPhone/iPad Flutter game into a 2–16 player
 controller-led, TV-hosted party game. This is a **new vertical slice** over the
 existing single-player app — the single-player experience is untouched.
 
-The board can be an **Apple TV** or a **Mac** — the macOS build is board-only
-(host + display, no direct play) with an AirPlay mirror button
+The board can be an **Apple TV** or a **Mac**. On the Mac there is one app:
+the Flutter macOS build asks HOST or PLAY; HOST opens the shared SwiftUI board
+(`AYSHostUI`) in its own window, with an AirPlay mirror button
 ([[Multiplayer Host (tvOS)]], [[Multiplayer Product]]).
 
 Core play is LAN-local and offline-capable. A future optional
@@ -20,7 +21,7 @@ cached/generated audio but has no authority over room state, timing, judging,
 scores or winner selection.
 
 ```
-   APPLE TV (native SwiftUI)      macOS (board-only SwiftUI, + AirPlay mirror)
+   APPLE TV (native SwiftUI)      macOS (Flutter app → AYSHostUI board window)
                  ▲                                ▲
                  │           Game Host core (shared Swift `Host/` graph)
                  │                                │
@@ -106,7 +107,7 @@ Two complementary paths, both offline/LAN-only:
   as its instance name and a TXT snapshot containing device name, occupancy,
   capacity and lobby/playing state. The app browses while foregrounded and
   auto-lists live rooms; roster changes refresh the snapshot without rebinding.
-- **Deep-link QR:** the TV shows `areyoustupid://join?room=7F4K` as a QR
+- **Deep-link QR:** the TV shows the universal link `https://pynkstudio.eu/ays/join?room=7F4K` as a QR
   (image generated on-device — zero external assets, [[Game Design Pillars]]).
   Scanning opens the Flutter app straight into the join flow; the app resolves
   the host from the room code via Bonjour. If a saved player profile exists

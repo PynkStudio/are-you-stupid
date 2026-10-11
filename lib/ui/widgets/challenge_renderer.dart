@@ -51,7 +51,9 @@ class ChallengeRenderer extends StatelessWidget {
     return Column(
       children: [
         _InstructionBlock(view: view),
-        Expanded(child: _PlayArea(view: view, claim: claim, onTarget: onTarget)),
+        Expanded(
+          child: _PlayArea(view: view, claim: claim, onTarget: onTarget),
+        ),
       ],
     );
   }

@@ -14,7 +14,10 @@ void main() {
       expect(flags.dynamicAIEnabled, isTrue);
       expect(flags.aiChallengeGenerationEnabled, isTrue);
       expect(flags.aiCommentaryEnabled, isTrue);
-      expect(flags.aiAdaptiveDifficultyEnabled, isFalse); // the one off-by-default flag
+      expect(
+        flags.aiAdaptiveDifficultyEnabled,
+        isFalse,
+      ); // the one off-by-default flag
       expect(flags.aiMultiplayerDirectorEnabled, isTrue);
       expect(flags.aiFailoverEnabled, isTrue);
       expect(flags.aiObservabilityEnabled, isTrue);
@@ -23,28 +26,40 @@ void main() {
   });
 
   group('master switch short-circuits every sub-flag', () {
-    test('dynamicAIEnabled=false forces every sub-flag to read false', () async {
-      final flags = await _flags();
-      await flags.setDynamicAIEnabled(false);
+    test(
+      'dynamicAIEnabled=false forces every sub-flag to read false',
+      () async {
+        final flags = await _flags();
+        await flags.setDynamicAIEnabled(false);
 
-      expect(flags.dynamicAIEnabled, isFalse);
-      expect(flags.aiChallengeGenerationEnabled, isFalse);
-      expect(flags.aiCommentaryEnabled, isFalse);
-      expect(flags.aiAdaptiveDifficultyEnabled, isFalse);
-      expect(flags.aiMultiplayerDirectorEnabled, isFalse);
-      expect(flags.aiFailoverEnabled, isFalse);
-      expect(flags.aiObservabilityEnabled, isFalse);
-    });
+        expect(flags.dynamicAIEnabled, isFalse);
+        expect(flags.aiChallengeGenerationEnabled, isFalse);
+        expect(flags.aiCommentaryEnabled, isFalse);
+        expect(flags.aiAdaptiveDifficultyEnabled, isFalse);
+        expect(flags.aiMultiplayerDirectorEnabled, isFalse);
+        expect(flags.aiFailoverEnabled, isFalse);
+        expect(flags.aiObservabilityEnabled, isFalse);
+      },
+    );
 
-    test('re-enabling the master restores the underlying sub-flag values', () async {
-      final flags = await _flags();
-      await flags.setCommentaryEnabled(false);
-      await flags.setDynamicAIEnabled(false);
-      expect(flags.aiCommentaryEnabled, isFalse); // masked by master
-      await flags.setDynamicAIEnabled(true);
-      expect(flags.aiCommentaryEnabled, isFalse); // the sub-flag's own value survived
-      expect(flags.aiChallengeGenerationEnabled, isTrue); // untouched sub-flag
-    });
+    test(
+      're-enabling the master restores the underlying sub-flag values',
+      () async {
+        final flags = await _flags();
+        await flags.setCommentaryEnabled(false);
+        await flags.setDynamicAIEnabled(false);
+        expect(flags.aiCommentaryEnabled, isFalse); // masked by master
+        await flags.setDynamicAIEnabled(true);
+        expect(
+          flags.aiCommentaryEnabled,
+          isFalse,
+        ); // the sub-flag's own value survived
+        expect(
+          flags.aiChallengeGenerationEnabled,
+          isTrue,
+        ); // untouched sub-flag
+      },
+    );
   });
 
   group('persistence', () {

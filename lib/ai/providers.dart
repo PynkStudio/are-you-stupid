@@ -66,7 +66,7 @@ abstract class ChallengeProvider {
 /// `lib/challenges/registry.dart` → `buildFromSeed` (multiplayer).
 class ScriptedChallengeProvider implements ChallengeProvider {
   ScriptedChallengeProvider({required ChallengeGenerator generator})
-      : _generator = generator;
+    : _generator = generator;
 
   final ChallengeGenerator _generator;
 
@@ -105,11 +105,11 @@ class AdaptiveChallengeProvider implements ChallengeProvider {
     int varietyWindow = 8,
     int varietyCap = 3,
     int maxRerolls = 4,
-  })  : _inner = inner,
-        _profile = profile,
-        _varietyWindow = varietyWindow,
-        _varietyCap = varietyCap,
-        _maxRerolls = maxRerolls;
+  }) : _inner = inner,
+       _profile = profile,
+       _varietyWindow = varietyWindow,
+       _varietyCap = varietyCap,
+       _maxRerolls = maxRerolls;
 
   final ChallengeProvider _inner;
 
@@ -143,11 +143,12 @@ class AdaptiveChallengeProvider implements ChallengeProvider {
     final rates = profile.successRateByMechanic;
     if (rates.isEmpty) return const [];
     final average = rates.values.reduce((a, b) => a + b) / rates.length;
-    final entries = rates.entries
-        .where((e) => e.value < average)
-        .where((e) => _count(_recentMechanics, e.key) < _varietyCap)
-        .toList()
-      ..sort((a, b) => a.value.compareTo(b.value)); // weakest first
+    final entries =
+        rates.entries
+            .where((e) => e.value < average)
+            .where((e) => _count(_recentMechanics, e.key) < _varietyCap)
+            .toList()
+          ..sort((a, b) => a.value.compareTo(b.value)); // weakest first
     return [for (final e in entries) e.key];
   }
 
@@ -216,9 +217,9 @@ class AIChallengeProvider implements ChallengeProvider {
     required Future<AiFeatureFlags> Function() loadFlags,
     ChallengeValidator validator = const ChallengeValidator(),
     PlayerGameplayProfile? Function()? profileSnapshot,
-  })  : _service = service,
-        _validator = validator,
-        _profileSnapshot = profileSnapshot {
+  }) : _service = service,
+       _validator = validator,
+       _profileSnapshot = profileSnapshot {
     _loop = PrefetchLoop<_CachedChallenge>(fetch: _fetchOne);
     unawaited(_initFlags(loadFlags));
   }
@@ -304,7 +305,9 @@ class AIChallengeProvider implements ChallengeProvider {
   Future<_CachedChallenge?> _fetchOne() async {
     final context = _fetchContext;
     final flags = _flags;
-    if (context == null || flags == null || !flags.aiChallengeGenerationEnabled) {
+    if (context == null ||
+        flags == null ||
+        !flags.aiChallengeGenerationEnabled) {
       return null;
     }
     final availability = await _service.available();
@@ -382,8 +385,8 @@ class FallbackChallengeProvider implements ChallengeProvider {
   FallbackChallengeProvider({
     required ChallengeProvider scripted,
     ChallengeProvider? ai,
-  })  : _scripted = scripted,
-        _ai = ai;
+  }) : _scripted = scripted,
+       _ai = ai;
 
   final ChallengeProvider _scripted;
   final ChallengeProvider? _ai;

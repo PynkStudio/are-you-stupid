@@ -38,7 +38,11 @@ void main() {
             level: level,
           );
 
-          expectViewEquals(a, b, reason: '${template.id} seed=$seed level=$level');
+          expectViewEquals(
+            a,
+            b,
+            reason: '${template.id} seed=$seed level=$level',
+          );
           expect(a.duration, b.duration, reason: template.id);
           expect(a.id, template.id);
         }
@@ -83,11 +87,7 @@ void main() {
 
 /// Shallow-ish deep equality of two built challenges through their first view.
 /// [Challenge] does not define `==`; this compares every render-relevant field.
-void expectViewEquals(
-  Challenge a,
-  Challenge b, {
-  required String reason,
-}) {
+void expectViewEquals(Challenge a, Challenge b, {required String reason}) {
   final va = a.view;
   final vb = b.view;
   expect(va.instruction, vb.instruction, reason: reason);

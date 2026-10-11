@@ -257,7 +257,8 @@ class ChallengeParams {
       Strings.t(locale, key, args);
 
   /// The color vocabulary word for [color] in the current [locale].
-  String colorLabel(GameColor color) => Strings.t(locale, 'color.${color.name}');
+  String colorLabel(GameColor color) =>
+      Strings.t(locale, 'color.${color.name}');
 
   /// Language-specific gameplay word content for the word challenges
   /// (`tap_word_button`, `tap_nothing_button`, `odd_word_out`, `opposite`).
@@ -277,12 +278,12 @@ class ChallengeParams {
       Strings.list(locale, 'word.odd_word_out.intruder', 6);
 
   List<(String, String)> get oppositePairs => [
-        for (var i = 0; i < 6; i++)
-          () {
-            final parts = tr('word.opposite.pair.$i').split('|');
-            return (parts[0], parts[1]);
-          }(),
-      ];
+    for (var i = 0; i < 6; i++)
+      () {
+        final parts = tr('word.opposite.pair.$i').split('|');
+        return (parts[0], parts[1]);
+      }(),
+  ];
 
   /// word -> letter count (the correct `spell_count` answer) in [locale].
   Map<String, int> get spellCountLetters =>

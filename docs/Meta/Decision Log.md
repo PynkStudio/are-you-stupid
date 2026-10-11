@@ -1,6 +1,6 @@
 ---
 tags: [meta, decisions, adr]
-updated: 2026-10-03
+updated: 2026-10-11
 ---
 
 # Decision Log
@@ -3043,3 +3043,413 @@ usage counters, never a plaintext name or sentence.
 events request it. Sliding retention naturally preserves common name/phrase
 combinations while removing the long tail without an ever-growing database.
 See [[Multiplayer Presenter]].
+
+### 2026-10-06 — Ambiguous names borrow another phone's local model over LAN
+
+**Decision.** Deterministic normalization, including common leetspeak folding,
+runs first. Ambiguous players enter immediately as `displayOnly`; the lobby
+continues analysis using the local model first, then the best AI-capable joined
+phone through a private host relay with a two-second limit. The resulting
+identity updates the existing seat without reconnecting.
+No answer or low confidence becomes `displayOnly`; deterministic blocking can
+never be overruled by a model.
+
+**Why.** Android and older iPhones benefit from the room's available compute
+without a cloud name-analysis service or a delayed join. Private request
+routing avoids broadcasting a raw display name, while the deadline preserves
+the no-downtime contract. See [[Multiplayer Presenter]] and
+[[Multiplayer Protocol]].
+
+### 2026-10-03 — Store artwork uses real captures, not generated UI
+
+The App Store screenshot campaign is composed deterministically from real
+game and host captures. Generative imagery is deliberately not used for UI or
+text: it would risk misspelled copy and screens that the product cannot
+actually show. One visual system covers iPhone, iPad, Apple TV and Mac; iPad
+artwork explicitly frames the phone controller experience instead of faking a
+native tablet screen. The source and upload-ready English masters live in
+`store_assets/`.
+
+### 2026-10-06 — Mobile store artwork is a six-panel editorial carousel
+
+**Decision.** The replacement iPhone and iPad campaigns use six coordinated
+panels with short headlines, benefit labels and a continuous color ribbon.
+Real UI remains the visual proof. iPhone uses full device captures; iPad uses
+large edge-to-edge editorial crops without drawing an iPhone device frame or
+claiming a fabricated tablet screen.
+
+**Why.** Plain screenshots do not explain the hook, while placing a visible
+iPhone mockup in the iPad gallery misrepresents the platform. The carousel
+adds useful product context and preserves UI authenticity. Upload only after
+visual approval; do not withdraw a live review submission merely to preview
+new artwork. See [[Release Checklist]].
+
+### 2026-10-06 — Stupid Streak gets a distinct Messages carousel
+
+**Decision.** The iMessage extension uses a five-panel 6.9-inch App Store
+campaign separate from the containing app screenshots. It recreates the
+shipped UIKit states and exact product flow inside a Messages context rather
+than borrowing party-mode or single-player artwork.
+
+**Why.** Stupid Streak is asynchronous 1v1, while the main multiplayer mode is
+a live room hosted by Apple TV or Mac. A shared campaign would blur two
+different products and promise capabilities the extension does not have. See
+[[iMessage Multiplayer]] and [[Release Checklist]].
+
+### 2026-10-03 — A browser multiplayer host is demand-gated, not roadmap work
+
+**Decision.** Preserve a browser-based shared board as a documented future
+option for players without Apple TV or Mac, but assign it no current priority
+and make no platform promise. Reconsider it only after a meaningful sustained
+average-user base exists and/or repeated user requests demonstrate that the
+Apple-only host is materially suppressing multiplayer use. No numeric trigger
+is fixed before real launch data exists.
+
+**Why.** A browser cannot accept the shipped raw TCP/JSONL connections or
+advertise itself through Bonjour, so this is not a UI port. The practical
+version requires a WebSocket room service, a new client transport and ongoing
+hosting, privacy and abuse-prevention work; a local WebRTC version is riskier
+and still needs signaling. Building either before demand is visible would add
+substantial infrastructure and compromise the current local/offline posture
+without evidence that it solves a material user problem. Apple TV/macOS remain
+the supported host platforms; the web option stays in [[Roadmap]] and
+[[Multiplayer Product]] as a demand-gated opportunity.
+
+### 2026-10-03 — CLI iOS releases bump before invoking Flutter
+
+**Decision.** A command-line App Store build runs
+`scripts/bump_build_number.sh` before `flutter build ipa`, then treats the
+archive summary as the authoritative check. The Xcode Archive pre-action stays
+in place for Organizer-driven archives.
+
+**Why.** A real 1.0.0 release run showed that `flutter build ipa` creates
+`Generated.xcconfig` before the scheme pre-action executes. The script moved
+`pubspec.yaml` from build 2 to 3 while the resulting archive still reported
+build 2. Bumping before Flutter starts produced the intended build 4 archive
+and avoids duplicate-build rejection by App Store Connect. See [[Getting
+Started]] and [[Release Checklist]].
+
+### 2026-10-03 — Apple TV declares local-only host privacy
+
+**Decision.** The Apple TV App Store privacy disclosure states that the host
+does not collect, retain, share or track personal data. Room and gameplay
+messages remain ephemeral traffic between devices on the same Wi-Fi. The
+content-rights declaration is affirmative because the iOS app can display
+authorized third-party advertising content.
+
+**Why.** The tvOS target contains no ads, analytics, accounts or purchases,
+so copying the advertising-driven iOS data labels would misrepresent its
+behavior. The rights declaration still needs to cover the app record as a
+whole, including the authorized AdMob integration. See [[Release Checklist]].
+
+### 2026-10-03 — Stupid Streak is a native asynchronous Messages extension
+
+**Decision.** The iMessage edition is a native UIKit extension embedded in the
+iOS app, not a Flutter screen or a client of the LAN party host. A versioned
+`MSMessage.url` carries the complete best-of-three state; `MSSession` advances
+one conversational card. Both players rebuild the same nine-family challenge
+sequence from the seed. The visible score stays hidden until the reply, but v1
+makes no anti-cheat claim because the payload necessarily contains prior
+results. The generated iMessage icon is the only raster runtime asset.
+
+**Why.** A Messages extension has a short, constrained lifecycle and gains
+nothing from loading Flutter or keeping a socket alive. A compact pure-Swift
+engine keeps turns instant, offline and independently testable. Encoding state
+in the message eliminates accounts and backend authority while accepting the
+right trust model for a joke between two people. See [[iMessage Multiplayer]].
+
+### 2026-10-03 — New challenge work requires prospective iMessage parity
+
+**Decision.** Every challenge added to or behaviourally changed in the Flutter
+catalog must receive a recognisable deterministic Swift counterpart and test
+in Stupid Streak in the same change. A platform exception is allowed only when
+the Messages extension cannot preserve the mechanic; it must be explicit in
+[[Challenge Catalog]], [[iMessage Multiplayer]] and this log. The 30 existing
+templates not present in the initial nine-family iMessage subset remain legacy
+backlog rather than being retroactively required by this rule.
+
+**Why.** Flutter challenge code cannot run directly in the lightweight native
+extension, so automatic runtime sharing does not exist. Making parity part of
+the repository-level agent instructions and the canonical adding procedure is
+the reliable way to keep future model-authored challenges from silently
+appearing in only one product. See [[Adding a Challenge]].
+
+### 2026-10-03 — Apple app icons use one full-bleed master and platform-native masking
+
+**Decision.** `icon.png` is now an opaque square master whose near-black
+background reaches every edge. `tool/make_apple_icons.py` derives the complete
+iPhone/iPad catalog directly from it and derives both Mac catalogs as rounded,
+transparent tiles with a dark shadow and no light outline. The Flutter macOS
+target and the native board-host target use the same brand artwork.
+
+**Why.** The previous iOS source had a rounded rectangle and white corners
+baked into the bitmap, so mask resampling could reveal a pale fringe. The board
+host Mac asset added a white rim, while the Flutter macOS target still showed
+Flutter's placeholder. Keeping the source full-bleed lets iOS/iPadOS own the
+mask, while generating the Mac silhouette explicitly preserves normal macOS
+spacing without reintroducing the distracting border. See [[Release Checklist]]
+and [[Multiplayer Host (tvOS)]].
+
+### 2026-10-05 — One Mac app: the Flutter macOS build hosts or plays
+
+**Decision.** Retire the separate `AYSHost-macOS` target. The SwiftUI board
+moves into an `AYSHostUI` Swift package library (`tvos/UI/`, public entry
+point `AYSHostBoardView`). The tvOS app links it as its only UI; the Flutter
+macOS Runner links it through a local package reference to `../tvos`. On
+macOS, MULTIPLAYER asks PLAY ON THIS MAC (Flutter join flow) or HOST ON THIS
+MAC (Dart → `ays/host_mode` method channel → `MainFlutterWindow` opens a
+second `NSWindow` with the board). Other platforms skip the chooser. The
+Runner's sandbox gains `network.server` + `network.client` in both
+configurations, plus the Bonjour/local-network keys; the Mac deployment
+target rises to 13.0 to match the package.
+
+**Why.** Two Mac binaries under one bundle id cannot both ship in the same
+universal-purchase record, and asking players to pick the "host app" versus
+the "game app" is exactly the friction the party mode avoids. Embedding the
+already-shared SwiftUI board keeps Mac and Apple TV boards identical without
+porting the host to Dart, and the board stays board-only as decided on
+2026-09-07. The presenter backend keys are not yet in the Runner's
+Info.plist, so the Mac board uses the offline/system-voice presenter until
+they are configured. See [[Multiplayer Host (tvOS)]].
+
+### 2026-10-06 — Party QR is an https universal link, not a custom scheme
+
+App Review rejected the Apple TV app (2.1(a)): scanning the TV's QR showed
+"No usable data found". The reviewer used the **system camera**, and the QR
+held `areyoustupid://join?room=XXXX` — a custom scheme the camera can only
+hand off when a build that registers it is already installed. The QR now
+encodes `https://pynkstudio.eu/ays/join?room=XXXX`:
+
+- **App installed:** iOS opens it as a universal link straight into the join
+  flow (`Runner.entitlements` → `applinks:pynkstudio.eu`; `app_links` already
+  delivers it to `roomCodeFromScannedValue`, which now accepts both forms).
+- **No app:** the PynkStudio site serves `/ays/join` (standalone page: room
+  code, "open the game" via the custom scheme, App Store link) and
+  `/.well-known/apple-app-site-association`, both exempt from the site's
+  locale redirects because Apple rejects an AASA behind a redirect.
+
+The custom scheme stays registered as the fallback (older hosts, the
+landing page button). Android App Links were not added: the page's button
+covers Android until the Play signing certificate fingerprint is known.
+
+### 2026-10-06 — Presenter copy and recordings come from a remote pack; ElevenLabs voice
+
+**Decision.** The presenter's lines, templates and title wording become a
+versioned line book published by the PynkStudio backend
+(`https://pynkstudio.eu`, not the Menuary domain). Clips are addressed by
+SHA-256, the host swaps a manifest only after verifying every clip, and the
+engine asks for keys from most specific to generic. Speech defaults to
+ElevenLabs (`eleven_v3` for the pack, `eleven_flash_v2_5` live), with OpenAI
+as the fallback. One shared bearer token is stored on Vercel and in an
+untracked xcconfig read by both the tvOS and Mac builds.
+
+**Why.** Fixing a bad recording or adding a joke should not need an App
+Store review. Content addressing makes replacement and invalidation
+impossible to get stale. The key ladder lets the server cover narrower
+cases with no new code, while facts stay app-owned. ElevenLabs gives a more
+theatrical Italian delivery, and because the pack is pre-recorded, its cost
+is paid once. The embedded token is not real authentication; per-room
+authorization and a spend ceiling remain open. See [[Multiplayer Presenter]].
+
+### 2026-10-06 — Presenter language is room-owned and secondary
+
+**Decision.** The board presenter supports `en`, `it`, `fr`, `es`, `pt` and
+`de`. It starts from the board device language with English fallback; a single
+secondary `OPTIONS` action in the lobby exposes the override alongside the
+persistent `OFF` / `MUTE` / `NEUTRAL` / `SAVAGE` control. Language overrides last for
+the current board process, while roasting mode is remembered. Packs, ETags,
+generated-audio cache identities and system speech all use the selected
+locale. `OFF` suppresses voice and its presenter caption; `MUTE` preserves the
+caption but skips every audio source.
+
+**Why.** Presenter language belongs to the shared room, not whichever phone
+joined first, and it should not compete with joining or starting the match.
+Device language gives the zero-setup path; the options panel keeps correction
+available for multilingual rooms and provides one home for all presenter
+controls. See [[Multiplayer Presenter]] and [[Multiplayer Host (tvOS)]].
+
+### 2026-10-06 — Generated SFX ship offline at 32% gain
+
+**Decision.** Replace repeated platform clicks with a small reviewed bank of
+ElevenLabs-generated semantic effects. Single-player ships button, correct,
+wrong, level-up and record cues; the Apple TV/Mac board ships round-start,
+elimination, winner and Party Pack stingers. Flutter uses `audioplayers`; the
+board uses `AVAudioPlayer` from the shared Swift-package resource bundle. Both
+apply a fixed `0.32` linear playback gain to every generated master.
+
+**Why.** Platform clicks cannot distinguish outcomes and Android may disable
+them globally. The approved files are tiny and fully offline, while 32% was
+chosen after the full-scale masters proved painfully loud in headphones. A
+hard code-level ceiling prevents a future call site from accidentally playing
+them at source level. See [[Game Design Pillars]], [[Services]] and
+[[Multiplayer Host (tvOS)]].
+
+### 2026-10-06 — The presenter is The Disappointed Host
+
+**Decision.** Use the third approved Voice Design candidate as the production
+ElevenLabs identity, saved as `AYS — The Disappointed Host` with voice ID
+`C5m0ozw0kWxM7oU5fgRY`. The persona is a former prestigious European
+prime-time announcer now condemned to host the simplest competition
+imaginable: male, late thirties, warm baritone, crisp multilingual diction,
+measured natural pace, theatrical authority and restrained dry sarcasm.
+
+**Why.** This candidate kept the authority and comic disappointment without
+the unnaturally fast delivery heard in the other previews. Encoding the
+character's professional background as concrete vocal direction gives the
+voice a repeatable point of view; per-line delivery still belongs to the TTS
+prompt and must not contradict that identity. See [[Multiplayer Presenter]].
+
+### 2026-10-06 — Lock presenter pack delivery for vocal consistency
+
+**Decision.** Generate production presenter-pack lines with ElevenLabs
+`eleven_v3`, seed `42817`, stability `0.42`, similarity boost `0.86`, style
+`0.42`, speaker boost enabled and speed `1.03`. Reuse the preset across takes
+and locales. Lobby writing addresses contestants directly with situational,
+theatrically impatient remarks; translations preserve intent and cadence
+rather than word order.
+
+**Why.** The more expressive trial at stability `0.22` produced good isolated
+performances but materially different apparent voices, while speed `0.90`
+made some lines sound like slow synthetic narration. The approved preset kept
+the character and natural pacing consistent across the reviewed B, C and E
+takes. See [[Multiplayer Presenter]].
+
+### 2026-10-06 — Savage means an actual situational roast
+
+**Decision.** Calibrate presenter copy for loud adult friend groups rather
+than polite family television. `NEUTRAL` remains concise and amused;
+`SAVAGE` directly raises the room's roasting energy through alternating
+public humiliation, delayed indirect insults, rivalry and callbacks. Every
+attack must follow an observed action, result or pattern. It may target play,
+confidence, hesitation and rank, but never bodies, identity or protected
+traits.
+
+**Why.** Early Savage drafts were polished but too moderate and interchangeable
+with Neutral. The presenter needs to sound like an active participant in a
+group already trading harsh jokes, while contextual targeting keeps the roast
+fun, intelligible and safer than generic personal abuse. See [[Multiplayer Presenter]].
+
+### 2026-10-06 — The presenter may inhabit a fake live broadcast
+
+**Decision.** Add a Savage copy family that breaks the fourth wall through a
+fictional control room, audience, adjudicator and familiar quiz-show devices.
+Each locale adapts the convention culturally instead of translating an Italian
+reference literally. Use generic roles and original wording rather than
+celebrity imitation or copied catchphrases.
+
+**Why.** Alternating match commentary with a collapsing-show fiction expands
+the presenter's comic range and makes reactions feel authored in the room,
+without relying on a generic insult after every error. See [[Multiplayer Presenter]].
+
+### 2026-10-06 — Roast the failed mechanic, not only the score
+
+**Decision.** Add challenge-family and failure-reason metadata to presenter
+cues so curated lines can reference the literal failed action: tapping one
+button, basic arithmetic, counting, reading, waiting, timing or short memory.
+Such lines only qualify for matching rounds and remain separate from the
+challenge's required explanatory fail line.
+
+**Why.** “You failed” is generic; “you needed a tutorial to press one button”
+turns the actual trivial mechanic into the punchline. Specificity makes the
+host feel live and permits much sharper roasting without inventing personal
+traits. See [[Multiplayer Presenter]] and [[Challenge Catalog]].
+
+### 2026-10-06 — Mechanic-aware roasting stays host-verified
+
+**Decision.** Retain each `ROUND_START.challengeId` on the board until its
+matching result and map all 39 shipped ids into nine fixed presenter
+categories. In Savage mode, select allowlisted named templates for the only
+wrong player, zero points after round three, first point on round four or
+later, and three consecutive errors. Ship localized offline templates for all
+six presenter locales; remote books may replace only keys this build knows.
+Increase the validated copy ceiling from 90 to 180 characters for occasional
+fake-broadcast monologues.
+
+**Why.** The challenge id is already authoritative and round-scoped, so
+preserving it locally adds richer context without changing the network
+protocol or trusting generated prose. An explicit key vocabulary prevents a
+remote pack from claiming cheating or another unverified fact. The higher
+length ceiling permits rare control-room setups while the event deadline and
+editorial rules keep ordinary lines short. See [[Multiplayer Presenter]],
+[[Multiplayer Host (tvOS)]] and [[Testing]].
+
+### 2026-10-06 — Presenter playback, combined beats and controls are independent
+
+**Decision.** Check cue relevance only until audio begins: discard speech
+still loading when the next round starts, but let started speech finish. Emit
+at most one presenter cue per result; when a title and result coincide, use a
+localized combined template where available and otherwise prioritize the
+title. Battle may roast points and late first scores; Last Stupid Standing
+uses remaining lives and life-loss streaks instead. Replace the single
+`OFF`/`MUTE`/`NEUTRAL`/`SAVAGE` selector with persistent output
+`OFF`/`MUTE`/`VOICE` plus independent `NEUTRAL`/`SAVAGE` intensity, disabled
+only while output is Off.
+
+**Why.** Started voice should sound natural rather than being chopped by a
+screen transition, while stale unstarted speech has no value. A single
+composed sentence avoids overlapping players and makes simultaneous facts
+sound intentional. The game modes do not share a scoring vocabulary, and
+audio transport is orthogonal to roast severity. See [[Multiplayer Presenter]],
+[[Multiplayer Host (tvOS)]] and [[Testing]].
+
+### 2026-10-06 — Google Play: target audience 16+, closed test before production
+
+**Decision.** The Play target audience is 16–17 and 18+, not the 13+ the
+checklist assumed. The IARC questionnaire declares mild and moderate
+profanity as frequent, digital purchases and user interaction (player names
+on the local party board, invited players only). Data safety declares the
+Google Mobile Ads SDK data (approximate location, app interactions, crash
+logs, diagnostics, device IDs) as collected **and** shared, required,
+for analytics, advertising and fraud prevention. The icon is declared as
+AI-generated in the listing's AI asset declaration.
+
+**Why.** Selecting the 13–15 band makes the app subject to the Families
+policy's ad requirements (child-directed ad treatment, certified networks in
+every child context), which the AdMob integration doesn't implement; the
+crude language makes the game a poor fit for that band anyway. The data
+safety answers mirror Google's own AdMob disclosure guidance, so the
+listing and the App Store privacy label tell the same story. The developer
+account is a personal one, so Google requires a 14-day closed test with at
+least 12 testers before production access — the release path is internal →
+closed → production, and the first public Android date is at least two
+weeks after the closed test starts. See [[Release Checklist]].
+
+### 2026-10-06 — Name analysis is provisional and routed inside the room
+
+**Decision.** An ambiguous player name never blocks lobby entry. It begins as
+display-only while the joining phone checks its cache and local model; without
+a local model, the host routes a short request to the best AI-capable joined
+phone. The result updates that seat in place. A warning opens “COME TI
+CHIAMERÀ?”, where the player can inspect the status or change the name without
+leaving. Deterministic normalization folds common leetspeak substitutions
+before its safety checks.
+
+**Why.** Model availability and LAN latency must not become lobby latency.
+Provisional display-only treatment is safe, keeps the match moving, and lets
+capable devices improve pronunciation for the room. See [[Multiplayer Presenter]],
+[[Multiplayer Protocol]], [[Multiplayer Client (Mobile)]], [[Multiplayer Host (tvOS)]],
+[[Foundation Models Integration]] and [[Multiplayer AI Director]].
+
+### 2026-10-06 — Blocked-name feedback belongs to the presenter
+
+**Decision.** Replace the single “nice try” validation line with five
+localized presenter-style rebukes. Select the line with a stable hash of the
+entered name rather than runtime randomness.
+
+**Why.** The safety boundary can still feel authored and playful. Stable
+selection supplies variety without text flicker during rebuilds, and none of
+these rejected names or responses enter the speech pipeline. See
+[[Multiplayer Presenter]].
+
+### 2026-10-06 — Native extension versions follow the archive version
+
+**Decision.** The release bump script writes the current Flutter version and
+build into all Stupid Streak target configurations before advancing
+`pubspec.yaml` for the next build. The iOS launch screen now uses the generated
+game artwork instead of Flutter's placeholder asset.
+
+**Why.** App Store archives require the containing app and embedded extension
+to carry matching versions. Native extension targets do not inherit Flutter's
+generated build variables, and placeholder launch artwork is avoidable release
+debt. See [[Getting Started]], [[Release Checklist]] and
+[[iMessage Multiplayer]].

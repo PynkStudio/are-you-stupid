@@ -2,7 +2,6 @@ name: AYSHost
 options:
   deploymentTarget:
     tvOS: "16.0"
-    macOS: "13.0"
 
 packages:
   AYSProtocol:
@@ -12,7 +11,7 @@ settings:
   base:
     SWIFT_VERSION: "5.9"
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "3"
+    CURRENT_PROJECT_VERSION: "4"
     INFOPLIST_FILE: App/Info.plist
     # One App Store product page for iPhone + Apple TV + Mac (universal
     # purchase): every platform ships under the phone app's bundle id. See
@@ -30,56 +29,29 @@ targets:
       - path: App
         excludes:
           - Info.plist
-      - UI
       - TVResources
     dependencies:
+      - package: AYSProtocol
+        product: AYSHostUI
       - package: AYSProtocol
         product: AYSHostCore
       - package: AYSProtocol
         product: AYSProtocol
+    configFiles:
+      Debug: Config/Presenter.xcconfig
+      Release: Config/Presenter.xcconfig
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: "App Icon & Top Shelf Image"
 
-  AYSHost-macOS:
-    type: application
-    platform: macOS
-    sources:
-      - path: App
-        excludes:
-          - Info.plist
-      - UI
-      - MacResources
-    dependencies:
-      - package: AYSProtocol
-        product: AYSHostCore
-      - package: AYSProtocol
-        product: AYSProtocol
-    # Mac App Store requires the App Sandbox. The host listens for phones
-    # (network.server) and the Bonjour/AirPlay paths make outgoing
-    # connections (network.client); nothing else is needed.
-    entitlements:
-      path: App/AYSHost-macOS.entitlements
-      properties:
-        com.apple.security.app-sandbox: true
-        com.apple.security.network.server: true
-        com.apple.security.network.client: true
-    settings:
-      base:
-        ENABLE_HARDENED_RUNTIME: YES
-        COMBINE_HIDPI_IMAGES: YES
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  # macOS has no separate host target any more: the Flutter app in macos/
+  # embeds the AYSHostUI package and opens the board from MULTIPLAYER →
+  # HOST ON THIS MAC. See docs/Meta/Decision Log.md.
 
 schemes:
   AYSHost-tvOS:
     build:
       targets:
         AYSHost-tvOS: all
-    run:
-      config: Debug
-  AYSHost-macOS:
-    build:
-      targets:
-        AYSHost-macOS: all
     run:
       config: Debug

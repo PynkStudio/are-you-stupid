@@ -160,9 +160,9 @@ class _GameScreenState extends State<GameScreen>
           ),
         )
         .then((line) {
-      if (!mounted || line == null || token != _verdictToken) return;
-      setState(() => _aiVerdict = line);
-    });
+          if (!mounted || line == null || token != _verdictToken) return;
+          setState(() => _aiVerdict = line);
+        });
   }
 
   @override
@@ -229,6 +229,7 @@ class _GameScreenState extends State<GameScreen>
         _isRecord = false;
         _continuedRun = false;
       case GameEvent.levelStarted:
+        if (state.level > 1) services.sound.levelUp();
         _warmCommentary();
       case GameEvent.continued:
         break;
@@ -279,30 +280,19 @@ class _GameScreenState extends State<GameScreen>
 
   void _onBackgroundDown() {
     if (_claim.consumeDown()) return;
-    _engine.handleTap(
-      const TapInfo(targetId: null, elapsed: Duration.zero),
-    );
+    _engine.handleTap(const TapInfo(targetId: null, elapsed: Duration.zero));
   }
 
   void _onBackgroundUp() {
     if (_claim.consumeUp()) return;
     _engine.handleTap(
-      const TapInfo(
-        targetId: null,
-        elapsed: Duration.zero,
-        kind: TapKind.up,
-      ),
+      const TapInfo(targetId: null, elapsed: Duration.zero, kind: TapKind.up),
     );
   }
 
   void _onTarget(String id, int index, TapKind kind) {
     _engine.handleTap(
-      TapInfo(
-        targetId: id,
-        index: index,
-        elapsed: Duration.zero,
-        kind: kind,
-      ),
+      TapInfo(targetId: id, index: index, elapsed: Duration.zero, kind: kind),
     );
   }
 
@@ -333,7 +323,8 @@ class _GameScreenState extends State<GameScreen>
                 if (state.phase == GamePhase.wrong)
                   FlashOverlay(
                     correct: false,
-                    message: state.flashMessage ??
+                    message:
+                        state.flashMessage ??
                         Strings.t(locale, 'ui.game.default_wrong'),
                     aside: _wrongAside,
                     onSkip: _engine.skipWrongFlash,
@@ -351,7 +342,8 @@ class _GameScreenState extends State<GameScreen>
                     failedInstruction: state.challenge?.view.instruction,
                     failReason: state.flashMessage,
                     aiVerdict: _aiVerdict,
-                    canContinue: !state.continueUsed &&
+                    canContinue:
+                        !state.continueUsed &&
                         (_services?.ads.isRewardedContinueReady ?? false),
                     onRetry: _retry,
                     onContinue: _continueWithAd,
@@ -387,11 +379,9 @@ class _GameScreenState extends State<GameScreen>
                 Text('🔥 ${state.fastStreak}', style: Ays.label(18))
               else
                 Text(
-                  Strings.t(
-                    locale,
-                    'ui.game.best',
-                    {'n': '${_services?.scores.bestLevel ?? 0}'},
-                  ),
+                  Strings.t(locale, 'ui.game.best', {
+                    'n': '${_services?.scores.bestLevel ?? 0}',
+                  }),
                   style: Ays.mono(13),
                 ),
             ],
@@ -441,7 +431,10 @@ class _ReadyText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BalancedText(Strings.t(locale, 'ui.game.ready'),
-        style: Ays.title(64), maxLines: 1);
+    return BalancedText(
+      Strings.t(locale, 'ui.game.ready'),
+      style: Ays.title(64),
+      maxLines: 1,
+    );
   }
 }

@@ -24,9 +24,13 @@ import 'mp_common.dart';
 import 'mp_join_screen.dart';
 import '../../widgets/balanced_text.dart';
 
-/// The QR encodes `areyoustupid://join?room=XXXX` ([[Multiplayer Protocol]]).
+/// The QR encodes the universal link `https://pynkstudio.eu/ays/join?room=XXXX`
+/// — any phone camera can open it, with or without the app installed — and
+/// the legacy custom scheme `areyoustupid://join?room=XXXX` still resolves
+/// (older hosts, the landing page's "open the game" button)
+/// ([[Multiplayer Protocol]]).
 final _deepLinkRoomCode = RegExp(
-  r'^areyoustupid://join\?room=([A-Za-z0-9]{4})$',
+  r'^(?:areyoustupid://join|https://(?:www\.)?pynkstudio\.eu/ays/join/?)\?room=([A-Za-z0-9]{4})$',
 );
 
 /// Extracts the room code from a scanned QR payload, or null if it isn't
@@ -53,6 +57,7 @@ class _MpHomeScreenState extends State<MpHomeScreen>
   MobileScannerController? _scannerController;
   bool _navigated = false;
   LocalNetworkStatus _network = LocalNetworkStatus.unknown;
+  WifiConnectionStatus _wifi = WifiConnectionStatus.unknown;
   bool _probing = false;
   PartyRoomBrowser? _roomBrowser;
   StreamSubscription<List<PartyHostCandidate>>? _roomSubscription;
@@ -113,11 +118,21 @@ class _MpHomeScreenState extends State<MpHomeScreen>
   Future<void> _refreshNetwork() async {
     if (_probing) return;
     _probing = true;
-    final status = await AppServices.of(context).localNetwork.status();
+    final localNetwork = AppServices.of(context).localNetwork;
+    final results = await Future.wait<Object>([
+      localNetwork.status(),
+      localNetwork.wifiStatus(),
+    ]);
+    final status = results[0] as LocalNetworkStatus;
+    final wifi = results[1] as WifiConnectionStatus;
     _probing = false;
     if (!mounted) return;
-    setState(() => _network = status);
-    if (status == LocalNetworkStatus.granted) {
+    setState(() {
+      _network = status;
+      _wifi = wifi;
+    });
+    if (status == LocalNetworkStatus.granted &&
+        wifi != WifiConnectionStatus.disconnected) {
       await _startRoomDiscovery();
     } else {
       await _stopRoomDiscovery();
@@ -199,6 +214,7 @@ class _MpHomeScreenState extends State<MpHomeScreen>
               return _Landing(
                 t: t,
                 networkDenied: _network == LocalNetworkStatus.denied,
+                wifiDisconnected: _wifi == WifiConnectionStatus.disconnected,
                 nearbyRooms: _nearbyRooms,
                 searchingRooms: _searchingRooms,
                 onJoinRoom: (room) => _goToJoin(room.roomCode),
@@ -237,6 +253,7 @@ class _Landing extends StatelessWidget {
   const _Landing({
     required this.t,
     required this.networkDenied,
+    required this.wifiDisconnected,
     required this.nearbyRooms,
     required this.searchingRooms,
     required this.onJoinRoom,
@@ -247,6 +264,7 @@ class _Landing extends StatelessWidget {
 
   final String Function(String, [Map<String, String>?]) t;
   final bool networkDenied;
+  final bool wifiDisconnected;
   final List<PartyHostCandidate> nearbyRooms;
   final bool searchingRooms;
   final ValueChanged<PartyHostCandidate> onJoinRoom;
@@ -280,8 +298,12 @@ class _Landing extends StatelessWidget {
               onAction: onOpenSettings,
             ),
           ],
+          if (!networkDenied && wifiDisconnected) ...[
+            const SizedBox(height: 24),
+            MpPermissionNotice(message: t('ui.mp.network.wifi_disconnected')),
+          ],
           const SizedBox(height: 28),
-          if (!networkDenied) ...[
+          if (!networkDenied && !wifiDisconnected) ...[
             Row(
               children: [
                 Text(

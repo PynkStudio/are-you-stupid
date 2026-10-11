@@ -238,6 +238,31 @@ void main() {
         ),
       );
       expect(commentary.kind, 'elimination');
+
+      final nameRequest = _roundTrip(
+        const AiNameAnalysisRequest(
+          requestId: 'name-1',
+          displayName: 'x_Luca_x',
+        ),
+      );
+      expect(nameRequest.displayName, 'x_Luca_x');
+      final nameResult = _roundTrip(
+        const AiNameAnalysisResult(
+          requestId: 'name-1',
+          decision: 'speakAlias',
+          spokenName: 'Luca',
+          confidence: .93,
+        ),
+      );
+      expect(nameResult.spokenName, 'Luca');
+      final identityUpdate = _roundTrip(
+        const PlayerIdentityUpdate(
+          playerName: 'x_Luca_x',
+          spokenName: 'Luca',
+          speechPolicy: 'speakAlias',
+        ),
+      );
+      expect(identityUpdate.speechPolicy, 'speakAlias');
     });
 
     test('PartyAction.tap background (no target) round-trips', () {

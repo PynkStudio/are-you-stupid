@@ -1,6 +1,6 @@
 ---
 tags: [architecture, overview]
-updated: 2026-09-07
+updated: 2026-10-03
 ---
 
 # Architecture Overview
@@ -47,6 +47,12 @@ registered in `AppDelegate.didInitializeImplicitFlutterEngine`). Android is
 untouched. The Swift sources are pinned by `tool/swiftc_ai_gate.sh` (Phase 2 —
 [[Foundation Models Integration]]).
 
+`ios/iMessageExtension/` is the separate native UIKit **Stupid Streak**
+Messages target; its pure state/seeded challenge engine lives in
+`ios/iMessageExtensionCore/`, which is also a Swift package so it can be tested
+without launching Messages. It neither embeds Flutter nor imports the live
+LAN party stack. See [[iMessage Multiplayer]].
+
 ## The one rule
 
 **`core/` and `challenges/` never import Flutter widgets.**
@@ -90,3 +96,4 @@ and never delays the round ([[Pre-generation Cache]]).
 - [[Services]]
 - [[State and Persistence]]
 - [[Localization]]
+- [[iMessage Multiplayer]]

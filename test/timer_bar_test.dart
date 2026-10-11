@@ -20,28 +20,33 @@ void main() {
   Widget wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
 
   double currentOpacity(WidgetTester tester) {
-    final renderObject = tester
-        .renderObject<RenderAnimatedOpacity>(find.byType(AnimatedOpacity));
+    final renderObject = tester.renderObject<RenderAnimatedOpacity>(
+      find.byType(AnimatedOpacity),
+    );
     return renderObject.opacity.value;
   }
 
-  testWidgets('a freshly remounted TimerBar shows at full opacity immediately',
-      (tester) async {
-    // Level 6+: hidden.
-    await tester.pumpWidget(wrap(const TimerBar(progress: 0.2, visible: false)));
-    await tester.pump(const Duration(milliseconds: 200));
-    expect(currentOpacity(tester), 0.0);
+  testWidgets(
+    'a freshly remounted TimerBar shows at full opacity immediately',
+    (tester) async {
+      // Level 6+: hidden.
+      await tester.pumpWidget(
+        wrap(const TimerBar(progress: 0.2, visible: false)),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(currentOpacity(tester), 0.0);
 
-    // Game Over -> RETRY -> GamePhase.intro: the whole Column (TimerBar
-    // included) is torn out of the tree, replaced by the "READY?" text.
-    await tester.pumpWidget(wrap(const Text('READY?')));
-    await tester.pump();
-    expect(find.byType(TimerBar), findsNothing);
+      // Game Over -> RETRY -> GamePhase.intro: the whole Column (TimerBar
+      // included) is torn out of the tree, replaced by the "READY?" text.
+      await tester.pumpWidget(wrap(const Text('READY?')));
+      await tester.pump();
+      expect(find.byType(TimerBar), findsNothing);
 
-    // New run, level 1: a brand new TimerBar mounts with visible: true.
-    await tester.pumpWidget(wrap(const TimerBar(progress: 0, visible: true)));
-    await tester.pump();
+      // New run, level 1: a brand new TimerBar mounts with visible: true.
+      await tester.pumpWidget(wrap(const TimerBar(progress: 0, visible: true)));
+      await tester.pump();
 
-    expect(currentOpacity(tester), 1.0);
-  });
+      expect(currentOpacity(tester), 1.0);
+    },
+  );
 }

@@ -24,18 +24,18 @@ enum GamePhase {
 /// engine only.
 class GameState {
   GameState.initial()
-      : phase = GamePhase.idle,
-        level = 1,
-        challenge = null,
-        elapsed = Duration.zero,
-        duration = Duration.zero,
-        flashMessage = null,
-        successNote = null,
-        fastStreak = 0,
-        bestFastStreak = 0,
-        continueUsed = false,
-        viralPrompt = null,
-        paceNote = null;
+    : phase = GamePhase.idle,
+      level = 1,
+      challenge = null,
+      elapsed = Duration.zero,
+      duration = Duration.zero,
+      flashMessage = null,
+      successNote = null,
+      fastStreak = 0,
+      bestFastStreak = 0,
+      continueUsed = false,
+      viralPrompt = null,
+      paceNote = null;
 
   GameState({
     required this.phase,

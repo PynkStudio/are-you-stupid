@@ -1,9 +1,8 @@
 """Regenerates the tvOS App Icon (layered) and Top Shelf images from the
 repo-root icon.png. Run from the repo root: python3 tool/make_tv_icons.py
 
-icon.png is the iOS icon: art on a near-black rounded square with white
-corners. tvOS wants full-bleed 16:10-ish layers instead, so the art is cut
-out of its own background (colour distance + dilation keeps the dark
+icon.png is the full-bleed iOS icon master. tvOS wants full-bleed 16:10-ish
+layers instead, so the art is cut out of its background (colour distance + dilation keeps the dark
 outlines around the letters) and composed on a full-bleed backdrop:
   back   - solid backdrop in the icon's own near-black, soft pink/yellow glow
   middle - empty (kept so the imagestack stays 3 layers deep)
@@ -19,14 +18,10 @@ src = Image.open('icon.png').convert('RGB')
 S = src.size[0]
 
 # Mask of "art" pixels: anything clearly different from the backdrop colour,
-# inside the rounded square (drops the white corners), dilated so the black
-# letter outlines adjacent to coloured pixels survive, then softened.
+# dilated so the black letter outlines adjacent to coloured pixels survive,
+# then softened.
 diff = ImageChops.difference(src, Image.new('RGB', src.size, BG)).convert('L')
 art = diff.point(lambda v: 255 if v > 38 else 0)
-inner = Image.new('L', src.size, 0)
-m = int(S * 0.035)
-ImageDraw.Draw(inner).rounded_rectangle([m, m, S - m, S - m], int(S * 0.19), fill=255)
-art = ImageChops.multiply(art, inner)
 art = art.filter(ImageFilter.MaxFilter(25)).filter(ImageFilter.GaussianBlur(4))
 cut = src.convert('RGBA')
 cut.putalpha(art)

@@ -1140,6 +1140,59 @@ public struct AiCommentary: PartyMessage, Equatable {
     }
 }
 
+public struct AiNameAnalysisRequest: PartyMessage, Equatable {
+    public let ts: Int
+    public let requestId: String
+    public let displayName: String
+    public var type: String { "AI_NAME_ANALYSIS_REQUEST" }
+    public init(requestId: String, displayName: String, ts: Int = 0) {
+        self.requestId = requestId; self.displayName = displayName; self.ts = ts
+    }
+    public func toWire() -> [String: Any] { envelope(type, ts, ["requestId": requestId, "displayName": displayName]) }
+    public static func fromWire(_ w: [String: Any], ts: Int) -> AiNameAnalysisRequest {
+        AiNameAnalysisRequest(requestId: _str(w, "requestId", ""), displayName: _str(w, "displayName", ""), ts: ts)
+    }
+}
+
+public struct AiNameAnalysisResult: PartyMessage, Equatable {
+    public let ts: Int
+    public let requestId: String
+    public let decision: String
+    public let spokenName: String?
+    public let confidence: Double
+    public var type: String { "AI_NAME_ANALYSIS_RESULT" }
+    public init(requestId: String, decision: String, spokenName: String? = nil, confidence: Double, ts: Int = 0) {
+        self.requestId = requestId; self.decision = decision; self.spokenName = spokenName; self.confidence = confidence; self.ts = ts
+    }
+    public func toWire() -> [String: Any] {
+        var body: [String: Any] = ["requestId": requestId, "decision": decision, "confidence": confidence]
+        if let spokenName { body["spokenName"] = spokenName }
+        return envelope(type, ts, body)
+    }
+    public static func fromWire(_ w: [String: Any], ts: Int) -> AiNameAnalysisResult {
+        AiNameAnalysisResult(requestId: _str(w, "requestId", ""), decision: _str(w, "decision", "displayOnly"), spokenName: w["spokenName"] as? String, confidence: w["confidence"] as? Double ?? 0, ts: ts)
+    }
+}
+
+public struct PlayerIdentityUpdate: PartyMessage, Equatable {
+    public let ts: Int
+    public let playerName: String
+    public let spokenName: String?
+    public let speechPolicy: String
+    public var type: String { "PLAYER_IDENTITY_UPDATE" }
+    public init(playerName: String, spokenName: String? = nil, speechPolicy: String, ts: Int = 0) {
+        self.playerName = playerName; self.spokenName = spokenName; self.speechPolicy = speechPolicy; self.ts = ts
+    }
+    public func toWire() -> [String: Any] {
+        var body: [String: Any] = ["playerName": playerName, "speechPolicy": speechPolicy]
+        if let spokenName { body["spokenName"] = spokenName }
+        return envelope(type, ts, body)
+    }
+    public static func fromWire(_ w: [String: Any], ts: Int) -> PlayerIdentityUpdate {
+        PlayerIdentityUpdate(playerName: _str(w, "playerName", ""), spokenName: w["spokenName"] as? String, speechPolicy: _str(w, "speechPolicy", "displayOnly"), ts: ts)
+    }
+}
+
 // MARK: - Codec
 
 /// The JSONL codec shared by host, client, mirrors and tests.
@@ -1201,6 +1254,9 @@ public enum PartyProtocol {
         case "AI_CHALLENGE_ROUND": return .ok(AiChallengeRound.fromWire(wire, ts: ts))
         case "AI_COMMENTARY_PROPOSAL": return .ok(AiCommentaryProposal.fromWire(wire, ts: ts))
         case "AI_COMMENTARY": return .ok(AiCommentary.fromWire(wire, ts: ts))
+        case "AI_NAME_ANALYSIS_REQUEST": return .ok(AiNameAnalysisRequest.fromWire(wire, ts: ts))
+        case "AI_NAME_ANALYSIS_RESULT": return .ok(AiNameAnalysisResult.fromWire(wire, ts: ts))
+        case "PLAYER_IDENTITY_UPDATE": return .ok(PlayerIdentityUpdate.fromWire(wire, ts: ts))
         default: return .unknownType(type)
         }
     }

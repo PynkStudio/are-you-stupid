@@ -1,7 +1,26 @@
 /// A local, deterministic first pass for presenter-safe player identity.
 /// The optional on-device model may refine ambiguous cases later, but the
 /// room never depends on model availability ([[Multiplayer Presenter]]).
-enum NameSpeechPolicy { speakOriginal, speakAlias, displayOnly, blocked }
+enum NameSpeechPolicy {
+  speakOriginal,
+  speakAlias,
+  displayOnly,
+  blocked,
+  uncertain,
+}
+
+const int blockedNameTauntCount = 5;
+
+/// Keeps the presenter's rejection varied across players but stable across
+/// rebuilds and devices. This is deliberately deterministic: UI copy must not
+/// flicker while the player edits an otherwise unchanged name.
+String blockedNameTauntKey(String displayName) {
+  var hash = 0x811c9dc5;
+  for (final unit in displayName.trim().toLowerCase().codeUnits) {
+    hash = ((hash ^ unit) * 0x01000193) & 0x7fffffff;
+  }
+  return 'ui.mp.join.nice_try_${(hash % blockedNameTauntCount) + 1}';
+}
 
 class SpokenIdentity {
   const SpokenIdentity({
@@ -13,6 +32,24 @@ class SpokenIdentity {
   final String displayName;
   final String? spokenName;
   final NameSpeechPolicy policy;
+
+  bool get needsAi => policy == NameSpeechPolicy.uncertain;
+
+  static const _leet = <String, String>{
+    '0': 'o',
+    '1': 'i',
+    '2': 'z',
+    '3': 'e',
+    '4': 'a',
+    '5': 's',
+    '6': 'g',
+    '7': 't',
+    '8': 'b',
+    '9': 'g',
+    '@': 'a',
+    r'$': 's',
+    '!': 'i',
+  };
 
   static const _blockedTerms = <String>{
     'nigger',
@@ -31,9 +68,9 @@ class SpokenIdentity {
         policy: NameSpeechPolicy.blocked,
       );
     }
-    final lower = display.toLowerCase();
-    if (_blockedTerms.any((term) => lower.contains(term)) ||
-        RegExp(r'https?://|www\.|@.+\.').hasMatch(lower)) {
+    final folded = _foldLeet(display.toLowerCase());
+    if (_blockedTerms.any((term) => folded.contains(term)) ||
+        RegExp(r'https?://|www\.|@.+\.').hasMatch(display.toLowerCase())) {
       return SpokenIdentity(
         displayName: display,
         policy: NameSpeechPolicy.blocked,
@@ -44,6 +81,9 @@ class SpokenIdentity {
         .replaceAll('_', ' ')
         .replaceAll(RegExp(r'^[xX]{1,3}\s*'), '')
         .replaceAll(RegExp(r'\s*[xX]{1,3}$'), '')
+        .replaceAll(RegExp(r"^[^\p{L}\p{M}\p{N}]+", unicode: true), '')
+        .replaceAll(RegExp(r"[^\p{L}\p{M}\p{N}]+$", unicode: true), '');
+    candidate = _foldLeet(candidate)
         .replaceAll(RegExp(r"[^\p{L}\p{M}'’\- ]", unicode: true), ' ')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
@@ -53,6 +93,16 @@ class SpokenIdentity {
         policy: NameSpeechPolicy.displayOnly,
       );
     }
+    if (RegExp(
+      r"\p{L}[^\p{L}\p{M}\p{N}_'’\-]\p{L}",
+      unicode: true,
+    ).hasMatch(display)) {
+      return SpokenIdentity(
+        displayName: display,
+        spokenName: candidate,
+        policy: NameSpeechPolicy.uncertain,
+      );
+    }
     final changed = candidate != display;
     return SpokenIdentity(
       displayName: display,
@@ -60,6 +110,49 @@ class SpokenIdentity {
       policy: changed
           ? NameSpeechPolicy.speakAlias
           : NameSpeechPolicy.speakOriginal,
+    );
+  }
+
+  static String _foldLeet(String value) =>
+      value.split('').map((char) => _leet[char] ?? char).join();
+
+  static SpokenIdentity fromAi({
+    required String displayName,
+    required String decision,
+    String? spokenName,
+    required double confidence,
+  }) {
+    if (confidence < 0.72 || decision == 'uncertain') {
+      return SpokenIdentity(
+        displayName: displayName,
+        policy: NameSpeechPolicy.displayOnly,
+      );
+    }
+    final alias = spokenName?.trim().replaceAll(
+      RegExp(r"[^\p{L}\p{M}'’\- ]", unicode: true),
+      '',
+    );
+    if (decision == 'blocked') {
+      return SpokenIdentity(
+        displayName: displayName,
+        policy: NameSpeechPolicy.blocked,
+      );
+    }
+    if (decision == 'displayOnly' ||
+        alias == null ||
+        alias.isEmpty ||
+        alias.length > 30) {
+      return SpokenIdentity(
+        displayName: displayName,
+        policy: NameSpeechPolicy.displayOnly,
+      );
+    }
+    return SpokenIdentity(
+      displayName: displayName,
+      spokenName: alias,
+      policy: decision == 'speakOriginal'
+          ? NameSpeechPolicy.speakOriginal
+          : NameSpeechPolicy.speakAlias,
     );
   }
 }

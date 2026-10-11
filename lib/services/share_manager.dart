@@ -20,7 +20,11 @@ class ShareManager {
   static String landingUrlFor(AppLocale locale) =>
       locale == AppLocale.it ? _landingIt : _landingEn;
 
-  static String resultText(int level, {int? best, AppLocale locale = AppLocale.en}) {
+  static String resultText(
+    int level, {
+    int? best,
+    AppLocale locale = AppLocale.en,
+  }) {
     final buffer = StringBuffer()
       ..writeln(Strings.t(locale, 'share.line1', {'level': '$level'}))
       ..writeln(Strings.t(locale, 'share.line2'));

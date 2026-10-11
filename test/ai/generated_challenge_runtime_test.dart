@@ -35,7 +35,10 @@ void main() {
       final base = p.difficulty.timeLimitMs;
       expect(buildFromProposal(p).challenge.duration.inMilliseconds, base);
       expect(
-        buildFromProposal(p, locale: AppLocale.it).challenge.duration.inMilliseconds,
+        buildFromProposal(
+          p,
+          locale: AppLocale.it,
+        ).challenge.duration.inMilliseconds,
         base + 1000,
       );
     });
@@ -129,10 +132,7 @@ void main() {
 
   group('hold: hold the named target through the whole duration', () {
     test('holding through timeout passes', () {
-      final c = GeneratedChallengeRuntime(
-        _proposal(action: 'hold'),
-        _params(),
-      );
+      final c = GeneratedChallengeRuntime(_proposal(action: 'hold'), _params());
       final host = _RecordingHost();
       c.onTap(const TapInfo(targetId: 'e1', elapsed: Duration.zero), host);
       expect(host.passed, isNull); // still pending
@@ -141,10 +141,7 @@ void main() {
     });
 
     test('releasing early fails', () {
-      final c = GeneratedChallengeRuntime(
-        _proposal(action: 'hold'),
-        _params(),
-      );
+      final c = GeneratedChallengeRuntime(_proposal(action: 'hold'), _params());
       final host = _RecordingHost();
       c.onTap(const TapInfo(targetId: 'e1', elapsed: Duration.zero), host);
       c.onTap(
@@ -159,20 +156,14 @@ void main() {
     });
 
     test('pressing the wrong target fails immediately', () {
-      final c = GeneratedChallengeRuntime(
-        _proposal(action: 'hold'),
-        _params(),
-      );
+      final c = GeneratedChallengeRuntime(_proposal(action: 'hold'), _params());
       final host = _RecordingHost();
       c.onTap(const TapInfo(targetId: 'e2', elapsed: Duration.zero), host);
       expect(host.passed, isFalse);
     });
 
     test('never holding fails on timeout', () {
-      final c = GeneratedChallengeRuntime(
-        _proposal(action: 'hold'),
-        _params(),
-      );
+      final c = GeneratedChallengeRuntime(_proposal(action: 'hold'), _params());
       final host = _RecordingHost();
       c.onTimeout(host);
       expect(host.passed, isFalse);
@@ -288,21 +279,14 @@ void main() {
     });
 
     test('duration comes straight from difficulty.timeLimitMs', () {
-      final c = GeneratedChallengeRuntime(
-        _proposal(action: 'tap'),
-        _params(),
-      );
+      final c = GeneratedChallengeRuntime(_proposal(action: 'tap'), _params());
       expect(c.duration, const Duration(milliseconds: 2500));
     });
   });
 }
 
-ChallengeParams _params() => ChallengeParams(
-      level: 1,
-      rng: Random(1),
-      speed: 1.0,
-      locale: AppLocale.en,
-    );
+ChallengeParams _params() =>
+    ChallengeParams(level: 1, rng: Random(1), speed: 1.0, locale: AppLocale.en);
 
 ChallengeProposal _proposal({required String action, int elementCount = 1}) {
   final elements = [

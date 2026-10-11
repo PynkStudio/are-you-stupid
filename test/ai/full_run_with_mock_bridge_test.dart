@@ -54,9 +54,13 @@ Future<void> _tickUntil(
     engine.tick(step);
     await _settle();
   }
-  expect(done(), isTrue,
-      reason: 'engine got stuck: phase=${engine.state.phase}, '
-          'level=${engine.state.level}');
+  expect(
+    done(),
+    isTrue,
+    reason:
+        'engine got stuck: phase=${engine.state.phase}, '
+        'level=${engine.state.level}',
+  );
 }
 
 /// Answers whichever challenge is currently live correctly. Handles every
@@ -96,18 +100,19 @@ Future<bool> _playRound(GameEngine engine) async {
 }
 
 void main() {
-  test(
-      'a full run through the production provider composition: AI served '
+  test('a full run through the production provider composition: AI served '
       'mid-run, an invalid proposal falls back silently, a mid-session mode '
       'switch takes effect next round, no error ever surfaces', () async {
     SharedPreferences.setMockInitialValues({});
     final flags = await AiFeatureFlags.load();
     final service = MockAppleAIService()
-      ..nextChallengeResult = AppleAiProposalResult.ok(baseProposal(
-        id: 'ai.aaaa1',
-        move: 'tap_true_color',
-        senseDecoys: const ['color', 'label'],
-      ));
+      ..nextChallengeResult = AppleAiProposalResult.ok(
+        baseProposal(
+          id: 'ai.aaaa1',
+          move: 'tap_true_color',
+          senseDecoys: const ['color', 'label'],
+        ),
+      );
 
     // The exact composition `game_screen.dart` builds, with one deliberate
     // narrowing: the scripted floor only draws from the 4 `starter: true`
@@ -131,10 +136,7 @@ void main() {
             random: Random(7),
           ),
         ),
-        ai: AIChallengeProvider(
-          service: service,
-          loadFlags: () async => flags,
-        ),
+        ai: AIChallengeProvider(service: service, loadFlags: () async => flags),
       ),
     );
 
@@ -150,8 +152,11 @@ void main() {
     // proposal from the very first round.
     for (var level = 1; level <= 3; level++) {
       expect(engine.state.level, level);
-      expect(engine.state.challenge, isNot(isA<GeneratedChallengeRuntime>()),
-          reason: 'level $level must stay scripted-only (starter gate)');
+      expect(
+        engine.state.challenge,
+        isNot(isA<GeneratedChallengeRuntime>()),
+        reason: 'level $level must stay scripted-only (starter gate)',
+      );
       await _playRound(engine);
     }
 
@@ -167,55 +172,71 @@ void main() {
     // the failure mode this test's first draft hit (see Decision Log).
     var sawAiRound = false;
     for (var i = 0; i < 4; i++) {
-      service.nextChallengeResult = AppleAiProposalResult.ok(baseProposal(
-        id: 'ai.bbbb${i + 1}',
-        move: i.isEven ? 'tap_true_color' : 'tap_missing_color',
-        senseDecoys: i.isEven ? const ['color', 'label'] : const ['color'],
-      ));
+      service.nextChallengeResult = AppleAiProposalResult.ok(
+        baseProposal(
+          id: 'ai.bbbb${i + 1}',
+          move: i.isEven ? 'tap_true_color' : 'tap_missing_color',
+          senseDecoys: i.isEven ? const ['color', 'label'] : const ['color'],
+        ),
+      );
       if (await _playRound(engine)) sawAiRound = true;
     }
-    expect(sawAiRound, isTrue,
-        reason: 'the AI path never actually served a round in '
-            '${engine.state.level - 3} eligible attempts');
+    expect(
+      sawAiRound,
+      isTrue,
+      reason:
+          'the AI path never actually served a round in '
+          '${engine.state.level - 3} eligible attempts',
+    );
 
     // Silent fallback: the bridge answers with something the validator must
     // reject (only 1 element — `_elementBounds` requires 2-6) — the round
     // must still resolve to a normal, playable (scripted) challenge, with
     // no crash and no player-visible sign anything went wrong.
-    service.nextChallengeResult = AppleAiProposalResult.ok(baseProposal(
-      id: 'ai.ccccc',
-      elements: [
-        {
-          'id': 'only',
-          'label': 'X',
-          'color': 'blue',
-          'shape': 'circle',
-          'scale': 1.0,
-          'rotation': 0,
-          'dx': 0,
-          'dy': 0,
-          'opacity': 1.0,
-          'hidden': false,
-        },
-      ],
-      correct: {'elementId': 'only', 'startsCorrect': false},
-    ));
+    service.nextChallengeResult = AppleAiProposalResult.ok(
+      baseProposal(
+        id: 'ai.ccccc',
+        elements: [
+          {
+            'id': 'only',
+            'label': 'X',
+            'color': 'blue',
+            'shape': 'circle',
+            'scale': 1.0,
+            'rotation': 0,
+            'dx': 0,
+            'dy': 0,
+            'opacity': 1.0,
+            'hidden': false,
+          },
+        ],
+        correct: {'elementId': 'only', 'startsCorrect': false},
+      ),
+    );
     expect(engine.state.challenge, isNotNull);
     await _playRound(engine);
-    expect(engine.state.challenge, isNot(isA<GeneratedChallengeRuntime>()),
-        reason: 'an invalid proposal must fall back to scripted silently');
+    expect(
+      engine.state.challenge,
+      isNot(isA<GeneratedChallengeRuntime>()),
+      reason: 'an invalid proposal must fall back to scripted silently',
+    );
 
     // Mid-session mode switch: even with a perfectly valid proposal queued,
     // turning AI generation off must take effect from the very next round.
     await flags.setChallengeGenerationEnabled(false);
-    service.nextChallengeResult = AppleAiProposalResult.ok(baseProposal(
-      id: 'ai.ddddd',
-      move: 'tap_true_color',
-      senseDecoys: const ['color', 'label'],
-    ));
+    service.nextChallengeResult = AppleAiProposalResult.ok(
+      baseProposal(
+        id: 'ai.ddddd',
+        move: 'tap_true_color',
+        senseDecoys: const ['color', 'label'],
+      ),
+    );
     await _playRound(engine);
-    expect(engine.state.challenge, isNot(isA<GeneratedChallengeRuntime>()),
-        reason: 'aiChallengeGenerationEnabled=false must apply immediately');
+    expect(
+      engine.state.challenge,
+      isNot(isA<GeneratedChallengeRuntime>()),
+      reason: 'aiChallengeGenerationEnabled=false must apply immediately',
+    );
 
     // Across the whole run — starter rounds, cold-cache misses, the invalid
     // proposal, and the mode switch — every single round was answered
