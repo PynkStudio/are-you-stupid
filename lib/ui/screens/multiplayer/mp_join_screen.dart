@@ -205,7 +205,7 @@ class _MpJoinScreenState extends State<MpJoinScreen>
       }
       final session = PartySession(
         transport: transport,
-        appName: 'ARE YOU STUPID?',
+        appName: 'ARE YOU STUPID?!',
         appVersion: _kAppVersion,
       );
       _session = session;

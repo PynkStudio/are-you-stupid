@@ -1,6 +1,6 @@
 ---
 tags: [product, multiplayer, party]
-updated: 2026-10-06
+updated: 2026-10-11
 ---
 
 # Multiplayer Product
@@ -63,6 +63,11 @@ MULTIPLAYER on the Mac asks **WHAT ARE YOU DOING?**:
 - On tvOS there is no mirror button — the board *is* the TV's output.
 
 Same QR, same room code, same join flow, same rules either way.
+
+The Mac controller does not scan QR codes: **PLAY ON THIS MAC** offers nearby
+rooms and manual room-code entry, without camera copy or camera access. Its
+first-use primer is Mac-specific and explains only the local-network access
+used for Bonjour discovery.
 
 ## Screens (canonical copy)
 

@@ -128,7 +128,7 @@ enum AYSCommentaryService {
             : "The tone is playful teasing, never actual cruelty."
         return """
         You write exactly one short, deadpan line of commentary for a \
-        hyper-casual reflex game called ARE YOU STUPID?, where the player gets \
+        hyper-casual reflex game called ARE YOU STUPID?!, where the player gets \
         a stupidly simple instruction and fails on something stupid. \
         \(tone) Never a slur, never a reference to a real person. \
         Write the line in \(language). Reply with exactly one sentence, \

@@ -139,8 +139,9 @@ class MpTextField extends StatelessWidget {
 /// "Permissions").
 Future<bool> showMpPermissionsPrimer(
   BuildContext context,
-  AppLocale locale,
-) async {
+  AppLocale locale, {
+  bool isMacOS = false,
+}) async {
   String t(String key) => Strings.t(locale, key);
   final accepted = await showDialog<bool>(
     context: context,
@@ -159,7 +160,7 @@ Future<bool> showMpPermissionsPrimer(
             BalancedText(t('ui.mp.primer.title'), style: Ays.title(30)),
             const SizedBox(height: 12),
             Text(
-              t('ui.mp.primer.body'),
+              t(isMacOS ? 'ui.mp.primer.macos_body' : 'ui.mp.primer.body'),
               textAlign: TextAlign.center,
               style: Ays.label(14, color: Ays.inkDim),
             ),
@@ -169,15 +170,17 @@ Future<bool> showMpPermissionsPrimer(
               title: t('ui.mp.primer.network_title'),
               body: t('ui.mp.primer.network_body'),
             ),
-            const SizedBox(height: 14),
-            _PrimerItem(
-              icon: Icons.qr_code_scanner_rounded,
-              title: t('ui.mp.primer.camera_title'),
-              body: t('ui.mp.primer.camera_body'),
-            ),
+            if (!isMacOS) ...[
+              const SizedBox(height: 14),
+              _PrimerItem(
+                icon: Icons.qr_code_scanner_rounded,
+                title: t('ui.mp.primer.camera_title'),
+                body: t('ui.mp.primer.camera_body'),
+              ),
+            ],
             const SizedBox(height: 20),
             Text(
-              t('ui.mp.primer.footer'),
+              t(isMacOS ? 'ui.mp.primer.macos_footer' : 'ui.mp.primer.footer'),
               textAlign: TextAlign.center,
               style: Ays.label(13, color: Ays.warning),
             ),

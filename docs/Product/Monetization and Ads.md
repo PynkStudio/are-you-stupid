@@ -1,6 +1,6 @@
 ---
 tags: [product, ads, monetization]
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Monetization and Ads
@@ -16,9 +16,14 @@ the animated `SplashScreen` forever instead of reaching `HomeScreen` (see
 [[Decision Log]] for why boot no longer blocks the first frame at all — it
 just never resolves in this specific misconfiguration). `main.dart` picks
 the provider with
-`Platform.isAndroid || Platform.isIOS`; every other desktop target falls back
-to `MockAdProvider`. `MockAdProvider` is also the default inside `AppServices`
-itself — used by every test and by anyone running the app without touching
+`Platform.isAndroid || Platform.isIOS`. **The shipped Mac app is ad-free:**
+on macOS `main.dart` passes `NoAdProvider` (`lib/services/ads/no_ad_provider.dart`
+— every placement is "no ad") and `AppServices(adFree: true)`, so
+`AdManager` behaves exactly as for a Remove Ads owner (no interstitials, the
+rewarded CONTINUE is free). The Mac must never show `MockAdProvider`'s fake
+overlay to real players. Windows/Linux/web dev builds still fall back to
+`MockAdProvider`, which is also the default inside `AppServices` itself —
+used by every test and by anyone running the app without touching
 `main.dart` — so nothing about local dev changed.
 
 **Real AdMob IDs are wired in**, publisher `ca-app-pub-6747636382023443`, one
@@ -179,12 +184,14 @@ abstract class PurchaseProvider {
 }
 ```
 
-`IapPurchaseProvider` wraps the `in_app_purchase` package (Android/iOS only —
-`main.dart` picks it the same way it picks `AdMobAdProvider`, by
-`Platform.isAndroid || Platform.isIOS`; every other platform gets
-`MockPurchaseProvider`, which resolves every buy/restore instantly so the
-settings flow is exercisable without store credentials, same role as
-`MockAdProvider`).
+`IapPurchaseProvider` wraps the `in_app_purchase` package and is used on
+Android, iOS **and macOS** (StoreKit; the same universal-purchase products, so
+a purchase made on iPhone restores on the Mac). On the ad-free Mac, Settings
+and the lobby banner hide what only removes ads (Remove Ads and the Party
+Bundle) unless already owned; Party Pack and RESTORE PURCHASE stay. Every
+other platform gets `MockPurchaseProvider`, which resolves every buy/restore
+instantly so the settings flow is exercisable without store credentials (same
+role as `MockAdProvider`) — it must never ship in a store build.
 
 `PurchaseManager` (`lib/services/purchases/purchase_manager.dart`) is the
 *policy* layer — a `ChangeNotifier` the Settings screen listens to — and the

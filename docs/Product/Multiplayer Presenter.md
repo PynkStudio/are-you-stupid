@@ -1,6 +1,6 @@
 ---
 tags: [product, multiplayer, audio, ai, presenter]
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Multiplayer Presenter
@@ -245,7 +245,10 @@ speechPolicy: speakAlias
 Deterministic normalization runs first: normalize Unicode, fold common
 leetspeak (`0→o`, `1/!→i`, `3→e`, `4/@→a`, `5/$→s`, `7→t`, etc.), remove invisible
 characters and edge decoration, collapse spaces, and retain a conservative
-set of letters, apostrophes and hyphens. It also rejects contact details,
+set of letters, apostrophes and hyphens. Gamer-tag "x" wrappers are
+dropped only when clearly decorative — a 2–3 run on both sides (`xXLucaXx`)
+or a run set apart by a space/underscore (`x_Luca_x`); a bare edge x is part
+of the name (ALEX, MAX, FELIX, XAVIER). It also rejects contact details,
 URLs, obvious profanity and prompt-like payloads. If the result is clear, no
 model call is needed.
 
@@ -367,15 +370,18 @@ on join. The backend on `https://pynkstudio.eu` serves live speech
 the pack (`GET /api/ays/presenter/pack`, `…/pack/clips/<sha256>`). The
 shared token is set on Vercel production and in the untracked
 `tvos/Config/Presenter.secrets.xcconfig`, which tvOS and the Mac Runner
-both read. Still required before production: deploy the backend branch,
-apply the pack migration, set the selected ElevenLabs voice ID in production,
-publish the first pack and bundle it with the release. Local/LAN AI name
+both read. As of 2026-10-11, the multilingual backend is deployed and revision
+1 is published for `en`, `it`, `fr`, `es`, `pt` and `de`: 11 permanent
+ElevenLabs `eleven_v3` clips per locale plus the localized named/result
+templates. All six manifests and 66 content-addressed clips are also bundled
+under `tvos/TVResources/PresenterPack/`; first launch still syncs a newer
+revision when one exists. Local/LAN AI name
 refinement and join-form pronunciation warnings are wired. Language, output
 `OFF`/`MUTE`/`VOICE` and independent `NEUTRAL`/`SAVAGE` controls already ship
 in host Options. The token ships inside the host binary,
 so it is a speed bump, not authentication. Per-room ephemeral authorization
-and a spend ceiling remain open. Until the pack exists, the host uses system
-TTS as a development-only offline safety net.
+and a spend ceiling remain open. System TTS remains only the final
+development/offline safety net.
 Blocked or deliberately evasive names receive one of five localized,
 presenter-voiced UI rebukes instead of a generic validation error. The choice
 is deterministically derived from the normalized name, so it varies between

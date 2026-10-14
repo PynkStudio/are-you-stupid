@@ -10,6 +10,7 @@ import 'i18n/strings.dart';
 import 'services/ads/ad_provider.dart';
 import 'services/ads/admob_ad_provider.dart';
 import 'services/ads/mock_ad_provider.dart';
+import 'services/ads/no_ad_provider.dart';
 import 'services/app_services.dart';
 import 'services/purchases/iap_purchase_provider.dart';
 import 'services/purchases/mock_purchase_provider.dart';
@@ -133,6 +134,7 @@ class _AreYouStupidAppState extends State<AreYouStupidApp> {
       final accepted = await showMpPermissionsPrimer(
         context,
         services.settings.locale,
+        isMacOS: Platform.isMacOS,
       );
       if (!mounted) return;
       if (!accepted) {
@@ -157,20 +159,25 @@ class _AreYouStupidAppState extends State<AreYouStupidApp> {
   }
 
   Future<void> _boot() async {
-    // google_mobile_ads and in_app_purchase only ship Android/iOS
-    // implementations; other platforms (macOS/Windows/Linux/web dev builds)
-    // fall back to the mocks so boot doesn't hang on a platform channel
-    // nobody answers.
+    // google_mobile_ads only ships Android/iOS; in_app_purchase also ships
+    // macOS (StoreKit, same universal-purchase products). The Mac build is
+    // ad-free — never the mock overlay — and uses the real store. Other
+    // platforms (Windows/Linux/web dev builds) fall back to the mocks so
+    // boot doesn't hang on a platform channel nobody answers.
     final isMobile = Platform.isAndroid || Platform.isIOS;
+    final isMac = Platform.isMacOS;
     final AdProvider adProvider = isMobile
         ? AdMobAdProvider()
+        : isMac
+        ? const NoAdProvider()
         : MockAdProvider();
-    final PurchaseProvider purchaseProvider = isMobile
+    final PurchaseProvider purchaseProvider = isMobile || isMac
         ? IapPurchaseProvider()
         : MockPurchaseProvider();
     final services = await AppServices.boot(
       adProvider: adProvider,
       purchaseProvider: purchaseProvider,
+      adFree: isMac,
     );
     if (!mounted) return;
     setState(() => _services = services);

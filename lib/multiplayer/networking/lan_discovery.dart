@@ -34,7 +34,7 @@ class PartyHostCandidate {
     required this.hostname,
     required this.address,
     required this.port,
-    this.displayName = 'ARE YOU STUPID?',
+    this.displayName = 'ARE YOU STUPID?!',
     this.playerCount = 0,
     this.maxPlayers = 8,
     this.state = 'lobby',

@@ -78,7 +78,8 @@ private struct LobbyMarquee: View {
     var body: some View {
         HStack(spacing: 18) {
             Text("● LIVE").font(Theme.label(16)).foregroundStyle(Theme.hotPink)
-            ShoutText(text: "ARE YOU STUPID?", size: 34)
+            // The brand never wraps; the divider and subtitle give way instead.
+            ShoutText(text: "ARE YOU STUPID?!", size: 34).fixedSize()
             Rectangle().fill(Color.white.opacity(0.2)).frame(height: 1)
             Text(subtitle)
                 .font(Theme.label(15)).foregroundStyle(Color.white.opacity(0.72)).lineLimit(1)

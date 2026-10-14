@@ -10,6 +10,7 @@
 library;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -44,7 +45,10 @@ String? roomCodeFromScannedValue(String? raw) {
 enum _Mode { landing, scanning, enteringCode }
 
 class MpHomeScreen extends StatefulWidget {
-  const MpHomeScreen({super.key});
+  const MpHomeScreen({super.key, this.isMacOS});
+
+  /// Injectable for widget tests; production follows the current platform.
+  final bool? isMacOS;
 
   @override
   State<MpHomeScreen> createState() => _MpHomeScreenState();
@@ -52,6 +56,8 @@ class MpHomeScreen extends StatefulWidget {
 
 class _MpHomeScreenState extends State<MpHomeScreen>
     with WidgetsBindingObserver {
+  bool get _isMacOS => widget.isMacOS ?? Platform.isMacOS;
+
   _Mode _mode = _Mode.landing;
   final _codeController = TextEditingController();
   MobileScannerController? _scannerController;
@@ -103,6 +109,7 @@ class _MpHomeScreenState extends State<MpHomeScreen>
       final accepted = await showMpPermissionsPrimer(
         context,
         services.settings.locale,
+        isMacOS: _isMacOS,
       );
       if (!mounted) return;
       if (!accepted) {
@@ -131,7 +138,7 @@ class _MpHomeScreenState extends State<MpHomeScreen>
       _network = status;
       _wifi = wifi;
     });
-    if (status == LocalNetworkStatus.granted &&
+    if (status != LocalNetworkStatus.denied &&
         wifi != WifiConnectionStatus.disconnected) {
       await _startRoomDiscovery();
     } else {
@@ -213,6 +220,7 @@ class _MpHomeScreenState extends State<MpHomeScreen>
             case _Mode.landing:
               return _Landing(
                 t: t,
+                isMacOS: _isMacOS,
                 networkDenied: _network == LocalNetworkStatus.denied,
                 wifiDisconnected: _wifi == WifiConnectionStatus.disconnected,
                 nearbyRooms: _nearbyRooms,
@@ -252,6 +260,7 @@ class _MpHomeScreenState extends State<MpHomeScreen>
 class _Landing extends StatelessWidget {
   const _Landing({
     required this.t,
+    required this.isMacOS,
     required this.networkDenied,
     required this.wifiDisconnected,
     required this.nearbyRooms,
@@ -263,6 +272,7 @@ class _Landing extends StatelessWidget {
   });
 
   final String Function(String, [Map<String, String>?]) t;
+  final bool isMacOS;
   final bool networkDenied;
   final bool wifiDisconnected;
   final List<PartyHostCandidate> nearbyRooms;
@@ -286,7 +296,7 @@ class _Landing extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            t('ui.mp.home.tagline'),
+            t(isMacOS ? 'ui.mp.home.macos_tagline' : 'ui.mp.home.tagline'),
             textAlign: TextAlign.center,
             style: Ays.label(16, color: Ays.inkDim),
           ),
@@ -356,13 +366,15 @@ class _Landing extends StatelessWidget {
               ),
             const SizedBox(height: 20),
           ],
-          AysButton(
-            label: t('ui.mp.home.scan'),
-            height: 78,
-            fontSize: 28,
-            onTap: onScan,
-          ),
-          const SizedBox(height: 12),
+          if (!isMacOS) ...[
+            AysButton(
+              label: t('ui.mp.home.scan'),
+              height: 78,
+              fontSize: 28,
+              onTap: onScan,
+            ),
+            const SizedBox(height: 12),
+          ],
           AysButton(
             label: t('ui.mp.home.enter_code'),
             height: 66,

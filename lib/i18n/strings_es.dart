@@ -2,7 +2,7 @@
 library;
 
 const Map<String, String> kStringsEs = {
-  'app.title': '¿ERES ESTÚPIDO?',
+  'app.title': '¡¿ERES ESTÚPIDO?!',
 
   'common.too_slow': 'DEMASIADO LENTO.',
   'common.one_job': 'TENÍAS UNA SOLA TAREA.',
@@ -153,8 +153,8 @@ const Map<String, String> kStringsEs = {
   'word.opposite.pair.4': 'GRANDE|PEQUEÑO',
   'word.opposite.pair.5': 'CALIENTE|FRÍO',
 
-  'ui.home.title1': '¿ERES',
-  'ui.home.title2': 'ESTÚPIDO?',
+  'ui.home.title1': '¡¿ERES',
+  'ui.home.title2': 'ESTÚPIDO?!',
   'ui.home.tagline': 'UNA SOLA TAREA. NO LA ARRUINES.',
   'ui.home.best': 'MEJOR: NIVEL {n}',
   'ui.home.no_score': 'SIN PUNTUACIÓN',
@@ -220,7 +220,7 @@ const Map<String, String> kStringsEs = {
   'ui.settings.privacy_choices': 'OPCIONES DE PRIVACIDAD (ANUNCIOS)',
   'ui.settings.reset_stats': 'REINICIAR ESTADÍSTICAS',
   'ui.settings.back': 'ATRÁS',
-  'ui.settings.footer': 'SIN CONEXIÓN. SIN CUENTA. NADA SALE DE ESTE TELÉFONO.',
+  'ui.settings.footer': 'SIN CONEXIÓN. SIN CUENTA. NADA SALE DE ESTE DISPOSITIVO.',
   'ui.settings.made_by': 'Creado por PynkStudio',
   'ui.settings.reset_title': '¿REINICIAR TODO?',
   'ui.settings.reset_body': 'Mejor nivel, intentos y rachas. Desaparecidos.',
@@ -257,6 +257,7 @@ const Map<String, String> kStringsEs = {
   'ui.mp.home.title': 'MULTIJUGADOR',
   'ui.mp.home.tagline':
       'ESCANEA EL CÓDIGO QR DE LA TV PARA UNIRTE A UNA PARTIDA.',
+  'ui.mp.home.macos_tagline': 'ELIGE UNA SALA CERCANA O ESCRIBE SU CÓDIGO.',
   'ui.mp.home.scan': 'ESCANEAR QR',
   'ui.mp.home.enter_code': 'INTRODUCIR CÓDIGO',
   'ui.mp.home.back': 'ATRÁS',
@@ -271,7 +272,8 @@ const Map<String, String> kStringsEs = {
   'ui.mp.enter_code.join': 'UNIRSE',
 
   'ui.mp.primer.title': 'UNA COSA ANTES',
-  'ui.mp.primer.body': 'PARA JUGAR EN LA TV, ESTE MÓVIL NECESITA:',
+  'ui.mp.primer.body': 'PARA JUGAR EN LA TV, ESTE DISPOSITIVO NECESITA:',
+  'ui.mp.primer.macos_body': 'PARA UNIRSE A LA PARTIDA, ESTE MAC NECESITA:',
   'ui.mp.primer.network_title': 'RED LOCAL',
   'ui.mp.primer.network_body':
       'PARA ENCONTRAR LA TV EN TU WI-FI. NADA SALE DE TU CASA.',
@@ -279,10 +281,12 @@ const Map<String, String> kStringsEs = {
   'ui.mp.primer.camera_body':
       'SOLO PARA ESCANEAR EL QR. TAMBIÉN PUEDES ESCRIBIR EL CÓDIGO.',
   'ui.mp.primer.footer':
-      'TU MÓVIL TE LO PREGUNTARÁ. TOCA PERMITIR. NO ES UNA PREGUNTA TRAMPA.',
+      'TE LO VA A PREGUNTAR. TOCA PERMITIR. NO ES UNA PREGUNTA TRAMPA.',
+  'ui.mp.primer.macos_footer':
+      'TU MAC PUEDE PEDIRLO. HAZ CLIC EN PERMITIR PARA ENCONTRAR LA PARTIDA.',
   'ui.mp.primer.continue': 'CONTINUAR',
   'ui.mp.primer.not_now': 'AHORA NO',
-  'ui.mp.permission.network_denied': 'EL ACCESO A LA RED LOCAL ESTÁ DESACTIVADO. SIN ÉL, ESTE MÓVIL NO ENCUENTRA LA TV.',
+  'ui.mp.permission.network_denied': 'EL ACCESO A LA RED LOCAL ESTÁ DESACTIVADO. SIN ÉL, ESTE DISPOSITIVO NO ENCUENTRA LA TV.',
   'ui.mp.permission.open_settings': 'ABRIR AJUSTES',
   'ui.mp.network.wifi_disconnected':
       'SIN WI-FI. LA TV NO ES TELÉPATA. CONÉCTATE A SU RED.',
@@ -308,11 +312,13 @@ const Map<String, String> kStringsEs = {
   'ui.mp.join.nice_try_4': 'BONITO. PERO NO LO DIREMOS EN VOZ ALTA.',
   'ui.mp.join.nice_try_5': 'HEMOS VISTO COSAS PEORES. CAMBIA EL NOMBRE.',
   'ui.mp.name_card.title': '¿CÓMO TE LLAMARÁ?',
-  'ui.mp.name_card.analyzing': 'EL PRESENTADOR ESTÁ DECIDIENDO SI SABE LEER TU NOMBRE.',
+  'ui.mp.name_card.analyzing':
+      'EL PRESENTADOR ESTÁ DECIDIENDO SI SABE LEER TU NOMBRE.',
   'ui.mp.name_card.unknown': 'POR AHORA NO SE ATREVERÁ A DECIRLO.',
   'ui.mp.name_card.pronunciation': 'PRONUNCIACIÓN: {name}',
   'ui.mp.name_card.update': 'CAMBIAR NOMBRE',
-  'ui.mp.name_card.tap_to_fix': 'EL PRESENTADOR NO SABE CÓMO LLAMARTE. TOCA AQUÍ.',
+  'ui.mp.name_card.tap_to_fix':
+      'EL PRESENTADOR NO SABE CÓMO LLAMARTE. TOCA AQUÍ.',
   'ui.mp.join.waiting_host': 'ESPERANDO AL HOST…',
   'ui.mp.join.join_button': 'UNIRSE',
 
@@ -352,10 +358,10 @@ const Map<String, String> kStringsEs = {
   'ui.mp.disconnect.rejected': 'NO SE PUDO UNIR: {reason}',
   'ui.mp.disconnect.menu': 'VOLVER AL MENÚ',
 
-  'ui.mp.share.line1': 'Jugamos a ¿ERES ESTÚPIDO? en la TV. Ganó {name}.',
+  'ui.mp.share.line1': 'Jugamos a ¡¿ERES ESTÚPIDO?! en la TV. Ganó {name}.',
   'ui.mp.share.line2': '¿Crees que puedes ganarnos?',
 
-  'share.line1': 'Llegué al Nivel {level} en ¿ERES ESTÚPIDO?',
+  'share.line1': 'Llegué al Nivel {level} en ¡¿ERES ESTÚPIDO?!',
   'share.line2': '¿Puedes ganarme?',
   'share.best': '(mi mejor: Nivel {best})',
 

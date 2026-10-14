@@ -353,12 +353,15 @@ class _MpLobbyScreenState extends State<MpLobbyScreen> {
             t: t,
             pulse: _state.partyPackNudgeSerial,
             price: services.purchases.partyPackProduct?.price,
-            bundlePrice: services.purchases.partyBundleProduct?.price,
+            bundlePrice: services.adFree
+                ? null
+                : services.purchases.partyBundleProduct?.price,
             busy: services.purchases.busy,
             onBuy: services.purchases.partyPackProduct == null
                 ? null
                 : services.purchases.buyPartyPack,
-            onBuyBundle: services.purchases.partyBundleProduct == null
+            onBuyBundle:
+                services.adFree || services.purchases.partyBundleProduct == null
                 ? null
                 : services.purchases.buyPartyBundle,
           ),

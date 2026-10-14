@@ -1,6 +1,6 @@
 ---
 tags: [meta, decisions, adr]
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Decision Log
@@ -3453,3 +3453,160 @@ to carry matching versions. Native extension targets do not inherit Flutter's
 generated build variables, and placeholder launch artwork is avoidable release
 debt. See [[Getting Started]], [[Release Checklist]] and
 [[iMessage Multiplayer]].
+
+### 2026-10-11 — macOS 26+ gets an Icon Composer icon
+
+**Decision.** The Flutter macOS target ships `macos/Runner/AppIcon.icon`
+alongside the legacy `AppIcon.appiconset`, both named `AppIcon`. The `.icon`
+holds a single full-bleed layer from `icon.png` with a near-black fill and no
+translucency or specular highlight; `tool/make_apple_icons.py` refreshes it.
+
+**Why.** On macOS 26+ the transparent rounded tile is treated as a legacy,
+non-conforming icon and drawn inside a pale system plate, which read as the
+old white border. An Icon Composer icon lets the system apply its own mask, so
+the dark artwork reaches the squircle edge. actool emits the `.icns` fallback
+from the `.icon` for older macOS. See [[Multiplayer Host (tvOS)]] and
+[[Release Checklist]].
+
+### 2026-10-11 — The 1.2 release set uses platform-independent build numbers
+
+**Decision.** Ship iOS as 1.2.0 (8), and tvOS, macOS and Android as 1.2.0
+(9). Store every uploadable artifact together under
+`build/releases/1.2.0/`, with recorded SHA-256 hashes.
+
+**Why.** App Store Connect and Google Play enforce build uniqueness per
+platform/package, not one shared cross-platform counter. Preserving the
+already verified iOS build avoids an unnecessary rebuild, while build 9 is
+the next available host and Android release identifier. See
+[[Release Checklist]].
+
+### 2026-10-11 — macOS multiplayer does not expose the mobile QR scanner
+
+**Decision.** PLAY ON THIS MAC uses a Mac-specific first-use primer that only
+explains Local Network access. The Mac join screen offers discovered rooms and
+manual room-code entry, but neither exposes SCAN QR nor initializes the camera
+scanner. Unknown permission status remains non-blocking so Bonjour can trigger
+the macOS local-network system flow directly.
+
+**Why.** The mobile primer incorrectly called the Mac a phone and advertised a
+camera fallback that is not part of the supported desktop experience; opening
+that fallback could crash the macOS app. Bonjour discovery still needs the
+declared local-network purpose, so removing camera UX must not disable room
+discovery. See [[Multiplayer Client (Mobile)]] and [[Multiplayer Product]].
+
+### 2026-10-11 — Presenter packs publish six locales and keep named copy dynamic
+
+**Decision.** Publish revision 1 for English, Italian, French, Spanish,
+Portuguese and German with 11 permanent `eleven_v3` clips per locale. Bundle
+the same 66 content-addressed MP3 files in the tvOS/macOS host while retaining
+the first-launch revision sync. Keep lines containing `{name}` or `{title}` as
+localized templates synthesized only when needed, rather than pre-recording
+impossible player-name combinations.
+
+**Why.** Universal beats must work immediately and offline, while first launch
+must be able to receive corrected takes without an app release. Pre-recording
+only name-free variants bounds the initial download and ElevenLabs cost;
+content hashing, byte checks and ETags make updates atomic and cacheable. See
+[[Multiplayer Presenter]], [[Multiplayer Host (tvOS)]] and [[Release Checklist]].
+
+### 2026-10-12 — The Mac app is ad-free and sells through real StoreKit
+
+**Decision.** On macOS the app boots with `NoAdProvider` +
+`AppServices(adFree: true)` and the real `IapPurchaseProvider`. `AdManager`
+treats an ad-free platform like a Remove Ads owner (no interstitials, free
+CONTINUE). Settings and the lobby hide Remove Ads and the Party Bundle on the
+Mac unless owned; Party Pack and Restore stay. The Mac product is renamed
+`Are You Stupid.app` (`PRODUCT_NAME`), shipped as macOS version 1.0.1 (11):
+App Store Connect cannot replace the build of the approved Mac 1.0.
+
+**Why.** Until now macOS fell back to the dev mocks: the store build showed a
+fake ad overlay and granted every in-app purchase for free at made-up prices.
+google_mobile_ads has no macOS implementation, so the honest options were
+"no ads" or "no Mac"; StoreKit does work on macOS and the products are
+universal, so purchases stay real. Selling an ads-only purchase where no ads
+exist would mislead buyers. See [[Monetization and Ads]].
+
+### 2026-10-12 — Android beta: closed track via a Google Group, phones only
+
+**Decision.** The Play closed test (track Alpha, 1.2.0 code 9) gets its
+testers from the Google Group `ays-beta-testers@googlegroups.com`, not an
+e-mail list. The group starts invite-only. Distribution is limited to Android
+phones: the Google Play Games on PC form factor was removed before the first
+review.
+
+**Why.** A group lets the pynkstudio.eu beta manager add testers without
+touching Play Console, and it scales to the 12 testers / 14 days that a
+personal account needs before production. Invite-only keeps the group off the
+public web until the owner chooses to open it. The game is designed one-handed
+for phones ([[Game Design Pillars]]); a PC build would need its own
+screenshots, input testing and review. See [[Release Checklist]].
+
+### 2026-10-12 — The name is always ARE YOU STUPID?! (with "?!")
+
+**Decision (owner).** The game's name carries "?!" everywhere — every
+version, screen, platform and language. In-app titles stay localized with the
+"?!" kept (`app.title`, `ui.home.title1/2`, share lines; Spanish becomes
+"¡¿ERES ESTÚPIDO?!"). The on-device name is `ARE YOU STUPID?!` on iOS
+(`CFBundleDisplayName`/`CFBundleName` and every `InfoPlist.strings`), tvOS,
+macOS (`CFBundleName`/`CFBundleDisplayName`, main menu, window titles) and
+Android (`android:label`), English in every locale like the App Store name.
+The Apple TV/Mac board, Bonjour room names and the on-device AI prompts use
+the same spelling; the board header keeps the name on one line
+(`.fixedSize()`).
+
+**Why.** Brand consistency is the owner's call; the earlier plain
+"Are You Stupid" display name (2026-09 entry above) predates it. Keeping the
+device name English avoids a mismatch with the English-only store listing.
+Long names truncate under the iOS icon ("ARE YOU STUPI…"); accepted. Fixing
+the Mac main menu also removed the Flutter template's literal "About
+APP_NAME"/"Quit APP_NAME" items. See [[Game Design Pillars]].
+
+### 2026-10-12 — The board host serves every connection on the main queue
+
+**Decision.** `NWListenerServer` takes an optional shared `connectionQueue`;
+the tvOS/macOS board passes `.main`. Each accepted `NWConnection` is created,
+handed to `RoomHost.attachClient` and served on that one serial queue.
+
+**Why.** `RoomHost` has no locking and is also driven from the `@MainActor`
+`HostViewModel`. With one queue per connection, phones joining at the same
+time entered it concurrently and crashed the board on its seat dictionary —
+found while capturing store screenshots with four dev bots on the Apple TV
+simulator, and it would hit any real party where several phones scan the QR
+together. Main-queue I/O is negligible for a handful of JSONL messages, and
+serializing in one place is simpler than locking every `RoomHost` member. See
+[[Multiplayer Host (tvOS)]].
+
+### 2026-10-12 — Icon art gets its "!", copy stops assuming a phone, x-names keep their x
+
+**Decision.** (1) The icon artwork now reads "ARE YOU STUPID?!":
+`tool/add_icon_bang.py` scales the original art (`icon_source.png`) to 90 %,
+shifts it left and draws a "!" matched to the "?" (yellow gradient, black
+outline, dark halo, same tilt); every platform icon is regenerated from it.
+(2) Settings and multiplayer-permission copy says "this device" (in all six
+locales) instead of "this phone", because iPad, Apple TV-adjacent and Mac
+players see it too. (3) `SpokenIdentity` only drops "x" wrappers that are
+clearly decoration (2–3 on both sides, or set apart by a separator).
+
+**Why.** (1) The owner's rule that the name always carries "?!" (see the
+entry above) applies to the icon too; editing the existing art keeps the
+approved look instead of commissioning a new one. (2) The iPad primer read
+"THIS PHONE NEEDS". (3) The old edge-x stripping turned ALEX into "ALE", MAX
+into "MA" and XAVIER into "AVIER" for the presenter. See
+[[Multiplayer Presenter]] and [[Release Checklist]].
+
+
+### 2026-10-12 — Scope frozen until 1.2.0 ships; new features start at 1.3.0
+
+**Decision.** The 1.0.0 (in review), 1.1.0 (TestFlight) and 1.2.0 (release
+candidate) trains take only fixes and release gates. New work — daily
+challenge, image share card, color-blind mode, offline retention (Hall of
+Shame, medals, rematch), more templates, multiplayer game-show polish — is
+planned from 1.3.0 in [[Roadmap]]. The Roadmap was also re-aligned: AI
+commentary is already on screen, the presenter foundation already landed and
+audio is a generated SFX bank, not system sounds.
+
+**Why.** The product grew fast (TV/Mac host, iMessage, AI director,
+presenter) while the real-device passes for each are still open; shipping
+what exists matters more than adding to it. Daily challenge leads the 1.3.0
+list because it is the only retention loop that stays offline and reuses the
+deterministic generator. See [[Release Checklist]].

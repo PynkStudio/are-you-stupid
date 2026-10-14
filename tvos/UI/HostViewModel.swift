@@ -69,7 +69,9 @@ final class HostViewModel: ObservableObject {
     @Published private(set) var presenterIntensity: PresenterIntensity = .savage
 
     private let host: RoomHost
-    private let server = NWListenerServer()
+    // Connections run on main, where this @MainActor model also drives
+    // `host` (start/next/complete round): RoomHost is single-threaded.
+    private let server = NWListenerServer(connectionQueue: .main)
     private let advertisedDeviceName: String
     private let presenterPacks = PresenterPackStore()
     private let presenterEngine = PresenterEngine(intensity: .savage)
@@ -131,7 +133,7 @@ final class HostViewModel: ObservableObject {
             .replacingOccurrences(of: ".local", with: "", options: [.caseInsensitive])
             .replacingOccurrences(of: "-", with: " ")
         host = RoomHost(
-            hostName: "ARE YOU STUPID?",
+            hostName: "ARE YOU STUPID?!",
             roomCode: code,
             clock: SystemHostClock(),
             judge: RoundDurationProvider()

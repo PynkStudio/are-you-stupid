@@ -43,6 +43,7 @@ void main() {
   Future<(AppServices, _FakeLocalNetwork)> open(
     WidgetTester tester, {
     required bool primerSeen,
+    bool isMacOS = false,
     LocalNetworkStatus answer = LocalNetworkStatus.granted,
     WifiConnectionStatus wifiAnswer = WifiConnectionStatus.connected,
   }) async {
@@ -64,7 +65,7 @@ void main() {
       ),
     );
     navigatorKey.currentState!.push(
-      MaterialPageRoute<void>(builder: (_) => const MpHomeScreen()),
+      MaterialPageRoute<void>(builder: (_) => MpHomeScreen(isMacOS: isMacOS)),
     );
     await tester.pumpAndSettle();
     return (services, fake);
@@ -101,6 +102,26 @@ void main() {
     expect(find.byType(MpHomeScreen), findsNothing);
     expect(services.multiplayerProfile.permissionsPrimerSeen, isFalse);
     expect(fake.statusCalls, 0);
+  });
+
+  testWidgets('Mac omits phone camera copy and QR scanning', (tester) async {
+    final (_, fake) = await open(tester, primerSeen: false, isMacOS: true);
+
+    expect(find.textContaining('THIS MAC NEEDS'), findsOneWidget);
+    expect(find.textContaining('CAMERA'), findsNothing);
+    expect(find.textContaining('YOUR PHONE'), findsNothing);
+    expect(fake.statusCalls, 0);
+
+    await tester.tap(find.text('CONTINUE'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('SCAN QR'), findsNothing);
+    expect(find.text('ENTER ROOM CODE'), findsOneWidget);
+    expect(
+      find.text('CHOOSE A NEARBY ROOM OR ENTER ITS CODE.'),
+      findsOneWidget,
+    );
+    expect(fake.statusCalls, 1);
   });
 
   testWidgets('later visits skip the primer', (tester) async {

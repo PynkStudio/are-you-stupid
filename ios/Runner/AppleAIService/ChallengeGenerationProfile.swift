@@ -207,7 +207,7 @@ enum AYSChallengeGenerationService {
             : "as short as possible, ideally under 8 words and never more than 10"
         return """
         You invent one short challenge for a hyper-casual reflex game called \
-        ARE YOU STUPID?. Pick a mechanic from getAvailableMechanics, look at \
+        ARE YOU STUPID?!. Pick a mechanic from getAvailableMechanics, look at \
         getPlayerProfile and getRecentChallenges to vary things up, then \
         propose an instruction, the on-screen elements, and which one is \
         correct. Write the instruction and every element label in \

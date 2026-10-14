@@ -2,7 +2,7 @@
 library;
 
 const Map<String, String> kStringsPt = {
-  'app.title': 'VOCÊ É BURRO?',
+  'app.title': 'VOCÊ É BURRO?!',
 
   'common.too_slow': 'MUITO LENTO.',
   'common.one_job': 'VOCÊ TINHA UMA TAREFA.',
@@ -154,7 +154,7 @@ const Map<String, String> kStringsPt = {
   'word.opposite.pair.5': 'QUENTE|FRIO',
 
   'ui.home.title1': 'VOCÊ É',
-  'ui.home.title2': 'BURRO?',
+  'ui.home.title2': 'BURRO?!',
   'ui.home.tagline': 'UMA TAREFA. NÃO ESTRAGUE TUDO.',
   'ui.home.best': 'MELHOR: NÍVEL {n}',
   'ui.home.no_score': 'SEM PONTUAÇÃO',
@@ -218,7 +218,7 @@ const Map<String, String> kStringsPt = {
   'ui.settings.privacy_choices': 'ESCOLHAS DE PRIVACIDADE (ANÚNCIOS)',
   'ui.settings.reset_stats': 'REDEFINIR ESTATÍSTICAS',
   'ui.settings.back': 'VOLTAR',
-  'ui.settings.footer': 'OFFLINE. SEM CONTA. NADA SAI DESTE TELEFONE.',
+  'ui.settings.footer': 'OFFLINE. SEM CONTA. NADA SAI DESTE APARELHO.',
   'ui.settings.made_by': 'Criado por PynkStudio',
   'ui.settings.reset_title': 'REDEFINIR TUDO?',
   'ui.settings.reset_body': 'Melhor nível, tentativas e sequências. Perdidos.',
@@ -256,6 +256,7 @@ const Map<String, String> kStringsPt = {
 
   'ui.mp.home.title': 'MULTIJOGADOR',
   'ui.mp.home.tagline': 'ESCANEIE O QR CODE NA TV PARA ENTRAR NUM JOGO.',
+  'ui.mp.home.macos_tagline': 'ESCOLHA UMA SALA PRÓXIMA OU DIGITE O CÓDIGO.',
   'ui.mp.home.scan': 'ESCANEAR QR',
   'ui.mp.home.enter_code': 'INSERIR CÓDIGO DA SALA',
   'ui.mp.home.back': 'VOLTAR',
@@ -270,7 +271,8 @@ const Map<String, String> kStringsPt = {
   'ui.mp.enter_code.join': 'ENTRAR',
 
   'ui.mp.primer.title': 'UMA COISA ANTES',
-  'ui.mp.primer.body': 'PARA JOGAR NA TV, ESTE CELULAR PRECISA DE:',
+  'ui.mp.primer.body': 'PARA JOGAR NA TV, ESTE APARELHO PRECISA DE:',
+  'ui.mp.primer.macos_body': 'PARA ENTRAR NO JOGO, ESTE MAC PRECISA DE:',
   'ui.mp.primer.network_title': 'REDE LOCAL',
   'ui.mp.primer.network_body':
       'PARA ENCONTRAR A TV NO SEU WI-FI. NADA SAI DA SUA CASA.',
@@ -278,10 +280,12 @@ const Map<String, String> kStringsPt = {
   'ui.mp.primer.camera_body':
       'SÓ PARA ESCANEAR O QR CODE. VOCÊ TAMBÉM PODE DIGITAR O CÓDIGO.',
   'ui.mp.primer.footer':
-      'SEU CELULAR VAI PERGUNTAR. TOQUE EM PERMITIR. NÃO É PEGADINHA.',
+      'VAI APARECER UMA PERGUNTA. TOQUE EM PERMITIR. NÃO É PEGADINHA.',
+  'ui.mp.primer.macos_footer':
+      'SEU MAC PODE PEDIR. CLIQUE EM PERMITIR PARA ENCONTRAR O JOGO.',
   'ui.mp.primer.continue': 'CONTINUAR',
   'ui.mp.primer.not_now': 'AGORA NÃO',
-  'ui.mp.permission.network_denied': 'O ACESSO À REDE LOCAL ESTÁ DESLIGADO. SEM ELE, ESTE CELULAR NÃO ENCONTRA A TV.',
+  'ui.mp.permission.network_denied': 'O ACESSO À REDE LOCAL ESTÁ DESLIGADO. SEM ELE, ESTE APARELHO NÃO ENCONTRA A TV.',
   'ui.mp.permission.open_settings': 'ABRIR AJUSTES',
   'ui.mp.network.wifi_disconnected':
       'SEM WI-FI. A TV NÃO É TELEPATA. LIGA-TE À REDE DELA.',
@@ -307,11 +311,13 @@ const Map<String, String> kStringsPt = {
   'ui.mp.join.nice_try_4': 'BONITO. MAS NÃO VAMOS DIZER ISSO EM VOZ ALTA.',
   'ui.mp.join.nice_try_5': 'JÁ VIMOS PIOR. MUDE O NOME.',
   'ui.mp.name_card.title': 'COMO VAI TE CHAMAR?',
-  'ui.mp.name_card.analyzing': 'O APRESENTADOR ESTÁ DECIDINDO SE SABE LER SEU NOME.',
+  'ui.mp.name_card.analyzing':
+      'O APRESENTADOR ESTÁ DECIDINDO SE SABE LER SEU NOME.',
   'ui.mp.name_card.unknown': 'POR ENQUANTO, NÃO VAI ARRISCAR DIZÊ-LO.',
   'ui.mp.name_card.pronunciation': 'PRONÚNCIA: {name}',
   'ui.mp.name_card.update': 'ALTERAR NOME',
-  'ui.mp.name_card.tap_to_fix': 'O APRESENTADOR NÃO SABE COMO TE CHAMAR. TOQUE AQUI.',
+  'ui.mp.name_card.tap_to_fix':
+      'O APRESENTADOR NÃO SABE COMO TE CHAMAR. TOQUE AQUI.',
   'ui.mp.join.waiting_host': 'AGUARDANDO O HOST…',
   'ui.mp.join.join_button': 'ENTRAR',
 
@@ -350,10 +356,10 @@ const Map<String, String> kStringsPt = {
   'ui.mp.disconnect.rejected': 'NÃO FOI POSSÍVEL ENTRAR: {reason}',
   'ui.mp.disconnect.menu': 'VOLTAR AO MENU',
 
-  'ui.mp.share.line1': 'Jogamos VOCÊ É BURRO? na TV. {name} venceu.',
+  'ui.mp.share.line1': 'Jogamos VOCÊ É BURRO?! na TV. {name} venceu.',
   'ui.mp.share.line2': 'Acha que consegue nos vencer?',
 
-  'share.line1': 'Cheguei ao Nível {level} em VOCÊ É BURRO?',
+  'share.line1': 'Cheguei ao Nível {level} em VOCÊ É BURRO?!',
   'share.line2': 'Consegue me vencer?',
   'share.best': '(meu melhor: Nível {best})',
 

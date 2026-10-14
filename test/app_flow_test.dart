@@ -52,7 +52,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('ARE YOU'), findsOneWidget);
-    expect(find.text('STUPID?'), findsOneWidget);
+    expect(find.text('STUPID?!'), findsOneWidget);
     expect(find.text("ONE JOB. DON'T FUCK IT UP."), findsOneWidget);
     expect(find.text('PLAY'), findsOneWidget);
     expect(find.text('BEST SCORE'), findsOneWidget);

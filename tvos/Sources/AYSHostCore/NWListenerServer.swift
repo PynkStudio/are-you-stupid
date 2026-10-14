@@ -34,7 +34,7 @@ public struct BonjourService: Equatable {
 
     public init(
         roomCode: String,
-        displayName: String = "ARE YOU STUPID?",
+        displayName: String = "ARE YOU STUPID?!",
         playerCount: Int = 0,
         maxPlayers: Int = 8,
         state: String = "lobby"
@@ -88,8 +88,17 @@ public final class NWListenerServer {
     private var listener: NWListener?
     private let acceptQueue = DispatchQueue(label: "ays.host.listener")
     private(set) var connectionCounter = 0
+    /// When set, every accepted connection runs on this one serial queue, so
+    /// whatever `onNewTransport` wires them to (a `RoomHost`) is never
+    /// entered from two connections at once. `RoomHost` is not thread-safe:
+    /// the board passes `.main`, the queue its own UI drives the host from —
+    /// per-connection queues let several phones joining together race on
+    /// its seat dictionary and crashed the board.
+    private let sharedConnectionQueue: DispatchQueue?
 
-    public init() {}
+    public init(connectionQueue: DispatchQueue? = nil) {
+        sharedConnectionQueue = connectionQueue
+    }
 
     /// Starts listening on `port` (`.any` picks an unused ephemeral port —
     /// the common case for a real host, since the room code plus Bonjour is
@@ -121,6 +130,15 @@ public final class NWListenerServer {
         listener.newConnectionHandler = { [weak self] connection in
             guard let self else { return }
             self.connectionCounter += 1
+            if let shared = self.sharedConnectionQueue {
+                // Create and hand off on the shared queue itself, so the
+                // receiver is wired before any callback can run there.
+                shared.async {
+                    let transport = NWConnectionTransport(connection, queue: shared)
+                    self.onNewTransport?(transport)
+                }
+                return
+            }
             let connectionQueue = DispatchQueue(
                 label: "ays.host.connection.\(self.connectionCounter)"
             )

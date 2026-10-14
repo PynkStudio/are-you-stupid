@@ -135,7 +135,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('MA SEI'), findsOneWidget);
-    expect(find.text('SCEMO?'), findsOneWidget);
+    expect(find.text('SCEMO?!'), findsOneWidget);
     expect(find.text('GIOCA'), findsOneWidget);
     expect(find.text('IMPOSTAZIONI'), findsOneWidget);
     expect(find.text('PLAY'), findsNothing);

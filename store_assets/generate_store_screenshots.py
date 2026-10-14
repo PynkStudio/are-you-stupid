@@ -7,8 +7,13 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "store_assets" / "output"
-PHONE = ROOT / "build" / "screenshots" / "iphone69"
-TV = ROOT / "build" / "screenshots" / "raw" / "tv_1.png"
+# Raw captures carrying the "ARE YOU STUPID?!" name (2026-10-12): iPhone 17
+# Pro Max simulator, and the Apple TV 4K simulator board with dev bot players.
+PHONE = ROOT / "build" / "screenshots" / "iphone69-v2"
+TV_SHOTS = ROOT / "build" / "screenshots" / "appletv-v2"
+# Native iPad Pro 13" simulator captures, same moments as the phone slides.
+IPAD = ROOT / "build" / "screenshots" / "ipad13-v2"
+IPAD_FILE = {"02_challenge_tapgreen.png": "02_challenge.png"}
 
 INK = "#F7F7FA"
 MUTED = "#9B9BA8"
@@ -80,7 +85,6 @@ def save(image: Image.Image, path: Path) -> None:
 PHONE_SLIDES = [
     ("01_home.png", "ONE JOB.", "DON'T SCREW IT UP.", "ONE-HANDED  •  OFFLINE", YELLOW),
     ("02_challenge_tapgreen.png", "LOOKS EASY.", "UNTIL IT ISN'T.", "REACTION  •  COLORS  •  TIMING", GREEN),
-    ("03_challenge_trick.png", "READ FAST.", "THINK FASTER.", "DOZENS OF STUPIDLY SIMPLE TRAPS", BLUE),
     ("03b_wrong_flash.png", "FAILED THAT?", "OF COURSE YOU DID.", "INSTANT FAILS. ZERO DOWNTIME.", RED),
     ("05_gameover.png", "YOUR SCORE.", "YOUR SHAME.", "BEAT YOUR BEST. DARE YOUR FRIENDS.", YELLOW),
     ("07_lobby.png", "PARTY MODE.", "PHONES ARE CONTROLLERS.", "UP TO 16 WITH PARTY PACK", BLUE),
@@ -137,7 +141,7 @@ def phone_assets() -> None:
     for slide_index, (filename, eyebrow, headline, detail, accent) in enumerate(PHONE_SLIDES):
         image = campaign_background(size, slide_index, accent)
         draw = ImageDraw.Draw(image)
-        draw.text((88, 105), f"0{slide_index + 1}  /  06", font=font(25), fill=MUTED)
+        draw.text((88, 105), f"0{slide_index + 1}  /  0{len(PHONE_SLIDES)}", font=font(25), fill=MUTED)
         draw.text((88, 178), eyebrow, font=font(42), fill=accent)
         headline_font = fit_text(draw, headline, 1135, 112)
         draw.text((88, 245), headline, font=headline_font, fill=INK)
@@ -155,21 +159,18 @@ def ipad_assets() -> None:
     for slide_index, (filename, eyebrow, headline, detail, accent) in enumerate(PHONE_SLIDES):
         image = campaign_background(size, slide_index, accent)
         draw = ImageDraw.Draw(image)
-        draw.text((132, 100), f"0{slide_index + 1}  /  06", font=font(30), fill=MUTED)
+        draw.text((132, 100), f"0{slide_index + 1}  /  0{len(PHONE_SLIDES)}", font=font(30), fill=MUTED)
         draw.text((132, 175), eyebrow, font=font(50), fill=accent)
         headline_font = fit_text(draw, headline, 1780, 132)
         draw.text((132, 250), headline, font=headline_font, fill=INK)
         pill(draw, (132, 450), detail, accent, 1.22)
 
-        # On iPad the game fills the canvas. We show genuine UI detail as a
-        # landscape editorial crop, never as a fake iPhone device mockup.
-        focus = 0.36 if slide_index == 0 else 0.5
-        screenshot_card(image, PHONE / filename, (132, 690, 1932, 2380), 58, crop_top=110, focus_y=focus)
+        # Real iPad captures, shown whole (never an iPhone mockup on iPad).
+        rounded_screenshot(image, IPAD / IPAD_FILE.get(filename, filename), (132, 620, 1932, 2410), 48)
         draw.rounded_rectangle((132, 2450, 1932, 2625), radius=40, fill="#15151D", outline="#343440", width=3)
         footer = [
             "NO ACCOUNT. NO INTERNET. NO EXCUSES.",
             "FAST ROUNDS. INSTANT RETRIES.",
-            "MEMORY. REACTION. PURE PANIC.",
             "EVERY FAIL EXPLAINED IN ONE LINE.",
             "SHARE THE SCORE. HIDE THE SHAME.",
             "APPLE TV OR MAC HOSTS THE ROOM.",
@@ -263,31 +264,31 @@ def imessage_assets() -> None:
 
 
 DESKTOP_SLIDES = [
-    ("THE PARTY STARTS HERE.", "HOST ON APPLE TV OR MAC.", BLUE),
-    ("SCAN. JOIN. PANIC.", "PHONES BECOME CONTROLLERS.", GREEN),
-    ("UP TO 16 PLAYERS.", "ONE ROOM. ZERO DIGNITY.", RED),
+    ("THE PARTY STARTS HERE.", "HOST ON APPLE TV OR MAC.", BLUE, "lobby0.png"),
+    ("SCAN. JOIN. PANIC.", "PHONES BECOME CONTROLLERS.", GREEN, "lobby4.png"),
+    ("UP TO 16 PLAYERS.", "ONE ROOM. ZERO DIGNITY.", RED, "lobby5.png"),
 ]
 
 
-def wide_asset(size: tuple[int, int], folder: str, index: int, headline: str, subhead: str, accent: str) -> None:
+def wide_asset(size: tuple[int, int], folder: str, index: int, headline: str, subhead: str, accent: str, shot: Path) -> None:
     image = background(size, accent)
     w, h = size
     draw = ImageDraw.Draw(image)
     margin = w // 16
-    draw.text((margin, h // 24), "ARE YOU STUPID? — PARTY MODE", font=font(w // 72), fill=accent)
+    draw.text((margin, h // 24), "ARE YOU STUPID?! — PARTY MODE", font=font(w // 72), fill=accent)
     headline_font = fit_text(draw, headline, w * 7 // 8, w // 16)
     headline_y = h // 10
     draw.text((margin, headline_y), headline, font=headline_font, fill=INK)
     headline_bottom = draw.textbbox((margin, headline_y), headline, font=headline_font)[3]
     draw.text((margin, headline_bottom + h // 80), subhead, font=font(max(28, w // 90)), fill=MUTED)
-    rounded_screenshot(image, TV, (w // 11, h * 30 // 100, w * 10 // 11, h * 94 // 100), max(32, w // 80))
+    rounded_screenshot(image, shot, (w // 11, h * 30 // 100, w * 10 // 11, h * 94 // 100), max(32, w // 80))
     save(image, OUT / folder / f"{index:02d}.png")
 
 
 def desktop_assets() -> None:
-    for index, (headline, subhead, accent) in enumerate(DESKTOP_SLIDES, 1):
-        wide_asset((3840, 2160), "apple-tv", index, headline, subhead, accent)
-        wide_asset((2880, 1800), "mac", index, headline, subhead, accent)
+    # Mac screenshots come from generate_mac_screenshots.py (real Mac app).
+    for index, (headline, subhead, accent, shot) in enumerate(DESKTOP_SLIDES, 1):
+        wide_asset((3840, 2160), "apple-tv", index, headline, subhead, accent, TV_SHOTS / shot)
 
 
 def play_assets() -> None:
@@ -305,7 +306,7 @@ def play_assets() -> None:
     draw = ImageDraw.Draw(image)
     draw.text((56, 70), "ONE JOB. DON'T MESS IT UP.", font=font(26), fill=RED)
     draw.text((56, 120), "ARE YOU", font=font(92), fill=INK)
-    draw.text((56, 222), "STUPID?", font=font(92), fill=YELLOW)
+    draw.text((56, 222), "STUPID?!", font=font(92), fill=YELLOW)
     draw.text((56, 352), "ONE-HANDED. OFFLINE. NO ACCOUNT.", font=font(24), fill=MUTED)
     rounded_screenshot(image, PHONE / PHONE_SLIDES[1][0], (700, 30, 980, 470), 24)
     save(image, OUT / "play-feature" / "feature-graphic.png")

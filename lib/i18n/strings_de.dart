@@ -2,7 +2,7 @@
 library;
 
 const Map<String, String> kStringsDe = {
-  'app.title': 'BIST DU DUMM?',
+  'app.title': 'BIST DU DUMM?!',
 
   'common.too_slow': 'ZU LANGSAM.',
   'common.one_job': 'DU HATTEST EINE AUFGABE.',
@@ -155,7 +155,7 @@ const Map<String, String> kStringsDe = {
   'word.opposite.pair.5': 'HEISS|KALT',
 
   'ui.home.title1': 'BIST DU',
-  'ui.home.title2': 'DUMM?',
+  'ui.home.title2': 'DUMM?!',
   'ui.home.tagline': 'EINE AUFGABE. VERSAU SIE NICHT.',
   'ui.home.best': 'BESTE: LEVEL {n}',
   'ui.home.no_score': 'NOCH KEIN ERGEBNIS',
@@ -221,7 +221,7 @@ const Map<String, String> kStringsDe = {
   'ui.settings.privacy_choices': 'WERBE-DATENSCHUTZ',
   'ui.settings.reset_stats': 'STATISTIK ZURÜCKSETZEN',
   'ui.settings.back': 'ZURÜCK',
-  'ui.settings.footer': 'OFFLINE. KEIN KONTO. NICHTS VERLÄSST DIESES TELEFON.',
+  'ui.settings.footer': 'OFFLINE. KEIN KONTO. NICHTS VERLÄSST DIESES GERÄT.',
   'ui.settings.made_by': 'Erstellt von PynkStudio',
   'ui.settings.reset_title': 'ALLES ZURÜCKSETZEN?',
   'ui.settings.reset_body': 'Bestes Level, Versuche und Serien. Weg damit.',
@@ -257,6 +257,8 @@ const Map<String, String> kStringsDe = {
 
   'ui.mp.home.title': 'MULTIPLAYER',
   'ui.mp.home.tagline': 'SCANNE DEN QR-CODE AUF DEM TV, UM BEIZUTRETEN.',
+  'ui.mp.home.macos_tagline':
+      'WÄHLE EINEN RAUM IN DER NÄHE ODER GIB SEINEN CODE EIN.',
   'ui.mp.home.scan': 'QR SCANNEN',
   'ui.mp.home.enter_code': 'RAUMCODE EINGEBEN',
   'ui.mp.home.back': 'ZURÜCK',
@@ -271,7 +273,8 @@ const Map<String, String> kStringsDe = {
   'ui.mp.enter_code.join': 'BEITRETEN',
 
   'ui.mp.primer.title': 'ERST MAL KURZ',
-  'ui.mp.primer.body': 'UM AUF DEM TV ZU SPIELEN, BRAUCHT DIESES HANDY:',
+  'ui.mp.primer.body': 'UM AUF DEM TV ZU SPIELEN, BRAUCHT DIESES GERÄT:',
+  'ui.mp.primer.macos_body': 'UM BEIZUTRETEN, BRAUCHT DIESER MAC:',
   'ui.mp.primer.network_title': 'LOKALES NETZWERK',
   'ui.mp.primer.network_body':
       'UM DEN TV IN DEINEM WLAN ZU FINDEN. NICHTS VERLÄSST DEIN ZUHAUSE.',
@@ -279,10 +282,12 @@ const Map<String, String> kStringsDe = {
   'ui.mp.primer.camera_body':
       'NUR ZUM SCANNEN DES QR-CODES. DU KANNST DEN CODE AUCH EINTIPPEN.',
   'ui.mp.primer.footer':
-      'DEIN HANDY WIRD FRAGEN. TIPP AUF ERLAUBEN. ES IST KEINE FANGFRAGE.',
+      'GLEICH KOMMT EINE FRAGE. TIPP AUF ERLAUBEN. ES IST KEINE FANGFRAGE.',
+  'ui.mp.primer.macos_footer':
+      'DEIN MAC FRAGT EVENTUELL. KLICKE AUF ERLAUBEN, UM DIE PARTY ZU FINDEN.',
   'ui.mp.primer.continue': 'WEITER',
   'ui.mp.primer.not_now': 'NICHT JETZT',
-  'ui.mp.permission.network_denied': 'ZUGRIFF AUFS LOKALE NETZWERK IST AUS. OHNE IHN FINDET DIESES HANDY DEN TV NICHT.',
+  'ui.mp.permission.network_denied': 'ZUGRIFF AUFS LOKALE NETZWERK IST AUS. OHNE IHN FINDET DIESES GERÄT DEN TV NICHT.',
   'ui.mp.permission.open_settings': 'EINSTELLUNGEN ÖFFNEN',
   'ui.mp.network.wifi_disconnected':
       'KEIN WLAN. DER FERNSEHER KANN KEINE GEDANKEN LESEN. NUTZ SEIN NETZ.',
@@ -302,17 +307,20 @@ const Map<String, String> kStringsDe = {
   'ui.mp.join.spoken_as': 'WIRD AUSGESPROCHEN ALS: {name}',
   'ui.mp.join.not_spoken': 'DER MODERATOR KANN DIESEN NAMEN NICHT AUSSPRECHEN.',
   'ui.mp.join.nice_try': 'NETTER VERSUCH. NIMM EINEN ANDEREN NAMEN.',
-  'ui.mp.join.nice_try_1': 'NETTER VERSUCH. DER MODERATOR FÄLLT NICHT DARAUF REIN.',
+  'ui.mp.join.nice_try_1':
+      'NETTER VERSUCH. DER MODERATOR FÄLLT NICHT DARAUF REIN.',
   'ui.mp.join.nice_try_2': 'GUTER VERSUCH. JETZT PROBIER EINEN NAMEN.',
   'ui.mp.join.nice_try_3': 'NEIN. DAS BLEIBT ZWISCHEN DIR UND DER TASTATUR.',
   'ui.mp.join.nice_try_4': 'SÜSS. ABER DAS SAGEN WIR NICHT LAUT.',
   'ui.mp.join.nice_try_5': 'SCHON SCHLIMMERES GESEHEN. ÄNDERE DEN NAMEN.',
   'ui.mp.name_card.title': 'WIE SOLL ES DICH NENNEN?',
-  'ui.mp.name_card.analyzing': 'DER MODERATOR PRÜFT, OB ER DEINEN NAMEN LESEN KANN.',
+  'ui.mp.name_card.analyzing':
+      'DER MODERATOR PRÜFT, OB ER DEINEN NAMEN LESEN KANN.',
   'ui.mp.name_card.unknown': 'VORERST WIRD ER IHN NICHT AUSSPRECHEN.',
   'ui.mp.name_card.pronunciation': 'AUSSPRACHE: {name}',
   'ui.mp.name_card.update': 'NAMEN ÄNDERN',
-  'ui.mp.name_card.tap_to_fix': 'DER MODERATOR WEISS NICHT, WIE DU HEISST. HIER TIPPEN.',
+  'ui.mp.name_card.tap_to_fix':
+      'DER MODERATOR WEISS NICHT, WIE DU HEISST. HIER TIPPEN.',
   'ui.mp.join.waiting_host': 'WARTE AUF HOST…',
   'ui.mp.join.join_button': 'BEITRETEN',
 
@@ -353,10 +361,10 @@ const Map<String, String> kStringsDe = {
   'ui.mp.disconnect.menu': 'ZURÜCK ZUM MENÜ',
 
   'ui.mp.share.line1':
-      'Wir haben BIST DU DUMM? auf dem TV gespielt. {name} hat gewonnen.',
+      'Wir haben BIST DU DUMM?! auf dem TV gespielt. {name} hat gewonnen.',
   'ui.mp.share.line2': 'Denkst du, du schlägst uns?',
 
-  'share.line1': 'Ich habe Level {level} in BIST DU DUMM? erreicht.',
+  'share.line1': 'Ich habe Level {level} in BIST DU DUMM?! erreicht.',
   'share.line2': 'Schlägst du mich?',
   'share.best': '(mein Rekord: Level {best})',
 

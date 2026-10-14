@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Are You Stupid</string>
+	<string>ARE YOU STUPID?!</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -24,7 +24,7 @@
 		<string>de</string>
 	</array>
 	<key>CFBundleName</key>
-	<string>Are You Stupid</string>
+	<string>ARE YOU STUPID?!</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

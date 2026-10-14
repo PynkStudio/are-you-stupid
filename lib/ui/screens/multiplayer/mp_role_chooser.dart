@@ -30,8 +30,11 @@ Future<void> openMultiplayerForPlatform(BuildContext context) async {
 
   switch (role) {
     case _MacMultiplayerRole.play:
-      await Navigator.of(context)
-          .push(MaterialPageRoute<void>(builder: (_) => const MpHomeScreen()));
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const MpHomeScreen(isMacOS: true),
+        ),
+      );
     case _MacMultiplayerRole.host:
       await _hostModeChannel.invokeMethod<void>('openHost');
   }

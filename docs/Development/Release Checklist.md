@@ -1,6 +1,6 @@
 ---
 tags: [development, release]
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Release Checklist
@@ -23,11 +23,12 @@ already registered against them ([[Decision Log]]).
 - [x] `swift test` (from `tvos/`) green; `AYSHost-macOS` and `AYSHost-tvOS`
       Release builds succeed with the new store config (2026-10-02)
 - [x] `docs/` updated ([[Documentation Rules]])
-- [ ] Presenter: `tvos/Config/Presenter.secrets.xcconfig` present on the
+- [x] Presenter: `tvos/Config/Presenter.secrets.xcconfig` present on the
       build machine (token = Vercel `AYS_PRESENTER_API_TOKEN`); run
       `scripts/fetch_presenter_pack.sh` then `xcodegen generate` (from
       `tvos/`) so the release bundles the latest published pack
-      ([[Multiplayer Presenter]])
+      ([[Multiplayer Presenter]]). Completed 2026-10-11: revision 1 for all
+      six locales, 66 SHA-verified clips bundled.
 - [x] Build number bump automated — `scripts/bump_build_number.sh`, wired
       into the iOS Archive pre-action and the Android `assembleRelease`/
       `bundleRelease` Gradle tasks ([[Getting Started]])
@@ -50,10 +51,17 @@ already registered against them ([[Decision Log]]).
 - [x] Export compliance: `ITSAppUsesNonExemptEncryption = false` in the
       phone and host `Info.plist`s
 - [x] Mac App Sandbox entitlements + macOS app icon for the board host
+- [x] The icon artwork reads "ARE YOU STUPID?!": `icon_source.png` is the
+      original art (only "?"); `python3 tool/add_icon_bang.py` writes
+      `icon.png` with the matching "!". Then run `dart run
+      flutter_launcher_icons` (Android + iOS) **before**
+      `python3 tool/make_apple_icons.py` (it must run last for iOS/macOS) and
+      `python3 tool/make_tv_icons.py`
 - [x] One full-bleed `icon.png` master generates the iPhone/iPad catalog and
       both macOS catalogs via `python3 tool/make_apple_icons.py`; iOS has no
       pre-baked mask or pale corners, while Mac uses a transparent rounded tile
-      with no light rim
+      with no light rim (macOS ≤ 15) plus the Icon Composer
+      `macos/Runner/AppIcon.icon` that macOS 26+ masks itself
 - [x] Android release signs with the real upload key (`android/key.properties`
       + `upload-keystore.jks`, both gitignored — back them up offline)
 
@@ -173,6 +181,16 @@ track ([[Decision Log]]).
 - [ ] One-time products `ays_remove_ads` €2.99, `ays_party_pack` €4.99,
       `ays_party_bundle` €5.99 (Monetize → Products; needs the merchant
       account *and* an uploaded build with the BILLING permission)
+- [x] 2026-10-12: closed testing track **Alpha** set up — release
+      **1.2.0 (code 9)**, all countries, testers via Google Group
+      `ays-beta-testers@googlegroups.com` (invite-only for now; the
+      pynkstudio.eu beta manager collects Gmail addresses), feedback to
+      `android@pynkstudio.eu`, opt-in link
+      `https://play.google.com/apps/testing/com.ays.are_you_stupid`.
+      Sent to Google for the first review together with the store listing
+      and app-content declarations.
+- [x] Form factors: phones only. Google Play Games on PC removed; Android XR
+      can't be switched off (it shares the phone track) ([[Decision Log]])
 - [ ] Closed testing track with ≥ 12 testers, opted in for 14 days
 - [ ] Apply for production access, then submit the production release
 - [ ] Optional: localized listings for the other five app languages
@@ -184,15 +202,81 @@ flutter build ipa --release
 flutter build appbundle --release
 ```
 
-**1.2.0 (8), 2026-10-06:** iOS App Store IPA built at
-`build/ios/ipa/Are You Stupid.ipa` (SHA-256
+**iOS 1.0.0 (11) + tvOS 1.0.0 (11) + macOS 1.0.1 (13), 2026-10-12:** the
+2:25 submissions of builds 10/10/12 were withdrawn again to ship the
+"ARE YOU STUPID?!" icon artwork, device-neutral permission/settings copy (no
+"this phone" on iPad, Apple TV or Mac) and the spoken-name fix (ALEX was
+announced as "ALE"). Same build steps with build numbers 11/11/13; exports
+in `build/ios/export-11/`, `build/hosts/tvos-export-11/`,
+`build/hosts/macos-export-13/`.
+Resubmitted the same day; all three versions are set to **release
+automatically** as soon as App Review approves them (owner's call). The
+older approved Mac 1.0 (build 4) stays unreleased and is superseded by 1.0.1.
+
+**iOS 1.0.0 (10) + tvOS 1.0.0 (10), 2026-10-12:** iOS 1.0.0 (7) and tvOS
+1.0.0 (5) were withdrawn from review (developer rejected) to ship the
+"ARE YOU STUPID?!" name everywhere and the board-host threading fix (see
+[[Multiplayer Host (tvOS)]]). iOS: `flutter build ios --release --config-only
+--build-name=1.0.0 --build-number=10`, then `xcodebuild archive` of
+`ios/Runner.xcworkspace` with `MARKETING_VERSION=1.0.0
+CURRENT_PROJECT_VERSION=10` (so the Stupid Streak extension matches) to
+`build/ios/Runner-10.xcarchive`, exported to `build/ios/export-10/`. tvOS:
+archived unsigned to `build/hosts/tvos-10.xcarchive`, signed at export to
+`build/hosts/tvos-export-10/`. Exports are named after `CFBundleName`
+(`ARE YOU STUPID?!.ipa`); copy to a name without `?!` before opening in
+Transporter. New store screenshots (iPhone 6.9", iPad 13", Apple TV, Mac) were
+uploaded and all three platforms resubmitted on 2026-10-12, iOS together with
+its three in-app purchases.
+
+**macOS 1.0.1 (12), 2026-10-12:** supersedes the approved-but-unreleased Mac
+1.0 build 4 (the board-only host). App Store Connect cannot swap the build of
+an approved version (no developer reject) and closes the 1.0.0 train once a
+build is approved — build 1.0.0 (10) was refused with errors 90186/90062 — so
+the Mac ships as a new **macOS version 1.0.1**. This is the Flutter Mac app —
+single player plus HOST/PLAY party mode — shown as "ARE YOU STUPID?!", ad-free
+with real StoreKit purchases (see [[Monetization and Ads]]); 362/362 tests
+green. Build 11 was replaced by **12** to carry the "ARE YOU STUPID?!" name (see
+[[Game Design Pillars]]). Built with `flutter build macos --release
+--build-name=1.0.1 --build-number=12`, archived from `macos/Runner.xcworkspace`
+(scheme `Runner`) to `build/hosts/macos-12.xcarchive`, exported to
+`build/hosts/macos-export-12/` (the PKG is named after `CFBundleName`; copy it
+to a name without `?!` before opening it in Transporter), delivered with
+Transporter.
+Store copy: `store_assets/app-store-mac-1.0.1.md`; screenshots:
+`python3 store_assets/generate_mac_screenshots.py`. The macOS 1.2.0 (9) package
+below predates the ad-free fix and must not be uploaded.
+
+**1.2.0 release set, completed 2026-10-11:** all uploadable artifacts are
+collected under `build/releases/1.2.0/`:
+
+- iOS **1.2.0 (8)** — `ios/Are You Stupid.ipa`, SHA-256
+  `1f589d02b917b190d2d012c067ad80c149bbec08a4c01bd7ab85683b7d640482`;
+- tvOS **1.2.0 (9)** — `tvos-export/Are You Stupid.ipa`, SHA-256
+  `665e967af2df5d1828e4b081f0d9b21e916c35cc618bac26d14e77933d2d25a7`;
+- macOS **1.2.0 (9)** — `macos-export/are_you_stupid.pkg`, SHA-256
+  `018f075ece036d2b7fc57516b143ee5aad253647161cb027c9dc1609c015e600`;
+- Android **1.2.0 (code 9)** —
+  `android/are-you-stupid-1.2.0-9.aab`, SHA-256
+  `123f89dd4585288bd2c1963eee80b9d6e6f57a3327a5c9fd3dfbe9f665b9a0b9`.
+
+iOS and tvOS pass deep `codesign` verification with Apple Distribution team
+`G48384PHQK`; the macOS product archive is exported with Cloud Managed Apple
+Distribution and the PKG carries the Apple-issued Mac installer signature.
+The Android AAB passes `jarsigner` verification with the PynkStudio upload
+certificate; `android/local.properties` records versionName 1.2.0 and
+versionCode 9. Flutter still prints the documented native-symbol stripping
+warning, but retains the debug symbols inside the valid signed AAB. Upload and
+the real-device manual pass remain required.
+
+The original iOS archive was built at `build/ios/ipa/Are You Stupid.ipa`
+(SHA-256
 `1f589d02b917b190d2d012c067ad80c149bbec08a4c01bd7ab85683b7d640482`).
 The containing app and Stupid Streak extension both report 1.2.0 (8); the
 export is signed with Apple Distribution team `G48384PHQK`, passes deep
 `codesign` verification, contains 11 dependency privacy manifests, and no
 longer uses Flutter's placeholder launch image. The tvOS Release target and
 Flutter macOS Release app also build successfully. `pubspec.yaml` is left at
-`1.2.0+9`, ready for the next archive. Localized What's New copy is in
+`1.2.0+10`, ready for the next archive. Localized What's New copy is in
 `store_assets/app-store-1.2.0.md`. Upload and the real-device manual pass are
 still required.
 

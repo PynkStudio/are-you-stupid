@@ -1,5 +1,6 @@
 import 'package:are_you_stupid/services/ads/ad_manager.dart';
 import 'package:are_you_stupid/services/ads/ad_provider.dart';
+import 'package:are_you_stupid/services/ads/no_ad_provider.dart';
 import 'package:are_you_stupid/services/score_manager.dart';
 import 'package:are_you_stupid/services/settings_manager.dart';
 import 'package:flutter/widgets.dart';
@@ -88,5 +89,20 @@ void main() {
     expect(ads.shouldShowInterstitial, isTrue);
     await settings.setNoAdsPurchased(true);
     expect(ads.shouldShowInterstitial, isFalse);
+  });
+
+  test('ad-free platform (Mac) never shows ads and continues free', () async {
+    SharedPreferences.setMockInitialValues({'ays.runsSinceAd': 3});
+    final scores = await ScoreManager.load();
+    final settings = await SettingsManager.load();
+    final ads = AdManager(
+      provider: const NoAdProvider(),
+      scores: scores,
+      settings: settings,
+      adFree: true,
+    );
+
+    expect(ads.shouldShowInterstitial, isFalse);
+    expect(ads.isRewardedContinueReady, isTrue);
   });
 }

@@ -67,4 +67,17 @@ void main() {
     );
     expect(identity.policy, NameSpeechPolicy.displayOnly);
   });
+
+  test('names ending or starting with x keep their x', () {
+    for (final name in ['ALEX', 'Max', 'FELIX', 'Xavier', 'Rex']) {
+      final identity = SpokenIdentity.classify(name);
+      expect(identity.spokenName, name, reason: name);
+      expect(identity.policy, NameSpeechPolicy.speakOriginal, reason: name);
+    }
+  });
+
+  test('decorative x wrappers are still dropped', () {
+    expect(SpokenIdentity.classify('xXLucaXx').spokenName, 'Luca');
+    expect(SpokenIdentity.classify('x Luca x').spokenName, 'Luca');
+  });
 }

@@ -1,5 +1,5 @@
 /* Localized Info.plist permission prompts — see docs/Architecture/Localization.md. */
-"CFBundleDisplayName" = "Are You Stupid";
+"CFBundleDisplayName" = "ARE YOU STUPID?!";
 "NSCameraUsageDescription" = "Used to scan the room QR code shown on the TV to join a multiplayer game.";
 "NSLocalNetworkUsageDescription" = "Used to find a multiplayer game room on your Wi-Fi network. Nothing leaves your local network.";
 "NSUserTrackingUsageDescription" = "This identifier lets us show ads that fund the game and measure whether they worked.";

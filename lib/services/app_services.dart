@@ -24,6 +24,7 @@ class AppServices {
     AdProvider? adProvider,
     PurchaseProvider? purchaseProvider,
     this.localNetwork = const LocalNetworkPermission(),
+    this.adFree = false,
   }) : sound = SoundManager(settings),
        haptics = HapticManager(settings),
        share = const ShareManager(),
@@ -35,6 +36,7 @@ class AppServices {
          provider: adProvider ?? MockAdProvider(),
          scores: scores,
          settings: settings,
+         adFree: adFree,
        );
 
   final SettingsManager settings;
@@ -47,9 +49,14 @@ class AppServices {
   final PurchaseManager purchases;
   final LocalNetworkPermission localNetwork;
 
+  /// No ads on this platform (macOS). The store hides the purchases that
+  /// only remove ads; owned ones still show, and Party Pack stays on sale.
+  final bool adFree;
+
   static Future<AppServices> boot({
     AdProvider? adProvider,
     PurchaseProvider? purchaseProvider,
+    bool adFree = false,
   }) async {
     final settings = await SettingsManager.load();
     final scores = await ScoreManager.load();
@@ -60,6 +67,7 @@ class AppServices {
       multiplayerProfile: multiplayerProfile,
       adProvider: adProvider,
       purchaseProvider: purchaseProvider,
+      adFree: adFree,
     );
     // Purchases only read the store — never block the splash on a slow or
     // unreachable StoreKit/Play Billing. Settings retries the product later.

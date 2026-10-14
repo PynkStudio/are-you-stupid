@@ -8,12 +8,14 @@ import 'ad_provider.dart';
 /// - never on launch, never mid-gameplay;
 /// - interstitial roughly every 3-4 finished runs;
 /// - one rewarded continue per run;
-/// - none of the above once `SettingsManager.adsRemoved` is true.
+/// - none of the above once `SettingsManager.adsRemoved` is true, or on an
+///   [adFree] platform (the Mac build ships no ad SDK).
 class AdManager {
   AdManager({
     required AdProvider provider,
     required ScoreManager scores,
     required SettingsManager settings,
+    this.adFree = false,
   }) : _provider = provider,
        _scores = scores,
        _settings = settings;
@@ -24,9 +26,13 @@ class AdManager {
 
   static const _runsBetweenInterstitials = 3;
 
+  /// True on platforms that never show ads: they behave exactly like a
+  /// player who bought Remove Ads (free continue, no interstitials).
+  final bool adFree;
+
   bool _initialized = false;
 
-  bool get _adsRemoved => _settings.adsRemoved;
+  bool get _adsRemoved => adFree || _settings.adsRemoved;
 
   Future<void> initialize() async {
     if (_initialized) return;

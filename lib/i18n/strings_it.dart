@@ -2,7 +2,7 @@
 library;
 
 const Map<String, String> kStringsIt = {
-  'app.title': 'MA SEI SCEMO?',
+  'app.title': 'MA SEI SCEMO?!',
 
   'common.too_slow': 'TROPPO LENTO.',
   'common.one_job': 'AVEVI UN COMPITO.',
@@ -154,7 +154,7 @@ const Map<String, String> kStringsIt = {
   'word.opposite.pair.5': 'CALDO|FREDDO',
 
   'ui.home.title1': 'MA SEI',
-  'ui.home.title2': 'SCEMO?',
+  'ui.home.title2': 'SCEMO?!',
   'ui.home.tagline': 'UN COMPITO. NON ROVINARLO.',
   'ui.home.best': 'MIGLIORE: LIVELLO {n}',
   'ui.home.no_score': 'NESSUN PUNTEGGIO',
@@ -222,7 +222,7 @@ const Map<String, String> kStringsIt = {
   'ui.settings.reset_stats': 'AZZERA STATISTICHE',
   'ui.settings.back': 'INDIETRO',
   'ui.settings.footer':
-      'OFFLINE. NESSUN ACCOUNT. NESSUN DATO LASCIA IL TELEFONO.',
+      'OFFLINE. NESSUN ACCOUNT. NESSUN DATO LASCIA IL DISPOSITIVO.',
   'ui.settings.made_by': 'Creato da PynkStudio',
   'ui.settings.reset_title': 'AZZERARE TUTTO?',
   'ui.settings.reset_body':
@@ -260,6 +260,8 @@ const Map<String, String> kStringsIt = {
   'ui.mp.home.title': 'MULTIPLAYER',
   'ui.mp.home.tagline':
       'INQUADRA IL QR CODE SULLA TV PER UNIRTI A UNA PARTITA.',
+  'ui.mp.home.macos_tagline':
+      'SCEGLI UNA STANZA QUI VICINO O INSERISCI IL SUO CODICE.',
   'ui.mp.home.scan': 'SCANSIONA QR',
   'ui.mp.home.enter_code': 'INSERISCI CODICE STANZA',
   'ui.mp.home.back': 'INDIETRO',
@@ -274,17 +276,21 @@ const Map<String, String> kStringsIt = {
   'ui.mp.enter_code.join': 'ENTRA',
 
   'ui.mp.primer.title': 'PRIMA UNA COSA',
-  'ui.mp.primer.body': 'PER GIOCARE SULLA TV, QUESTO TELEFONO HA BISOGNO DI:',
+  'ui.mp.primer.body': 'PER GIOCARE SULLA TV, QUESTO DISPOSITIVO HA BISOGNO DI:',
+  'ui.mp.primer.macos_body':
+      'PER ENTRARE NELLA PARTITA, QUESTO MAC HA BISOGNO DI:',
   'ui.mp.primer.network_title': 'RETE LOCALE',
   'ui.mp.primer.network_body':
       'PER TROVARE LA TV SULLA TUA WI-FI. NIENTE ESCE DA CASA TUA.',
   'ui.mp.primer.camera_title': 'FOTOCAMERA (FACOLTATIVA)',
   'ui.mp.primer.camera_body':
       'SOLO PER SCANSIONARE IL QR CODE. PUOI ANCHE SCRIVERE IL CODICE.',
-  'ui.mp.primer.footer': 'IL TELEFONO TE LO CHIEDERÀ. TOCCA CONSENTI. NON È UNA DOMANDA TRABOCCHETTO.',
+  'ui.mp.primer.footer': 'TI VERRÀ CHIESTO. TOCCA CONSENTI. NON È UNA DOMANDA TRABOCCHETTO.',
+  'ui.mp.primer.macos_footer':
+      'IL MAC POTREBBE CHIEDERLO. FAI CLIC SU CONSENTI PER TROVARE LA PARTITA.',
   'ui.mp.primer.continue': 'CONTINUA',
   'ui.mp.primer.not_now': 'NON ORA',
-  'ui.mp.permission.network_denied': "L'ACCESSO ALLA RETE LOCALE È DISATTIVATO. SENZA, IL TELEFONO NON TROVA LA TV.",
+  'ui.mp.permission.network_denied': "L'ACCESSO ALLA RETE LOCALE È DISATTIVATO. SENZA, IL DISPOSITIVO NON TROVA LA TV.",
   'ui.mp.permission.open_settings': 'APRI IMPOSTAZIONI',
   'ui.mp.network.wifi_disconnected':
       'NIENTE WI-FI. LA TV NON È TELEPATICA. COLLEGATI ALLA SUA RETE.',
@@ -311,11 +317,13 @@ const Map<String, String> kStringsIt = {
   'ui.mp.join.nice_try_4': 'CARINO. MA NON LO DIREMO AD ALTA VOCE.',
   'ui.mp.join.nice_try_5': 'GIÀ VISTO DI PEGGIO. CAMBIA NOME.',
   'ui.mp.name_card.title': 'COME TI CHIAMERÀ?',
-  'ui.mp.name_card.analyzing': 'IL PRESENTATORE STA VALUTANDO SE SA LEGGERE IL TUO NOME.',
+  'ui.mp.name_card.analyzing':
+      'IL PRESENTATORE STA VALUTANDO SE SA LEGGERE IL TUO NOME.',
   'ui.mp.name_card.unknown': 'PER ORA NON OSERÀ PRONUNCIARLO.',
   'ui.mp.name_card.pronunciation': 'PRONUNCIA: {name}',
   'ui.mp.name_card.update': 'AGGIORNA NOME',
-  'ui.mp.name_card.tap_to_fix': 'IL PRESENTATORE NON SA COME CHIAMARTI. TOCCA QUI.',
+  'ui.mp.name_card.tap_to_fix':
+      'IL PRESENTATORE NON SA COME CHIAMARTI. TOCCA QUI.',
   'ui.mp.join.waiting_host': "IN ATTESA DELL'HOST…",
   'ui.mp.join.join_button': 'ENTRA',
 
@@ -356,10 +364,10 @@ const Map<String, String> kStringsIt = {
   'ui.mp.disconnect.menu': 'TORNA AL MENU',
 
   'ui.mp.share.line1':
-      'Abbiamo giocato a MA SEI SCEMO? in TV. Ha vinto {name}.',
+      'Abbiamo giocato a MA SEI SCEMO?! in TV. Ha vinto {name}.',
   'ui.mp.share.line2': 'Pensi di poterci battere?',
 
-  'share.line1': 'Ho raggiunto il Livello {level} in MA SEI SCEMO?',
+  'share.line1': 'Ho raggiunto il Livello {level} in MA SEI SCEMO?!',
   'share.line2': 'Riesci a battermi?',
   'share.best': '(il mio migliore: Livello {best})',
 

@@ -2,7 +2,7 @@
 library;
 
 const Map<String, String> kStringsFr = {
-  'app.title': 'ES-TU STUPIDE ?',
+  'app.title': 'ES-TU STUPIDE ?!',
 
   'common.too_slow': 'TROP LENT.',
   'common.one_job': 'T\'AVAIS UNE SEULE TÂCHE.',
@@ -154,7 +154,7 @@ const Map<String, String> kStringsFr = {
   'word.opposite.pair.5': 'CHAUD|FROID',
 
   'ui.home.title1': 'ES-TU',
-  'ui.home.title2': 'STUPIDE ?',
+  'ui.home.title2': 'STUPIDE ?!',
   'ui.home.tagline': 'UNE SEULE TÂCHE. NE LA RATE PAS.',
   'ui.home.best': 'MEILLEUR : NIVEAU {n}',
   'ui.home.no_score': 'AUCUN SCORE',
@@ -221,7 +221,7 @@ const Map<String, String> kStringsFr = {
   'ui.settings.reset_stats': 'RÉINITIALISER',
   'ui.settings.back': 'RETOUR',
   'ui.settings.footer':
-      'HORS LIGNE. AUCUN COMPTE. RIEN NE QUITTE CE TÉLÉPHONE.',
+      'HORS LIGNE. AUCUN COMPTE. RIEN NE QUITTE CET APPAREIL.',
   'ui.settings.made_by': 'Créé par PynkStudio',
   'ui.settings.reset_title': 'TOUT RÉINITIALISER ?',
   'ui.settings.reset_body': 'Meilleur niveau, tentatives et séries. Envolés.',
@@ -258,6 +258,8 @@ const Map<String, String> kStringsFr = {
   'ui.mp.home.title': 'MULTIJOUEUR',
   'ui.mp.home.tagline':
       'SCANNE LE QR CODE SUR LA TV POUR REJOINDRE UNE PARTIE.',
+  'ui.mp.home.macos_tagline':
+      'CHOISIS UNE SALLE À PROXIMITÉ OU SAISIS SON CODE.',
   'ui.mp.home.scan': 'SCANNER LE QR',
   'ui.mp.home.enter_code': 'ENTRER LE CODE',
   'ui.mp.home.back': 'RETOUR',
@@ -272,7 +274,8 @@ const Map<String, String> kStringsFr = {
   'ui.mp.enter_code.join': 'REJOINDRE',
 
   'ui.mp.primer.title': "D'ABORD UN TRUC",
-  'ui.mp.primer.body': 'POUR JOUER SUR LA TV, CE TÉLÉPHONE A BESOIN DE :',
+  'ui.mp.primer.body': 'POUR JOUER SUR LA TV, CET APPAREIL A BESOIN DE :',
+  'ui.mp.primer.macos_body': 'POUR REJOINDRE LA PARTIE, CE MAC A BESOIN DE :',
   'ui.mp.primer.network_title': 'RÉSEAU LOCAL',
   'ui.mp.primer.network_body':
       'POUR TROUVER LA TV SUR TON WI-FI. RIEN NE QUITTE TA MAISON.',
@@ -280,10 +283,12 @@ const Map<String, String> kStringsFr = {
   'ui.mp.primer.camera_body':
       'SEULEMENT POUR SCANNER LE QR CODE. TU PEUX AUSSI TAPER LE CODE.',
   'ui.mp.primer.footer':
-      "TON TÉLÉPHONE VA DEMANDER. TOUCHE AUTORISER. CE N'EST PAS UN PIÈGE.",
+      "ÇA VA TE DEMANDER. TOUCHE AUTORISER. CE N'EST PAS UN PIÈGE.",
+  'ui.mp.primer.macos_footer':
+      'TON MAC PEUT LE DEMANDER. CLIQUE SUR AUTORISER POUR TROUVER LA PARTIE.',
   'ui.mp.primer.continue': 'CONTINUER',
   'ui.mp.primer.not_now': 'PAS MAINTENANT',
-  'ui.mp.permission.network_denied': "L'ACCÈS AU RÉSEAU LOCAL EST COUPÉ. SANS LUI, CE TÉLÉPHONE NE TROUVE PAS LA TV.",
+  'ui.mp.permission.network_denied': "L'ACCÈS AU RÉSEAU LOCAL EST COUPÉ. SANS LUI, CET APPAREIL NE TROUVE PAS LA TV.",
   'ui.mp.permission.open_settings': 'OUVRIR LES RÉGLAGES',
   'ui.mp.network.wifi_disconnected':
       "PAS DE WI-FI. LA TV N'EST PAS TÉLÉPATHE. REJOINS SON RÉSEAU.",
@@ -313,7 +318,8 @@ const Map<String, String> kStringsFr = {
   'ui.mp.name_card.unknown': 'POUR L’INSTANT, IL N’OSERA PAS LE DIRE.',
   'ui.mp.name_card.pronunciation': 'PRONONCIATION : {name}',
   'ui.mp.name_card.update': 'CHANGER LE NOM',
-  'ui.mp.name_card.tap_to_fix': 'LE PRÉSENTATEUR NE SAIT PAS T’APPELER. TOUCHE ICI.',
+  'ui.mp.name_card.tap_to_fix':
+      'LE PRÉSENTATEUR NE SAIT PAS T’APPELER. TOUCHE ICI.',
   'ui.mp.join.waiting_host': "EN ATTENTE DE L'HÔTE…",
   'ui.mp.join.join_button': 'REJOINDRE',
 
@@ -353,10 +359,10 @@ const Map<String, String> kStringsFr = {
   'ui.mp.disconnect.rejected': 'IMPOSSIBLE DE REJOINDRE : {reason}',
   'ui.mp.disconnect.menu': 'RETOUR AU MENU',
 
-  'ui.mp.share.line1': 'On a joué à ES-TU STUPIDE ? sur la TV. {name} a gagné.',
+  'ui.mp.share.line1': 'On a joué à ES-TU STUPIDE ?! sur la TV. {name} a gagné.',
   'ui.mp.share.line2': 'Tu penses pouvoir nous battre ?',
 
-  'share.line1': 'J\'ai atteint le Niveau {level} dans ES-TU STUPIDE ?',
+  'share.line1': 'J\'ai atteint le Niveau {level} dans ES-TU STUPIDE ?!',
   'share.line2': 'Peux-tu me battre ?',
   'share.best': '(mon record : Niveau {best})',
 

@@ -77,10 +77,16 @@ class SpokenIdentity {
       );
     }
 
-    var candidate = display
-        .replaceAll('_', ' ')
-        .replaceAll(RegExp(r'^[xX]{1,3}\s*'), '')
-        .replaceAll(RegExp(r'\s*[xX]{1,3}$'), '')
+    // Gamer-tag "x" wrappers ("xXLucaXx", "x Luca x") are dropped, but only
+    // when they are clearly decoration: a run of 2-3 on both sides, or a run
+    // set apart by a space/underscore. A bare edge "x" belongs to the name —
+    // ALEX, MAX, FELIX, XAVIER must keep it.
+    var candidate = display.replaceAll('_', ' ');
+    final wrapped = RegExp(r'^[xX]{2,3}(.+?)[xX]{2,3}$').firstMatch(candidate);
+    if (wrapped != null) candidate = wrapped.group(1)!;
+    candidate = candidate
+        .replaceAll(RegExp(r'^[xX]{1,3}\s+'), '')
+        .replaceAll(RegExp(r'\s+[xX]{1,3}$'), '')
         .replaceAll(RegExp(r"^[^\p{L}\p{M}\p{N}]+", unicode: true), '')
         .replaceAll(RegExp(r"[^\p{L}\p{M}\p{N}]+$", unicode: true), '');
     candidate = _foldLeet(candidate)

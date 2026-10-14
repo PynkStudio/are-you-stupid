@@ -105,7 +105,7 @@ const _defaultBattleRounds = 20;
 /// are judged as they arrive; timeouts are judged at `completeRound`.
 class PartyHostReference {
   PartyHostReference({
-    this.hostName = 'ARE YOU STUPID?',
+    this.hostName = 'ARE YOU STUPID?!',
     this.roomCode = 'AYS',
     this.maxPlayers = 8,
     this.lives = _defaultLives,

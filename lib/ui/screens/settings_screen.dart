@@ -547,9 +547,12 @@ class _RemoveAdsSectionState extends State<_RemoveAdsSection> {
         if (!purchases.storeAvailable) return const SizedBox.shrink();
         final t = widget.t;
 
-        final product = purchases.product;
+        // An ad-free platform (Mac) never sells what only removes ads;
+        // owned rows still show so a universal purchase is visible.
+        final adFree = widget.services.adFree;
+        final product = adFree ? null : purchases.product;
         final partyPack = purchases.partyPackProduct;
-        final partyBundle = purchases.partyBundleProduct;
+        final partyBundle = adFree ? null : purchases.partyBundleProduct;
         // Restore stays visible even while the product is unresolved —
         // App Review requires a restore path, and a reinstall on a flaky
         // connection must still be able to get its purchase back.

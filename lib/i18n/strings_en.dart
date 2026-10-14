@@ -6,7 +6,7 @@ library;
 
 const Map<String, String> kStringsEn = {
   // --------------------------------------------------------------- app-wide
-  'app.title': 'ARE YOU STUPID?',
+  'app.title': 'ARE YOU STUPID?!',
 
   // ----------------------------------------------------------- shared words
   'common.too_slow': 'TOO SLOW.',
@@ -163,7 +163,7 @@ const Map<String, String> kStringsEn = {
 
   // ---------------------------------------------------------------------- ui
   'ui.home.title1': 'ARE YOU',
-  'ui.home.title2': 'STUPID?',
+  'ui.home.title2': 'STUPID?!',
   'ui.home.tagline': "ONE JOB. DON'T FUCK IT UP.",
   'ui.home.best': 'BEST: LEVEL {n}',
   'ui.home.no_score': 'NO SCORE YET',
@@ -226,7 +226,7 @@ const Map<String, String> kStringsEn = {
   'ui.settings.privacy_choices': 'AD PRIVACY CHOICES',
   'ui.settings.reset_stats': 'RESET STATS',
   'ui.settings.back': 'BACK',
-  'ui.settings.footer': 'OFFLINE. NO ACCOUNT. NO DATA LEAVES THIS PHONE.',
+  'ui.settings.footer': 'OFFLINE. NO ACCOUNT. NO DATA LEAVES THIS DEVICE.',
   'ui.settings.made_by': 'Made by PynkStudio',
   'ui.settings.reset_title': 'RESET EVERYTHING?',
   'ui.settings.reset_body': 'Best level, attempts and streaks. Gone.',
@@ -268,6 +268,7 @@ const Map<String, String> kStringsEn = {
   // ------------------------------------------------------------ multiplayer
   'ui.mp.home.title': 'MULTIPLAYER',
   'ui.mp.home.tagline': 'SCAN THE QR CODE ON THE TV TO JOIN A GAME.',
+  'ui.mp.home.macos_tagline': 'CHOOSE A NEARBY ROOM OR ENTER ITS CODE.',
   'ui.mp.home.scan': 'SCAN QR',
   'ui.mp.home.enter_code': 'ENTER ROOM CODE',
   'ui.mp.home.back': 'BACK',
@@ -282,7 +283,8 @@ const Map<String, String> kStringsEn = {
   'ui.mp.enter_code.join': 'JOIN',
 
   'ui.mp.primer.title': 'QUICK THING FIRST',
-  'ui.mp.primer.body': 'TO PLAY ON THE TV, THIS PHONE NEEDS:',
+  'ui.mp.primer.body': 'TO PLAY ON THE TV, THIS DEVICE NEEDS:',
+  'ui.mp.primer.macos_body': 'TO JOIN A PARTY, THIS MAC NEEDS:',
   'ui.mp.primer.network_title': 'LOCAL NETWORK',
   'ui.mp.primer.network_body':
       'TO FIND THE TV ON YOUR WI-FI. NOTHING LEAVES YOUR HOME.',
@@ -290,11 +292,13 @@ const Map<String, String> kStringsEn = {
   'ui.mp.primer.camera_body':
       'ONLY TO SCAN THE QR CODE. YOU CAN TYPE THE CODE INSTEAD.',
   'ui.mp.primer.footer':
-      'YOUR PHONE WILL ASK. TAP ALLOW. IT IS NOT A TRICK QUESTION.',
+      'IT WILL ASK. TAP ALLOW. IT IS NOT A TRICK QUESTION.',
+  'ui.mp.primer.macos_footer':
+      'YOUR MAC MAY ASK. CLICK ALLOW SO IT CAN FIND THE PARTY.',
   'ui.mp.primer.continue': 'CONTINUE',
   'ui.mp.primer.not_now': 'NOT NOW',
   'ui.mp.permission.network_denied':
-      "LOCAL NETWORK ACCESS IS OFF. WITHOUT IT THIS PHONE CAN'T FIND THE TV.",
+      "LOCAL NETWORK ACCESS IS OFF. WITHOUT IT THIS DEVICE CAN'T FIND THE TV.",
   'ui.mp.permission.open_settings': 'OPEN SETTINGS',
   'ui.mp.network.wifi_disconnected':
       "NO WI-FI. THE TV ISN'T TELEPATHIC. JOIN ITS NETWORK.",
@@ -320,7 +324,8 @@ const Map<String, String> kStringsEn = {
   'ui.mp.join.nice_try_4': "CUTE. WE'RE NOT SAYING THAT OUT LOUD.",
   'ui.mp.join.nice_try_5': 'SEEN WORSE. CHANGE THE NAME.',
   'ui.mp.name_card.title': 'WHAT WILL IT CALL YOU?',
-  'ui.mp.name_card.analyzing': 'THE PRESENTER IS DECIDING WHETHER IT CAN READ YOUR NAME.',
+  'ui.mp.name_card.analyzing':
+      'THE PRESENTER IS DECIDING WHETHER IT CAN READ YOUR NAME.',
   'ui.mp.name_card.unknown': 'FOR NOW, IT WILL NOT DARE SAY IT.',
   'ui.mp.name_card.pronunciation': 'PRONUNCIATION: {name}',
   'ui.mp.name_card.update': 'UPDATE NAME',
@@ -362,11 +367,11 @@ const Map<String, String> kStringsEn = {
   'ui.mp.disconnect.rejected': "COULDN'T JOIN: {reason}",
   'ui.mp.disconnect.menu': 'BACK TO MENU',
 
-  'ui.mp.share.line1': 'We played ARE YOU STUPID? on the TV. {name} won.',
+  'ui.mp.share.line1': 'We played ARE YOU STUPID?! on the TV. {name} won.',
   'ui.mp.share.line2': 'Think you can beat us?',
 
   // ------------------------------------------------------------------ share
-  'share.line1': 'I reached Level {level} in ARE YOU STUPID?',
+  'share.line1': 'I reached Level {level} in ARE YOU STUPID?!',
   'share.line2': 'Can you beat me?',
   'share.best': '(my best: Level {best})',
 

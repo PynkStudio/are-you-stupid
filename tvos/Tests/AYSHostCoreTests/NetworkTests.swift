@@ -132,6 +132,33 @@ final class NWConnectionTransportTests: XCTestCase {
         server.stop()
     }
 
+    /// Regression: several phones joining at once used to enter `RoomHost`
+    /// from one queue per connection and crash the board on its seat
+    /// dictionary. With a shared serial queue every join lands in order.
+    func testSharedConnectionQueueSerializesSimultaneousJoins() async throws {
+        let hostQueue = DispatchQueue(label: "ays.test.host")
+        let host = RoomHost(
+            hostName: "TEST HOST", roomCode: "7F4K", maxPlayers: 8,
+            clock: SystemHostClock(), judge: FakeChallengeJudge()
+        )
+        let server = NWListenerServer(connectionQueue: hostQueue)
+        server.onNewTransport = { transport in host.attachClient(transport) }
+        let port = try await startOrSkip(server)
+        defer { server.stop() }
+
+        var clients: [SimClient] = []
+        for _ in 0..<6 {
+            let transport = try await NWConnectionTransport.connect(host: "127.0.0.1", port: port)
+            clients.append(SimClient(transport: transport))
+        }
+        for (index, client) in clients.enumerated() {
+            client.hello()
+            client.join(name: "P\(index)")
+        }
+        try await waitUntil(timeout: 5) { clients.allSatisfy { $0.lastRoster.count == 6 } }
+        hostQueue.sync { XCTAssertEqual(host.seatCount, 6) }
+    }
+
     /// End-to-end: a real `RoomHost` behind a real listener, two real
     /// clients over real loopback sockets — the Swift mirror of
     /// socket_integration_test.dart's "two real socket clients join, ready

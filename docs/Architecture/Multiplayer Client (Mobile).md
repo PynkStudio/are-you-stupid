@@ -67,9 +67,18 @@ No account, no cloud, no network beyond the LAN ([[Game Design Pillars]]).
 ## Permissions
 
 Multiplayer is the only part of the app that needs OS permissions: **Local
-Network** (required — Bonjour browse for `_ays-party._tcp`, iOS only; Android
-NSD needs no runtime permission) and **Camera** (optional — QR scan only).
+Network** (required for Bonjour browse of `_ays-party._tcp` on Apple
+platforms; Android NSD needs no runtime permission) and **Camera** (optional —
+QR scan only on mobile).
 Single-player never asks for either.
+
+The macOS controller path is intentionally different: its primer refers to
+the Mac and explains only Local Network access, which macOS can request for
+Bonjour discovery. It never mentions or requests Camera access, never creates
+`MobileScannerController`, and omits **SCAN QR**; nearby-room discovery and
+**ENTER ROOM CODE** remain available. An `unknown` permission status is
+non-blocking and starts discovery, letting the Bonjour operation itself drive
+any macOS system prompt.
 
 - **Primer first.** The first time `MpHomeScreen` opens, a primer dialog
   (`showMpPermissionsPrimer`, `mp_common.dart`) explains both permissions

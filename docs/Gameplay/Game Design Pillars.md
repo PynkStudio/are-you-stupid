@@ -1,6 +1,6 @@
 ---
 tags: [design, pillars]
-updated: 2026-10-06
+updated: 2026-10-12
 ---
 
 # Game Design Pillars
@@ -17,6 +17,13 @@ Everything in this repo is judged against that sentence.
 
 ## Hard rules
 
+0. **The name is ARE YOU STUPID?! — always with "?!".** In every version,
+   every screen, every platform and every language: home title, Game Over
+   header, share text, host board, window and menu titles, the device
+   display name (`CFBundleDisplayName`, `android:label`) and store art.
+   Translations are fine (MA SEI SCEMO?!, ¡¿ERES ESTÚPIDO?!, ES-TU STUPIDE ?!,
+   BIST DU DUMM?!, VOCÊ É BURRO?!) but the "?!" never goes. The device name
+   stays English, matching the App Store name. See [[Decision Log]].
 1. **Fair, not random.** Every failure must be explainable in one sentence by the
    player. If a challenge cannot be understood *after* losing, it is a bad
    challenge. See [[Challenge Catalog]].

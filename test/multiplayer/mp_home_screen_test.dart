@@ -37,16 +37,21 @@ void main() {
       );
     });
 
-    test('extracts the room code from the universal link the TV/Mac QR shows', () {
-      expect(
-        roomCodeFromScannedValue('https://pynkstudio.eu/ays/join?room=7f4k'),
-        '7F4K',
-      );
-      expect(
-        roomCodeFromScannedValue('https://www.pynkstudio.eu/ays/join/?room=AB3D'),
-        'AB3D',
-      );
-    });
+    test(
+      'extracts the room code from the universal link the TV/Mac QR shows',
+      () {
+        expect(
+          roomCodeFromScannedValue('https://pynkstudio.eu/ays/join?room=7f4k'),
+          '7F4K',
+        );
+        expect(
+          roomCodeFromScannedValue(
+            'https://www.pynkstudio.eu/ays/join/?room=AB3D',
+          ),
+          'AB3D',
+        );
+      },
+    );
 
     test('rejects https links on another host or path', () {
       expect(

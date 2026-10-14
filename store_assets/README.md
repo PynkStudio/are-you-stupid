@@ -4,11 +4,17 @@ Ready-to-upload PNG files are generated into `output/`:
 
 - `iphone-6.9/`: 1320 × 2868
 - `ipad-13/`: 2064 × 2752
-- `iphone-6.9-carousel/`: six-panel editorial carousel, 1320 × 2868
-- `ipad-13-carousel/`: six-panel editorial carousel, 2064 × 2752
+- `iphone-6.9-carousel/`: five-panel editorial carousel, 1320 × 2868 (the
+  set uploaded to App Store Connect; raws in `build/screenshots/iphone69-v2/`)
+- `ipad-13-carousel/`: five-panel carousel, 2064 × 2752, from native iPad
+  Pro 13" simulator captures (`build/screenshots/ipad13-v2/`)
 - `imessage-6.9-carousel/`: five-panel Stupid Streak carousel, 1320 × 2868
-- `apple-tv/`: 3840 × 2160
-- `mac/`: 2880 × 1800
+- `apple-tv/`: 3840 × 2160, real Apple TV 4K simulator board captures
+  (`build/screenshots/appletv-v2/`: empty lobby, then 4 and 5 players joined
+  with `dart run tool/dev_bot_players.dart HOST PORT N`)
+- `mac/`: 2880 × 1800 — real captures of the Mac app (single player, the
+  PLAY/HOST chooser and the host board) from `build/screenshots/mac/`, built
+  by `generate_mac_screenshots.py`
 - `play-phone/`: 1080 × 1920 (Google Play phone screenshots; Play rejects
   images taller than 2:1)
 - `play-feature/`: Google Play feature graphic (1024 × 500) and hi-res icon

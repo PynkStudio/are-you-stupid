@@ -36,7 +36,7 @@ public enum RoomHostError: Error, CustomStringConvertible, Equatable {
 
 public final class RoomHost {
     public init(
-        hostName: String = "ARE YOU STUPID?",
+        hostName: String = "ARE YOU STUPID?!",
         roomCode: String = "AYS",
         maxPlayers: Int = 8,
         lives: Int = 3,

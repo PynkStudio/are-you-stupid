@@ -25,6 +25,7 @@
 		335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
 		33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F22044A3C60003C045 /* Assets.xcassets */; };
+		A1C0FFEE0000000000000002 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000000000001 /* AppIcon.icon */; };
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
@@ -69,6 +70,7 @@
 		33CC10ED2044A3C60003C045 /* are_you_stupid.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = are_you_stupid.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		33CC10F02044A3C60003C045 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		33CC10F22044A3C60003C045 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Runner/Assets.xcassets; sourceTree = "<group>"; };
+		A1C0FFEE0000000000000001 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; name = AppIcon.icon; path = Runner/AppIcon.icon; sourceTree = "<group>"; };
 		33CC10F52044A3C60003C045 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		33CC10F72044A3C60003C045 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Runner/Info.plist; sourceTree = "<group>"; };
 		33CC11122044BFA00003C045 /* MainFlutterWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainFlutterWindow.swift; sourceTree = "<group>"; };
@@ -146,6 +148,7 @@
 			isa = PBXGroup;
 			children = (
 				33CC10F22044A3C60003C045 /* Assets.xcassets */,
+				A1C0FFEE0000000000000001 /* AppIcon.icon */,
 				33CC10F42044A3C60003C045 /* MainMenu.xib */,
 				33CC10F72044A3C60003C045 /* Info.plist */,
 			);
@@ -298,6 +301,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
+				A1C0FFEE0000000000000002 /* AppIcon.icon in Resources */,
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -402,7 +406,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.ays.areYouStupid.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/are_you_stupid.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/are_you_stupid";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Are You Stupid.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Are You Stupid";
 			};
 			name = Debug;
 		};
@@ -416,7 +420,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.ays.areYouStupid.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/are_you_stupid.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/are_you_stupid";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Are You Stupid.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Are You Stupid";
 			};
 			name = Release;
 		};
@@ -430,7 +434,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.ays.areYouStupid.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/are_you_stupid.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/are_you_stupid";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Are You Stupid.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Are You Stupid";
 			};
 			name = Profile;
 		};

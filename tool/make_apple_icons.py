@@ -6,7 +6,11 @@ Run from the repository root:
 
 The source is an opaque, square, full-bleed master. iOS and iPadOS receive
 that artwork directly because the OS applies its own mask. macOS receives a
-platform-style rounded tile on transparency, without a baked-in light rim.
+platform-style rounded tile on transparency, without a baked-in light rim
+(the fallback for macOS 10.15-15), plus the full-bleed layer of the Icon
+Composer icon `macos/Runner/AppIcon.icon`, which macOS 26+ masks and renders
+itself. Without that `.icon`, macOS 26+ treats the legacy tile as
+non-conforming and frames it in a pale plate.
 """
 
 from pathlib import Path
@@ -20,6 +24,7 @@ IOS_DIR = ROOT / "ios/Runner/Assets.xcassets/AppIcon.appiconset"
 MAC_DIRS = (
     ROOT / "macos/Runner/Assets.xcassets/AppIcon.appiconset",
 )
+MAC_ICON_LAYER = ROOT / "macos/Runner/AppIcon.icon/Assets/icon.png"
 
 
 def contain_for_mac(source: Image.Image, size: int) -> Image.Image:
@@ -66,7 +71,9 @@ def main() -> None:
                 size = existing.width
             contain_for_mac(source, size).save(path)
 
-    print("Regenerated iPhone, iPad, and both macOS app-icon catalogs.")
+    source.resize((1024, 1024), Image.Resampling.LANCZOS).save(MAC_ICON_LAYER)
+
+    print("Regenerated iPhone, iPad, macOS app-icon catalogs and the macOS .icon layer.")
 
 
 if __name__ == "__main__":

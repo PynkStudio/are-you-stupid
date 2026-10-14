@@ -13,7 +13,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>$(PRODUCT_NAME)</string>
+	<string>ARE YOU STUPID?!</string>
+	<key>CFBundleDisplayName</key>
+	<string>ARE YOU STUPID?!</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -35,7 +37,7 @@
 	<key>AYSPresenterAPIToken</key>
 	<string>$(AYS_PRESENTER_API_TOKEN)</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>ARE YOU STUPID? uses your local network to find and host party games. Nothing leaves your home.</string>
+	<string>ARE YOU STUPID?! uses your local network to find and host party games. Nothing leaves your home.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_ays-party._tcp</string>

@@ -1,6 +1,6 @@
 ---
 tags: [moc, index]
-updated: 2026-10-06
+updated: 2026-10-12
 ---
 
 # ARE YOU STUPID? — Documentation Home
@@ -153,7 +153,9 @@ Implementation phases are tracked in [[Development Plan]].
 | Android release APK | builds, signed with a real upload key (not debug) — see [[Release Checklist]] |
 | iOS simulator | builds and runs via `flutter run`, hot reload included |
 
-**Release 1.0.0 is in store preparation.** One App Store record ships the
+**Release trains: 1.0.0 is the production submission, 1.1.0 is on
+TestFlight, 1.2.0 is the release candidate; scope is frozen until 1.2.0 is
+out and new features are planned from 1.3.0 ([[Roadmap]]).** One App Store record ships the
 iPhone/iPad game, the Apple TV host and the Mac app (play or host from one
 app since 2026-10-05) (universal purchase);
 Google Play ships the Android game (Play Console app record, policy
