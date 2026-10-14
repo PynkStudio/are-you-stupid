@@ -62,7 +62,7 @@ class _AreYouStupidAppState extends State<AreYouStupidApp> {
   AppServices? _services;
   final _navigatorKey = GlobalKey<NavigatorState>();
   StreamSubscription<Uri>? _appLinksSubscription;
-  String? _pendingRoomCode;
+  JoinTarget? _pendingJoin;
   bool _openingDeepLink = false;
   String? _lastAppLink;
   DateTime? _lastAppLinkAt;
@@ -106,14 +106,14 @@ class _AreYouStupidAppState extends State<AreYouStupidApp> {
     }
     _lastAppLink = uri.toString();
     _lastAppLinkAt = now;
-    final roomCode = roomCodeFromScannedValue(uri.toString());
-    if (roomCode == null) return;
-    _pendingRoomCode = roomCode;
+    final target = joinTargetFromScannedValue(uri.toString());
+    if (target == null) return;
+    _pendingJoin = target;
     _openPendingDeepLink();
   }
 
   Future<void> _openPendingDeepLink() async {
-    if (_openingDeepLink || _services == null || _pendingRoomCode == null) {
+    if (_openingDeepLink || _services == null || _pendingJoin == null) {
       return;
     }
     final context = _navigatorKey.currentContext;
@@ -125,8 +125,8 @@ class _AreYouStupidAppState extends State<AreYouStupidApp> {
     }
 
     _openingDeepLink = true;
-    final roomCode = _pendingRoomCode!;
-    _pendingRoomCode = null;
+    final target = _pendingJoin!;
+    _pendingJoin = null;
     final services = _services!;
     final profile = services.multiplayerProfile;
 
@@ -150,10 +150,15 @@ class _AreYouStupidAppState extends State<AreYouStupidApp> {
     }
 
     await _navigatorKey.currentState?.push(
-      MaterialPageRoute<void>(builder: (_) => MpJoinScreen(roomCode: roomCode)),
+      MaterialPageRoute<void>(
+        builder: (_) => MpJoinScreen(
+          roomCode: target.roomCode,
+          directHost: target.directHost,
+        ),
+      ),
     );
     _openingDeepLink = false;
-    if (_pendingRoomCode != null) {
+    if (_pendingJoin != null) {
       _openPendingDeepLink();
     }
   }

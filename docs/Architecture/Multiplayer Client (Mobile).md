@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, client, flutter]
-updated: 2026-10-06
+updated: 2026-10-14
 ---
 
 # Multiplayer Client (Mobile)
@@ -51,7 +51,10 @@ flow. Two ways in:
 1. **Scan QR** — `https://pynkstudio.eu/ays/join?room=7F4K` (legacy `areyoustupid://join?room=7F4K` still accepted; iOS opens the https link via the `applinks:pynkstudio.eu` Associated Domain in `Runner.entitlements`). If the deep link opened the
    app directly, `app_links` delivers it on cold start or while the app is
    already running; the app skips the scan screen and goes straight to the
-   join flow. iOS registers the custom scheme in `Info.plist`, Android in the
+   join flow. `joinTargetFromScannedValue` also reads the optional
+   `&h=ip:port` **direct-connect hint**; `MpJoinScreen(directHost:)` tries
+   Bonjour for 4 s, then connects to the hint directly (a typed code searches
+   Bonjour for 10 s and has no fallback) — see [[Multiplayer Protocol]]. iOS registers the custom scheme in `Info.plist`, Android in the
    launcher activity's browsable intent filter. Invalid links are ignored.
 2. **ENTER ROOM CODE** — manual fallback, no camera needed
    ([[Multiplayer Product]]).

@@ -41,6 +41,9 @@ final class HostViewModel: ObservableObject {
     @Published private(set) var maxPlayers = 8
     @Published private(set) var partyPackActive = false
     @Published private(set) var adBreakPlayerName: String?
+    /// `"ip:port"` the join QR carries for phones whose Bonjour lookup fails
+    /// (see `QRGenerator.joinDeepLink`); nil until the listener is ready.
+    @Published private(set) var directHostHint: String?
 
     /// The elected AI Director's display name, or `nil` when no capable
     /// phone is connected — the match plays 100% scripted either way
@@ -167,7 +170,8 @@ final class HostViewModel: ObservableObject {
             self?.host.attachClient(transport)
         }
         do {
-            try await server.start(advertising: advertisement(state: "lobby"))
+            let port = try await server.start(advertising: advertisement(state: "lobby"))
+            directHostHint = QRGenerator.hostHint(address: LocalAddress.primaryIPv4(), port: port)
             networkStatus = "READY TO PARTY"
         } catch {
             networkStatus = "NETWORK UNAVAILABLE"
@@ -243,13 +247,13 @@ final class HostViewModel: ObservableObject {
     }
 
     var joinQRImage: Image {
-        if let cgImage = QRGenerator.joinCode(roomCode: roomCode) {
+        if let cgImage = QRGenerator.joinCode(roomCode: roomCode, hostHint: directHostHint) {
             return Image(decorative: cgImage, scale: 1, orientation: .up)
         }
         return Image(systemName: "qrcode")
     }
 
-    var joinDeepLink: String { QRGenerator.joinDeepLink(roomCode: roomCode) }
+    var joinDeepLink: String { QRGenerator.joinDeepLink(roomCode: roomCode, hostHint: directHostHint) }
 
     private func advertisement(state: String) -> BonjourService {
         BonjourService(

@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, protocol, contract]
-updated: 2026-10-06
+updated: 2026-10-14
 ---
 
 # Multiplayer Protocol
@@ -68,6 +68,14 @@ controllers talk. Both ends implement this exact contract; the tvOS app does
    host. When Bonjour resolution is slow or unavailable the lobby also offers
    manual `ENTER ROOM CODE`, and the host always shows the raw code under the
    QR as a fallback ([[Multiplayer Product]]).
+- **Direct-connect hint (since board build 12, 2026-10-14):** the QR link may
+   carry `&h=<ipv4>:<port>` — the board's LAN address and bound TCP port, e.g.
+   `https://pynkstudio.eu/ays/join?room=7F4K&h=192.168.1.20:54321`. The phone
+   still tries Bonjour first (4 s with a hint, 10 s for a typed code) and only
+   then connects straight to the hint. Networks that drop multicast mDNS but
+   route unicast — App Review's among them — would otherwise show "couldn't
+   find room" ([[Decision Log]]). An invalid hint is dropped; the room code
+   still parses. A typed room code has no hint and relies on Bonjour alone.
 
 ## Version
 

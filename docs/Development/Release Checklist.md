@@ -1,6 +1,6 @@
 ---
 tags: [development, release]
-updated: 2026-10-12
+updated: 2026-10-14
 ---
 
 # Release Checklist
@@ -201,6 +201,26 @@ track ([[Decision Log]]).
 flutter build ipa --release
 flutter build appbundle --release
 ```
+
+**iOS 1.0.0 (12) + tvOS 1.0.0 (12) + macOS 1.0.1 (14), 2026-10-14:**
+App Review rejected tvOS 1.0.0 (11) on two grounds. Under 2.1(a) the reviewer's
+iPhone showed "COULDN'T FIND ROOM … ON THIS WI-FI". Under 5.1.2 the tracking
+label had no ATT on tvOS. macOS 1.0.1 (13) was rejected under 1.1.1 for the
+app name. Build 12 adds the QR direct-connect hint (see
+[[Multiplayer Protocol]]). iOS **must** ship together with it: build-11
+clients reject a hinted QR link. Replies to App Review are recorded in
+[[Decision Log]]. Same build steps as below with numbers 12/12/14; exports
+are in `build/ios/export-12/AYS-ios-12.ipa`
+(SHA-256 `f4299d5f3478025b0b44c4819cf99d4554821cc7257d9120327f39fe766c1b81`),
+`build/hosts/tvos-export-12/AYS-tvos-12.ipa`
+(`041aa33834217115c230dae03d620391082e636ddb555d7e63efb618c20c1baa`) and
+`build/hosts/macos-export-14/AYS-mac-14.pkg`
+(`427999f535fd5c89a5b99aa538beb23c075558b8738c45ca7dd5f01f33d360e1`).
+368/368 Flutter tests and 84 Swift tests pass. All three were delivered with
+Transporter on 2026-10-14. macOS 1.0.1 (14) was resubmitted with a reply to
+App Review. iOS 1.0 (11) was withdrawn and iOS 1.0.0 (12) resubmitted with
+its three in-app purchases. tvOS 1.0.0 (12) was resubmitted with the reply and
+a pairing note in the review notes. All three are waiting for review.
 
 **iOS 1.0.0 (11) + tvOS 1.0.0 (11) + macOS 1.0.1 (13), 2026-10-12:** the
 2:25 submissions of builds 10/10/12 were withdrawn again to ship the

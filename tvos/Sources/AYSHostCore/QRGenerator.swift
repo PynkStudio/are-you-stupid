@@ -27,8 +27,23 @@ public enum QRGenerator {
     /// with the system camera: with the app installed iOS opens it straight
     /// into the room (applinks:pynkstudio.eu), without it the page offers the
     /// App Store. A custom scheme there reads "No usable data found".
-    public static func joinDeepLink(roomCode: String) -> String {
-        "https://pynkstudio.eu/ays/join?room=\(roomCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased())"
+    ///
+    /// `hostHint` (`"192.168.1.20:54321"`, the board's LAN address and bound
+    /// port) is appended as `&h=` so a phone whose Bonjour lookup fails —
+    /// networks that drop multicast — can still connect directly.
+    public static func joinDeepLink(roomCode: String, hostHint: String? = nil) -> String {
+        let room = roomCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        guard let hostHint, !hostHint.isEmpty else {
+            return "https://pynkstudio.eu/ays/join?room=\(room)"
+        }
+        return "https://pynkstudio.eu/ays/join?room=\(room)&h=\(hostHint)"
+    }
+
+    /// `"ip:port"` for the QR's direct-connect hint, or nil when either part
+    /// is unknown.
+    public static func hostHint(address: String?, port: UInt16?) -> String? {
+        guard let address, !address.isEmpty, let port, port > 0 else { return nil }
+        return "\(address):\(port)"
     }
 
     /// Renders `text` as a QR code and returns it as a `CGImage`, scaled up
@@ -53,7 +68,7 @@ public enum QRGenerator {
 
     /// Convenience for the common case: the join deep link for `roomCode`,
     /// rendered straight to a `CGImage`.
-    public static func joinCode(roomCode: String, scale: Int = 10) -> CGImage? {
-        cgImage(for: joinDeepLink(roomCode: roomCode), scale: scale)
+    public static func joinCode(roomCode: String, hostHint: String? = nil, scale: Int = 10) -> CGImage? {
+        cgImage(for: joinDeepLink(roomCode: roomCode, hostHint: hostHint), scale: scale)
     }
 }

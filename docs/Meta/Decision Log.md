@@ -1,6 +1,6 @@
 ---
 tags: [meta, decisions, adr]
-updated: 2026-10-12
+updated: 2026-10-14
 ---
 
 # Decision Log
@@ -3610,3 +3610,33 @@ presenter) while the real-device passes for each are still open; shipping
 what exists matters more than adding to it. Daily challenge leads the 1.3.0
 list because it is the only retention loop that stays offline and reuses the
 deterministic generator. See [[Release Checklist]].
+
+### 2026-10-14 — The join QR carries a direct-connect hint
+
+**Decision.** The board appends `&h=<ipv4>:<port>` to the join QR. The phone
+tries Bonjour first (4 s when a hint is present) and then connects straight
+to the hint. A typed room code keeps Bonjour-only discovery, with the search
+lengthened from 6 s to 10 s. Shipped as iOS/tvOS 1.0.0 (12) and macOS 1.0.1
+(14).
+
+**Why.** App Review rejected tvOS 1.0.0 (11) under 2.1(a): the reviewer's
+iPhone showed "COULDN'T FIND ROOM DFJS ON THIS WI-FI". The binaries declare
+`NSBonjourServices` correctly, which points to a network that drops multicast
+mDNS while still routing unicast, as many corporate and hotel networks do. A
+LAN address in the QR keeps the offline/no-account pillar intact
+([[Game Design Pillars]]): it stays on the local network, and no relay or
+cloud is involved. See [[Multiplayer Protocol]].
+
+### 2026-10-14 — App Review replies: name and tracking label
+
+**Decision.** The macOS 1.0.1 rejection under 1.1.1 ("mean-spirited", the
+name) and the tvOS rejection under 5.1.2 (tracking declared without ATT) are
+answered in App Store Connect instead of being changed in the product.
+Answers: the name is self-directed humour aimed at the player and was already
+approved for Mac 1.0. Only the iOS app tracks (AdMob, behind
+AppTrackingTransparency); the tvOS and macOS builds contain no advertising SDK
+and never read the advertising identifier.
+
+**Why.** The name is the owner's call ([[Game Design Pillars]]). The privacy
+label is per app record, so the iOS AdMob declaration also shows on tvOS;
+Apple's own guidance is to reply when a platform does not track.

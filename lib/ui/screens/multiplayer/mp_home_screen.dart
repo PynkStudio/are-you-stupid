@@ -29,18 +29,44 @@ import '../../widgets/balanced_text.dart';
 /// — any phone camera can open it, with or without the app installed — and
 /// the legacy custom scheme `areyoustupid://join?room=XXXX` still resolves
 /// (older hosts, the landing page's "open the game" button)
-/// ([[Multiplayer Protocol]]).
+/// ([[Multiplayer Protocol]]). Boards since 1.0 (12) append
+/// `&h=<ipv4>:<port>`, a direct-connect hint for networks that drop Bonjour.
 final _deepLinkRoomCode = RegExp(
-  r'^(?:areyoustupid://join|https://(?:www\.)?pynkstudio\.eu/ays/join/?)\?room=([A-Za-z0-9]{4})$',
+  r'^(?:areyoustupid://join|https://(?:www\.)?pynkstudio\.eu/ays/join/?)\?room=([A-Za-z0-9]{4})(?:&h=((?:\d{1,3}\.){3}\d{1,3}):(\d{1,5}))?$',
 );
+
+/// A parsed join link: the room code plus the board's optional
+/// `ip:port` direct-connect hint.
+class JoinTarget {
+  const JoinTarget(this.roomCode, {this.directHost});
+
+  final String roomCode;
+
+  /// `"192.168.1.20:54321"`, or null when the link carried none (or an
+  /// invalid one — a bad hint never invalidates the room code).
+  final String? directHost;
+}
+
+/// Parses a scanned QR payload or opened link, or null if it isn't ours.
+JoinTarget? joinTargetFromScannedValue(String? raw) {
+  if (raw == null) return null;
+  final match = _deepLinkRoomCode.firstMatch(raw.trim());
+  final code = match?.group(1)?.toUpperCase();
+  if (match == null || code == null) return null;
+  final ip = match.group(2);
+  final port = int.tryParse(match.group(3) ?? '');
+  final validIp = ip != null && ip.split('.').every((o) => int.parse(o) <= 255);
+  final validPort = port != null && port > 0 && port <= 65535;
+  return JoinTarget(
+    code,
+    directHost: validIp && validPort ? '$ip:$port' : null,
+  );
+}
 
 /// Extracts the room code from a scanned QR payload, or null if it isn't
 /// ours. Pulled out as a pure function so it's unit-testable.
-String? roomCodeFromScannedValue(String? raw) {
-  if (raw == null) return null;
-  final match = _deepLinkRoomCode.firstMatch(raw.trim());
-  return match?.group(1)?.toUpperCase();
-}
+String? roomCodeFromScannedValue(String? raw) =>
+    joinTargetFromScannedValue(raw)?.roomCode;
 
 enum _Mode { landing, scanning, enteringCode }
 
@@ -189,20 +215,23 @@ class _MpHomeScreenState extends State<MpHomeScreen>
   void _onDetect(BarcodeCapture capture) {
     if (_navigated) return;
     for (final barcode in capture.barcodes) {
-      final code = roomCodeFromScannedValue(barcode.rawValue);
-      if (code != null) {
+      final target = joinTargetFromScannedValue(barcode.rawValue);
+      if (target != null) {
         _navigated = true;
-        _goToJoin(code);
+        _goToJoin(target.roomCode, directHost: target.directHost);
         return;
       }
     }
   }
 
-  void _goToJoin(String roomCode) {
+  void _goToJoin(String roomCode, {String? directHost}) {
     final services = AppServices.of(context);
     services.sound.button();
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => MpJoinScreen(roomCode: roomCode)),
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            MpJoinScreen(roomCode: roomCode, directHost: directHost),
+      ),
     );
   }
 

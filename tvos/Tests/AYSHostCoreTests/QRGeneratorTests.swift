@@ -21,6 +21,28 @@ final class QRGeneratorTests: XCTestCase {
         XCTAssertEqual(QRGenerator.joinDeepLink(roomCode: "  aB3d  "), "https://pynkstudio.eu/ays/join?room=AB3D")
     }
 
+    func testJoinDeepLinkCarriesTheDirectConnectHint() {
+        XCTAssertEqual(
+            QRGenerator.joinDeepLink(roomCode: "7f4k", hostHint: "192.168.1.20:54321"),
+            "https://pynkstudio.eu/ays/join?room=7F4K&h=192.168.1.20:54321"
+        )
+        XCTAssertEqual(QRGenerator.joinDeepLink(roomCode: "7F4K", hostHint: ""), "https://pynkstudio.eu/ays/join?room=7F4K")
+        XCTAssertEqual(QRGenerator.hostHint(address: "10.0.0.5", port: 8080), "10.0.0.5:8080")
+        XCTAssertNil(QRGenerator.hostHint(address: nil, port: 8080))
+        XCTAssertNil(QRGenerator.hostHint(address: "10.0.0.5", port: 0))
+    }
+
+    func testLocalAddressPrefersPrivateWiFiAndSkipsLoopbackAndLinkLocal() {
+        XCTAssertEqual(LocalAddress.pick(from: [
+            ("lo0", "127.0.0.1"),
+            ("en1", "169.254.3.4"),
+            ("utun3", "10.8.0.2"),
+            ("en0", "192.168.1.20"),
+        ]), "192.168.1.20")
+        XCTAssertEqual(LocalAddress.pick(from: [("en0", "17.5.7.9"), ("bridge0", "172.20.1.1")]), "172.20.1.1")
+        XCTAssertNil(LocalAddress.pick(from: [("lo0", "127.0.0.1"), ("en0", "169.254.1.1")]))
+    }
+
     func testProducesAnImageOfTheExpectedScaledSize() throws {
         let image = try XCTUnwrap(QRGenerator.cgImage(for: "areyoustupid://join?room=7F4K", scale: 10))
         // A version-1 QR symbol (this payload's length) is 21x21 modules

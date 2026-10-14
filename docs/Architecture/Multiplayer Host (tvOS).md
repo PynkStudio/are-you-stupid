@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, tvos, macos, host]
-updated: 2026-10-12
+updated: 2026-10-14
 ---
 
 # Multiplayer Host (tvOS)
@@ -205,6 +205,13 @@ universal link (`https://pynkstudio.eu/ays/join?room=XXXX`, matching
 `mp_home_screen.dart`'s `_deepLinkRoomCode` contract exactly) to a `CGImage`
 via `CIQRCodeGenerator` — no SwiftUI/UIKit/AppKit dependency, so it's usable
 from tvOS, iOS and macOS alike.
+
+**Direct-connect hint (2026-10-14).** Once the listener is ready,
+`HostViewModel.startHosting()` stores `directHostHint` — the board's LAN IPv4
+(`LocalAddress.primaryIPv4()`: private-range, `en*` interfaces first, never
+loopback or link-local) plus the bound port — and the QR becomes
+`…/ays/join?room=XXXX&h=ip:port`. Phones use it only when Bonjour can't find
+the room ([[Multiplayer Protocol]]).
 
 **Threading (2026-10-12).** `RoomHost` is single-threaded. The board creates
 `NWListenerServer(connectionQueue: .main)`: every accepted connection is

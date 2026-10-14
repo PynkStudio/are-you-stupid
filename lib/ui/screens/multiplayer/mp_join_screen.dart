@@ -42,9 +42,14 @@ enum _Stage {
 }
 
 class MpJoinScreen extends StatefulWidget {
-  const MpJoinScreen({super.key, required this.roomCode});
+  const MpJoinScreen({super.key, required this.roomCode, this.directHost});
 
   final String roomCode;
+
+  /// The board's `ip:port` from the QR (`&h=`), tried when Bonjour can't
+  /// find the room — networks that drop multicast still route unicast
+  /// ([[Multiplayer Client (Mobile)]] "Direct-connect hint").
+  final String? directHost;
 
   @override
   State<MpJoinScreen> createState() => _MpJoinScreenState();
@@ -169,7 +174,15 @@ class _MpJoinScreenState extends State<MpJoinScreen>
         port: port,
       );
     } else {
-      candidate = await LanPartyDiscovery().resolveRoomCode(widget.roomCode);
+      // With a QR hint, don't make the player wait out a long Bonjour miss;
+      // a typed code has nothing else to fall back on, so search longer.
+      candidate = await LanPartyDiscovery().resolveRoomCode(
+        widget.roomCode,
+        timeout: widget.directHost != null
+            ? const Duration(seconds: 4)
+            : const Duration(seconds: 10),
+      );
+      candidate ??= _directHostCandidate();
     }
     if (!mounted) return;
     if (candidate == null) {
@@ -221,6 +234,18 @@ class _MpJoinScreenState extends State<MpJoinScreen>
       if (!mounted) return;
       setState(() => _stage = _Stage.connectError);
     }
+  }
+
+  PartyHostCandidate? _directHostCandidate() {
+    final parts = widget.directHost?.split(':');
+    final port = parts?.length == 2 ? int.tryParse(parts![1]) : null;
+    if (parts == null || port == null) return null;
+    return PartyHostCandidate(
+      roomCode: widget.roomCode,
+      hostname: parts[0],
+      address: parts[0],
+      port: port,
+    );
   }
 
   void _onState(PartyState state) {
@@ -282,7 +307,7 @@ class _MpJoinScreenState extends State<MpJoinScreen>
     if (identity.policy == NameSpeechPolicy.blocked) {
       setState(() {
         _joining = false;
-        _joinError = 'BEL TENTATIVO. SCEGLI UN ALTRO NOME.';
+        _joinError = Strings.t(services.settings.locale, 'ui.mp.join.nice_try');
       });
       return;
     }

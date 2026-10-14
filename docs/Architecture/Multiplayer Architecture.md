@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, overview]
-updated: 2026-10-06
+updated: 2026-10-14
 ---
 
 # Multiplayer Architecture
@@ -110,7 +110,8 @@ Two complementary paths, both offline/LAN-only:
 - **Deep-link QR:** the TV shows the universal link `https://pynkstudio.eu/ays/join?room=7F4K` as a QR
   (image generated on-device — zero external assets, [[Game Design Pillars]]).
   Scanning opens the Flutter app straight into the join flow; the app resolves
-  the host from the room code via Bonjour. If a saved player profile exists
+  the host from the room code via Bonjour, falling back to the `&h=ip:port`
+  direct-connect hint the QR carries ([[Multiplayer Protocol]]). If a saved player profile exists
   ([[Multiplayer Client (Mobile)]]), join is one tap.
 
 Full join UX in [[Multiplayer Product]].

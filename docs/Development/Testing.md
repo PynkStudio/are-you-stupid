@@ -1,6 +1,6 @@
 ---
 tags: [development, testing]
-updated: 2026-10-06
+updated: 2026-10-14
 ---
 
 # Testing
@@ -112,7 +112,10 @@ no widget-level test yet, see [[Multiplayer Development]] for that gap:
   `NSNetServiceBrowser` plumbing `nsd` wraps.
 - `mp_home_screen_test.dart` — `roomCodeFromScannedValue` parses the
   `https://pynkstudio.eu/ays/join?room=XXXX` QR payload and the legacy
-  `areyoustupid://join?room=XXXX`, rejects other hosts/paths/schemes.
+  `areyoustupid://join?room=XXXX`, rejects other hosts/paths/schemes;
+  `joinTargetFromScannedValue` reads the optional `&h=ip:port` hint and drops
+  an out-of-range one. Swift: `QRGeneratorTests` covers the hinted link and
+  `LocalAddress.pick` (private `en*` first, no loopback/link-local).
   The same parser gates system-Camera links before navigation; native iOS and
   Android registration remains part of the Phase 10 physical-device pass.
 - `mp_permissions_test.dart` — the permissions UX with a fake

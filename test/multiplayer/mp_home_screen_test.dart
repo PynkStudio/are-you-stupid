@@ -72,4 +72,39 @@ void main() {
       expect(roomCodeFromScannedValue('otherapp://join?room=7F4K'), isNull);
     });
   });
+
+  group('joinTargetFromScannedValue', () {
+    test('reads the direct-connect hint from the QR link', () {
+      final target = joinTargetFromScannedValue(
+        'https://pynkstudio.eu/ays/join?room=7f4k&h=192.168.1.20:54321',
+      );
+      expect(target?.roomCode, '7F4K');
+      expect(target?.directHost, '192.168.1.20:54321');
+    });
+
+    test('a link without a hint still joins by Bonjour', () {
+      final target = joinTargetFromScannedValue(
+        'https://pynkstudio.eu/ays/join?room=7F4K',
+      );
+      expect(target?.roomCode, '7F4K');
+      expect(target?.directHost, isNull);
+    });
+
+    test('an out-of-range hint is dropped, the room code kept', () {
+      final target = joinTargetFromScannedValue(
+        'https://pynkstudio.eu/ays/join?room=7F4K&h=300.1.1.1:99999',
+      );
+      expect(target?.roomCode, '7F4K');
+      expect(target?.directHost, isNull);
+    });
+
+    test('rejects a non-numeric hint host', () {
+      expect(
+        joinTargetFromScannedValue(
+          'https://pynkstudio.eu/ays/join?room=7F4K&h=evil.example:80',
+        ),
+        isNull,
+      );
+    });
+  });
 }
