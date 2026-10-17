@@ -448,6 +448,65 @@ public final class PresenterEngine {
 
     public func currentTitle(for playerId: String) -> String? { titleByPlayer[playerId] }
 
+    /// Named lines the next round's result could need, most likely first,
+    /// rendered exactly as `roundResult` would say them. Read-only: it never
+    /// spends a joke. The host prefetches their audio during the round so a
+    /// named line does not miss its slot waiting for live speech.
+    public func likelyNamedLines(
+        challengeId: String?,
+        mode: PresenterGameMode,
+        livesByPlayer: [String: Int] = [:],
+        players: [PresenterPlayer]
+    ) -> [String] {
+        let nextRound = roundsPlayed + 1
+        let mechanic = challengeId.flatMap(PresenterMechanic.init(challengeId:)).map { ".mechanic.\($0.rawValue)" } ?? ""
+        var titles: [String] = []
+        var perPlayer: [[String]] = []
+        for player in players {
+            guard let name = disambiguatedName(for: player, among: players) else { continue }
+            let wins = wins[player.id, default: 0]
+            let streak = wrongStreak[player.id, default: 0]
+            if wins == 3, titleByPlayer[player.id] == nil {
+                titles += candidates(keys: ["result.title.king.named"], name: name, title: lineBook.title(.king))
+            }
+            guard intensity == .savage else { continue }
+            if streak == 2, titleByPlayer[player.id] == nil {
+                titles += candidates(keys: ["result.title.doesNotRead.named"], name: name, title: lineBook.title(.doesNotRead))
+            }
+            var lines: [String] = []
+            if mode == .battle, wins == 0, nextRound >= 4 {
+                lines += candidates(keys: ["result.player.firstPointLate\(mechanic)", "result.player.firstPointLate"], name: name)
+            }
+            if mode == .battle, wins == 0, nextRound >= 3 {
+                lines += candidates(keys: ["result.player.stillZero\(mechanic)", "result.player.stillZero"], name: name)
+            }
+            if mode == .lastStupidStanding, livesByPlayer[player.id] == 2 {
+                lines += candidates(keys: ["result.player.lss.lastLife"], name: name)
+            }
+            if mode == .lastStupidStanding, streak >= 1 {
+                lines += candidates(keys: ["result.player.lss.losingLives"], name: name)
+            }
+            if players.count > 1 {
+                lines += candidates(keys: ["result.mixed.oneWrong\(mechanic)", "result.mixed.oneWrong.named"], name: name)
+            }
+            if streak == 2 {
+                lines += candidates(keys: ["result.player.wrongStreak3\(mechanic)", "result.player.wrongStreak3"], name: name)
+            }
+            if roastedThisMatch.contains(player.id) {
+                lines += candidates(keys: ["result.player.again"], name: name)
+            }
+            perPlayer.append(lines)
+        }
+        // Round-robin so a small prefetch budget covers every player's most
+        // likely line before anyone's second choice.
+        var ordered = titles
+        for depth in 0..<(perPlayer.map(\.count).max() ?? 0) {
+            ordered += perPlayer.compactMap { depth < $0.count ? $0[depth] : nil }
+        }
+        var seen: Set<String> = []
+        return ordered.filter { seen.insert($0).inserted }
+    }
+
     public func returningCue(player: PresenterPlayer, title: String) -> PresenterCue? {
         history.advance()
         let name = player.spokenName?.uppercased()
@@ -585,22 +644,34 @@ public final class PresenterEngine {
     /// nor already told this match (whoever it was aimed at), rotating the
     /// starting variant. Nil when the key is missing or fully spent.
     private func render(template key: String, name: String? = nil, title: String? = nil) -> String? {
+        let options = tellable(template: key, name: name, title: title)
+        guard !options.isEmpty else { return nil }
+        let pick = options[sequence % options.count]
+        history.record(pick.joke)
+        return pick.text
+    }
+
+    /// What `render` could say for the first of [keys] that has anything
+    /// left, without spending it.
+    private func candidates(keys: [String], name: String, title: String? = nil) -> [String] {
+        keys.lazy.map { self.tellable(template: $0, name: name, title: title).map(\.text) }.first { !$0.isEmpty } ?? []
+    }
+
+    /// Allowed, unspent variants of [key] in book order: `joke` is the copy
+    /// the history remembers (title filled, `{name}` literal), `text` the
+    /// line as spoken.
+    private func tellable(template key: String, name: String?, title: String?) -> [(joke: String, text: String)] {
         var variants = lineBook.templateVariants(for: key, intensity: intensity)
         if variants.isEmpty {
             variants = PresenterLineBook.builtIn(locale: lineBook.locale).templateVariants(for: key, intensity: intensity)
         }
-        guard !variants.isEmpty else { return nil }
-        let offset = sequence % variants.count
-        for index in variants.indices {
-            var joke = variants[(index + offset) % variants.count].text
+        return variants.compactMap { variant in
+            var joke = variant.text
             if let title { joke = joke.replacingOccurrences(of: "{title}", with: title) }
-            guard history.allows(joke, oncePerMatch: true) else { continue }
+            guard history.allows(joke, oncePerMatch: true) else { return nil }
             let text = name.map { joke.replacingOccurrences(of: "{name}", with: $0) } ?? joke
-            guard !text.contains("{") else { continue }
-            history.record(joke)
-            return text
+            return text.contains("{") ? nil : (joke, text)
         }
-        return nil
     }
 
     private func nextId(_ prefix: String) -> String {

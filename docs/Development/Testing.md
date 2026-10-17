@@ -427,6 +427,10 @@ repeats inside the 6-beat cooldown and goes silent instead, the same mechanic
 failing eight times never tells one line twice and reaches the
 `result.player.again` callback, a joke aimed at another player still counts
 as told, and punchline/normalized-text signatures merge near-duplicates.
+Prefetch prediction is locked too: every named result line spoken over a
+six-round match was in that round's `likelyNamedLines`, an imminent title is
+predicted first and verbatim, prediction spends nothing, and Neutral mode
+predicts no Savage roast.
 `PresenterLineBookTests` require three Savage-only `result.player.again`
 variants per locale and a sanitizer-clean offline book in every locale.
 The `AYSHostUI` library (tvOS app + Flutter macOS board window) builds with

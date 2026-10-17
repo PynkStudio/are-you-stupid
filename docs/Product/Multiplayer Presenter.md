@@ -65,7 +65,10 @@ The presenter resolves every cue through this ladder without delaying play:
 2. Host disk cache of generated lines.
 3. Shared backend cache.
 4. New online text-to-speech generation.
-5. Subtitle only if audio is not ready before the cue's deadline.
+5. Subtitle only if audio is not ready before the cue's deadline. Release
+   builds never fall back to the device's system speech: a second, robotic
+   voice breaks the character worse than silence. Debug builds keep it as a
+   development aid.
 
 The host chooses event, line/template and variant; the backend only resolves
 or produces audio. Gameplay never waits for it.
@@ -92,7 +95,14 @@ Three content tiers keep cost and latency bounded:
   this for moments where a template cannot carry the joke.
 
 Target mix: roughly 75–85% universal, 10–20% templated and under 5% fully
-dynamic. Prefetch likely branches during a round and named cues on join. Never
+dynamic. Prefetch likely branches during a round and named cues on join.
+At every `ROUND_START` the board asks the engine for the named lines the
+result could need (`PresenterEngine.likelyNamedLines`: imminent titles first,
+then each player's most likely roast round-robin, rendered exactly as they
+would be spoken and without spending them) and warms the host disk cache
+with at most 8 backend calls per round, skipping lines already on disk. That
+stays under the backend's 30 speech calls per minute per board. Mute and Off
+never prefetch. Never
 expose a provider key in the app: a minimal backend authenticates rooms,
 rate-limits spend, calls speech and returns audio. It owns no game state.
 
@@ -179,8 +189,11 @@ One backend module (`src/lib/ays-presenter/speech.ts`) owns synthesis, so
 pack clips and live lines come from the same voice. **ElevenLabs** is the
 default whenever `ELEVENLABS_API_KEY` and `AYS_PRESENTER_ELEVENLABS_VOICE_ID`
 are set: `eleven_v3` for the pre-recorded pack (most expressive, latency
-irrelevant) and `eleven_flash_v2_5` for live named lines (the host waits at
-most 1.4 s). Otherwise the backend falls back to OpenAI `gpt-4o-mini-tts`.
+irrelevant) and `eleven_flash_v2_5` for live named lines. The host waits
+for live audio as long as the cue is still relevant (8 s ceiling), not a
+fixed short timeout: a cache miss measured ~2.2 s end to end on 2026-10-17,
+which is why a fixed 1.4 s timeout made about every other named line fall
+through to the robotic system voice. Otherwise the backend falls back to OpenAI `gpt-4o-mini-tts`.
 The selected production voice is **AYS — The Disappointed Host**
 (`C5m0ozw0kWxM7oU5fgRY`), a generated multilingual voice. Its character
 background is an elegant former European prime-time announcer now condemned
@@ -201,7 +214,7 @@ che abbiamo stasera?”, “Ma vuoi chiudere Instagram ed entrare in partita, o
 no?” and “Se questi sono i concorrenti, io me ne vado.” Other locales should
 adapt the comic intent and spoken rhythm, not translate these literally.
 Subtitles stay uppercase; the selected locale is sent on every live request,
-selects the corresponding system voice fallback (`en-US`, `it-IT`, `fr-FR`,
+selects the corresponding debug-only system voice (`en-US`, `it-IT`, `fr-FR`,
 `es-ES`, `pt-PT`, `de-DE`) and separates manifest, ETag and generated-audio
 caches. The backend sends sentence-case text to the
 voice, because all-caps input is read as shouting or spelled out. The voice

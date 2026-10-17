@@ -375,6 +375,7 @@ final class HostViewModel: ObservableObject {
             soundEffects.play(.roundStart)
             challengeIdByRound[m.roundId] = m.challengeId
             beginRoundOnBoard(m.roundId)
+            prefetchNamedLines(challengeId: m.challengeId)
             refreshAdvertisement(state: "playing")
             scheduleAutoComplete(roundId: m.roundId, closesAt: m.startAt + m.durationMs)
         case let m as RoundCountdown:
@@ -470,6 +471,21 @@ final class HostViewModel: ObservableObject {
               let personaId = player.personaId,
               let title = presenterEngine.currentTitle(for: playerId) else { return }
         presenterCareers.remember(personaId: personaId, title: title)
+    }
+
+    /// Warms the voice for the named lines this round's result may need:
+    /// live speech for a new name/line pair takes ~2 s, longer than a result
+    /// stays on screen. Voice mode only; Mute and Off never touch the backend.
+    private func prefetchNamedLines(challengeId: String) {
+        guard presenterOutputMode == .voice else { return }
+        let lives = Dictionary(uniqueKeysWithValues: standings.compactMap { id, score in score.lives.map { (id, $0) } })
+        let texts = presenterEngine.likelyNamedLines(
+            challengeId: challengeId,
+            mode: selectedMode == .lastStupidStanding ? .lastStupidStanding : .battle,
+            livesByPlayer: lives,
+            players: roster.map(presenterPlayer)
+        )
+        presenterAudio.prefetch(texts, intensity: presenterEngine.intensity)
     }
 
     private func presentRoundResults(_ results: RoundResults) {

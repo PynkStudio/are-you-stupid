@@ -200,4 +200,45 @@ final class PresenterEngineTests: XCTestCase {
         history.beginMatch()
         XCTAssertTrue(history.allows("{name}, ERA UN BOTTONE.", oncePerMatch: true))
     }
+
+    // MARK: - Prefetch prediction
+
+    func testLikelyNamedLinesContainTheLineTheResultSpeaks() {
+        let engine = PresenterEngine(intensity: .savage)
+        let players = [
+            PresenterPlayer(id: "1", displayName: "Luca", spokenName: "Luca"),
+            PresenterPlayer(id: "2", displayName: "Mara", spokenName: "Mara"),
+        ]
+        for round in 1...6 {
+            let wrong = round.isMultiple(of: 2) ? "2" : "1"
+            let right = wrong == "1" ? "2" : "1"
+            let likely = engine.likelyNamedLines(challengeId: "tap_color", mode: .battle, players: players)
+            let cues = engine.roundResult(.init(roundId: "r\(round)", correctPlayerIds: [right], wrongPlayerIds: [wrong], challengeId: "tap_color"), players: players)
+            for cue in cues where cue.targetPlayerId != nil {
+                XCTAssertTrue(likely.contains(cue.text), "round \(round): \(cue.text) not in \(likely)")
+            }
+        }
+    }
+
+    func testLikelyNamedLinesPredictTheImminentTitleFirstAndSpendNothing() {
+        let engine = PresenterEngine(intensity: .neutral)
+        let luca = PresenterPlayer(id: "1", displayName: "Luca", spokenName: "Luca")
+        for round in 1...3 {
+            _ = engine.roundResult(.init(roundId: "r\(round)", correctPlayerIds: ["1"], wrongPlayerIds: []), players: [luca])
+        }
+        let likely = engine.likelyNamedLines(challengeId: nil, mode: .battle, players: [luca])
+        XCTAssertEqual(likely.first?.contains("KING"), true)
+        XCTAssertEqual(likely, engine.likelyNamedLines(challengeId: nil, mode: .battle, players: [luca]))
+        let cue = engine.roundResult(.init(roundId: "r4", correctPlayerIds: ["1"], wrongPlayerIds: []), players: [luca])[0]
+        XCTAssertEqual(cue.text, likely.first)
+    }
+
+    func testNeutralPrefetchHasNoSavageRoasts() {
+        let engine = PresenterEngine(intensity: .neutral)
+        let players = [
+            PresenterPlayer(id: "1", displayName: "Luca", spokenName: "Luca"),
+            PresenterPlayer(id: "2", displayName: "Mara", spokenName: "Mara"),
+        ]
+        XCTAssertTrue(engine.likelyNamedLines(challengeId: "math", mode: .battle, players: players).isEmpty)
+    }
 }

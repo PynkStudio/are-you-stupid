@@ -411,8 +411,11 @@ an unknown remote key is discarded and can never invent a match fact.
 `PresenterPackStore` (UI) syncs the published book and its hash-verified
 clips into Caches, and keeps whichever of the synced and bundled books has
 the higher revision. `PresenterAudioController` resolves pack clip → disk
-cache → shared backend → system speech, and checks semantic expiry until
-playback begins. A line still loading at the next round is discarded; audio
+cache → shared backend → subtitle only (system speech in DEBUG builds only),
+waits on the backend while the cue stays relevant rather than on a fixed
+timeout, and checks semantic expiry until playback begins. At each
+`ROUND_START`, `HostViewModel` prefetches the engine's `likelyNamedLines`
+into the disk cache (8 per round, Voice mode only). A line still loading at the next round is discarded; audio
 already playing finishes naturally. Results expire with their round; final
 verdicts remain eligible while Game End is visible. The engine emits at most
 one cue per result and uses combined result/title templates when both facts

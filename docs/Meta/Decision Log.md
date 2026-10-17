@@ -3709,3 +3709,20 @@ muted a one-variant key forever once nothing else spoke, so the clock counts
 beats. Merging baseline copy into a synced book would have revived lines the
 server deliberately removed, so variety must come from publishing more
 variants. See [[Multiplayer Presenter]] and [[Multiplayer Host (tvOS)]].
+
+### 2026-10-17 — Presenter: no system voice in release, relevance-bound live speech, round prefetch
+
+**Decision.** The board no longer falls back to the device's system speech in
+release builds; a line whose audio is not ready is subtitle-only. Live speech
+requests wait while the cue is still relevant (8 s ceiling) instead of a
+fixed 1.4 s timeout, and at each round start the board prefetches up to 8
+named lines the engine predicts the result may need.
+
+**Why.** Playtests heard a much more metallic voice on about every other
+line. ElevenLabs had no cooldown or rate limit involved and the backend has no
+alternative-voice fallback: a live cache miss took ~2.2 s, the host gave up at
+1.4 s and spoke the line with `AVSpeechSynthesizer`. A longer fixed timeout
+would still lose to cold misses, so the wait is tied to the cue's own
+relevance and the likely named lines are generated before the result
+exists. The prefetch budget keeps the board under the backend's 30 speech
+calls per minute. See [[Multiplayer Presenter]] and [[Multiplayer Host (tvOS)]].
