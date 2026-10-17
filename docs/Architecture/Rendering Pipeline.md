@@ -1,6 +1,6 @@
 ---
 tags: [architecture, ui]
-updated: 2026-10-03
+updated: 2026-10-17
 ---
 
 # Rendering Pipeline
@@ -89,3 +89,22 @@ unit-tested — see [[Testing]].
 
 Full-screen flashes are what makes the game readable in a 9:16 clip — see
 [[Virality and Sharing]].
+
+## Boot splash
+
+`lib/ui/screens/splash_screen.dart` is the first Flutter frame, shown while
+`AppServices.boot()` runs (see [[Services]]). It is the app icon's mascot
+painted live with `CustomPainter` — no images, no text (the locale is not
+loaded yet):
+
+- a pink brain (unioned circle lobes, dark outline, folds, gloss) with
+  mismatched googly eyes and worried brows, on a glowing yellow puddle;
+- a 2.4 s loop: hop with squash on take-off/landing, the puddle shrinking
+  under the jump, yellow icon-style sparks bursting on landing, pupils
+  looking up → left → right, one blink;
+- a 650 ms elastic entrance and a soft pink radial glow behind;
+- five game-colour loading dots in a wave, the last always half a beat late
+  (the game's joke before the game starts);
+- `MediaQuery.disableAnimations` freezes it on a single resting pose.
+
+The stage scales with the screen (`min(340, 84 % width, 46 % height)`).

@@ -3726,3 +3726,15 @@ would still lose to cold misses, so the wait is tied to the cue's own
 relevance and the likely named lines are generated before the result
 exists. The prefetch budget keeps the board under the backend's 30 speech
 calls per minute. See [[Multiplayer Presenter]] and [[Multiplayer Host (tvOS)]].
+
+### 2026-10-17 — Boot splash redrawn as the app-icon mascot
+The 2026-09-11 splash (a bouncing 🧠 emoji with ✦ sparks) looked generic and
+rendered differently per platform's emoji font. It is now the app icon's pink
+googly-eyed brain painted with `CustomPainter` (hop + squash, yellow puddle,
+icon sparks on landing, eyes that look around and blink) over a pink glow,
+plus a row of game-colour loading dots whose last dot is always late.
+**Still text-free** on purpose — the locale isn't loaded before
+`AppServices.boot()` resolves, and the home title is translated, so showing
+an English "ARE YOU STUPID?!" here would flash the wrong language for most
+non-English players. Still zero external assets. Honors
+`MediaQuery.disableAnimations` with a static pose. See [[Rendering Pipeline]].
