@@ -165,4 +165,29 @@ final class RoundSyncTests: XCTestCase {
         XCTAssertEqual(clients[0].lastGameEnd?.winnerId, clients[0].selfId)
         XCTAssertEqual(clients[0].lastGameEnd?.results.count, 2)
     }
+
+    /// LSS score is always 0, so ranking by score alone fell back to join
+    /// order. Players go out here in join order, the exact inverse of the
+    /// correct final ranking.
+    func testLSSFinalStandingsRankBySurvivalNotJoinOrder() throws {
+        let (host, clients) = makeHarness(playerCount: 4, lives: 1)
+        clients.forEach { $0.ready(true) }
+        try host.startGame(mode: .lastStupidStanding)
+        for out in 0..<3 {
+            try host.startRound(challengeId: "tap_color", seed: 10 + out, level: 1)
+            let roundId = clients[out].lastRoundStart!.roundId
+            for index in out..<clients.count {
+                clients[index].tap(index == out ? "wrong" : "correct", roundId: roundId, correct: index != out)
+            }
+            host.completeRound()
+        }
+
+        let end = try XCTUnwrap(clients[0].lastGameEnd)
+        let ranked = end.results.sorted { $0.standing < $1.standing }.map(\.playerId)
+        XCTAssertEqual(end.winnerId, clients[3].selfId)
+        XCTAssertEqual(ranked, [3, 2, 1, 0].map { clients[$0].selfId })
+        let winnerScore = clients[0].received.compactMap { $0 as? PlayerScore }
+            .last { $0.playerId == clients[3].selfId }
+        XCTAssertEqual(winnerScore?.standing, 1)
+    }
 }

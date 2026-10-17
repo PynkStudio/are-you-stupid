@@ -59,6 +59,10 @@ class _Seat {
   bool alive = true;
   late int lives;
   int score = 0;
+
+  /// `_roundIndex` of the round that took the last life (Last Stupid
+  /// Standing); null while alive. Ranks earlier exits lower.
+  int? eliminatedAtRound;
   _Conn? conn;
   int? disconnectedAtMs;
   PartyAction? pendingAction;
@@ -577,13 +581,19 @@ class PartyHostReference {
 
   void _applyScoring(_Round round) {
     if (_mode == GameMode.lastStupidStanding) {
-      for (final seat in _seats.values) {
-        if (!seat.alive) continue;
+      // Settle every life first so each PLAYER_SCORE below carries the
+      // post-round standing, not one computed half-way through.
+      final alive = [
+        for (final seat in _seats.values)
+          if (seat.alive) seat,
+      ];
+      for (final seat in alive) {
         final r = round.judged[seat.playerId];
         if (r != null && !r.correct) {
           seat.lives -= 1;
           if (seat.lives <= 0) {
             seat.alive = false;
+            seat.eliminatedAtRound = _roundIndex;
             _broadcast(
               PlayerEliminated(
                 roundId: round.id,
@@ -593,6 +603,8 @@ class PartyHostReference {
             );
           }
         }
+      }
+      for (final seat in alive) {
         _broadcast(
           PlayerScore(
             playerId: seat.playerId,
@@ -632,12 +644,27 @@ class PartyHostReference {
     }
   }
 
+  /// Battle ranks by score. Last Stupid Standing ranks by survival: lives
+  /// left, then how late a player was eliminated (score is always 0 there,
+  /// so score alone fell back to join order). Join order breaks ties.
+  /// Mirrors `RoomHost.standings()`.
   List<String> _standings() {
     final order = [..._joinOrder];
     order.sort((a, b) {
-      final scoreDiff = _seat(b)!.score.compareTo(_seat(a)!.score);
+      final sa = _seat(a)!;
+      final sb = _seat(b)!;
+      if (_mode == GameMode.lastStupidStanding) {
+        final livesDiff = sb.lives.compareTo(sa.lives);
+        if (livesDiff != 0) return livesDiff;
+        const alive = 1 << 30;
+        final outDiff = (sb.eliminatedAtRound ?? alive).compareTo(
+          sa.eliminatedAtRound ?? alive,
+        );
+        if (outDiff != 0) return outDiff;
+      }
+      final scoreDiff = sb.score.compareTo(sa.score);
       if (scoreDiff != 0) return scoreDiff;
-      return _seat(a)!.joinOrder.compareTo(_seat(b)!.joinOrder);
+      return sa.joinOrder.compareTo(sb.joinOrder);
     });
     return order;
   }

@@ -684,14 +684,20 @@ public final class RoomHost {
 
     private func applyScoring(_ r: RoundState) {
         if mode == .lastStupidStanding {
-            for seat in seats.values where seat.alive {
+            // Settle every life first so each PLAYER_SCORE below carries the
+            // post-round standing, not one computed half-way through.
+            let alive = seats.values.filter(\.alive)
+            for seat in alive {
                 if let res = r.judged(for: seat.playerId), !res.correct {
                     seat.lives -= 1
                     if seat.lives <= 0 {
                         seat.alive = false
+                        seat.eliminatedAtRound = roundIndex
                         broadcast(PlayerEliminated(roundId: r.id, playerId: seat.playerId, ts: nowMs))
                     }
                 }
+            }
+            for seat in alive {
                 broadcast(PlayerScore(
                     playerId: seat.playerId,
                     mode: mode,
@@ -723,12 +729,21 @@ public final class RoomHost {
         }
     }
 
+    /// Battle ranks by score. Last Stupid Standing ranks by survival:
+    /// lives left, then how late a player was eliminated (a survivor ranks
+    /// above everyone out; the first one out ranks last) — its score is
+    /// always 0, so ranking by score alone fell back to join order and could
+    /// put the winner mid-table. Join order breaks the remaining ties.
     private func standings() -> [String] {
         joinOrder.sorted { a, b in
-            let sa = seats[a]!.score
-            let sb = seats[b]!.score
-            if sa != sb { return sa > sb }
-            return seats[a]!.joinOrder < seats[b]!.joinOrder
+            let sa = seats[a]!, sb = seats[b]!
+            if mode == .lastStupidStanding {
+                if sa.lives != sb.lives { return sa.lives > sb.lives }
+                let outA = sa.eliminatedAtRound ?? .max, outB = sb.eliminatedAtRound ?? .max
+                if outA != outB { return outA > outB }
+            }
+            if sa.score != sb.score { return sa.score > sb.score }
+            return sa.joinOrder < sb.joinOrder
         }
     }
 
@@ -880,6 +895,9 @@ private final class Seat {
     var alive = true
     var lives: Int
     var score = 0
+    /// `roundIndex` of the round that took the last life (Last Stupid
+    /// Standing); nil while alive. Ranks earlier exits lower.
+    var eliminatedAtRound: Int?
     var conn: Connection?
     var disconnectedAtMs: Int?
     var pendingAction: PartyAction?

@@ -222,6 +222,36 @@ void main() {
       expect(a.state.gameEnd!.winnerId, a.state.selfClientId);
       expect(b.state.phase, PartyPhase.gameEnded);
     });
+
+    test('final standings rank by survival, not join order', () {
+      final h = PartyHarness(lives: 1);
+      final clients = [
+        for (final name in ['Ana', 'Bob', 'Cid', 'Dee'])
+          h.addClient(name: name),
+      ];
+      for (final c in clients) {
+        c.join(name: c == clients[0] ? 'Ana' : 'P${clients.indexOf(c)}');
+        c.ready();
+      }
+      h.host.startGame(mode: GameMode.lastStupidStanding);
+
+      // Out in join order: Ana first, then Bob, then Cid; Dee survives.
+      for (var out = 0; out < 3; out++) {
+        h.host.startRound(challengeId: 'dont_tap', seed: 40 + out, level: 2);
+        for (var i = out; i < clients.length; i++) {
+          i == out ? clients[i].tapBackground() : clients[i].letRoundTimeOut();
+        }
+      }
+
+      final end = clients[0].state.gameEnd!;
+      final ids = [for (final c in clients) c.state.selfClientId];
+      final ranked =
+          ([...end.results]..sort((a, b) => a.standing.compareTo(b.standing)))
+              .map((r) => r.playerId)
+              .toList();
+      expect(end.winnerId, ids[3]);
+      expect(ranked, [ids[3], ids[2], ids[1], ids[0]]);
+    });
   });
 
   group('Battle scoring + reaction bonus', () {

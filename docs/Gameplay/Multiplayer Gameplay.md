@@ -19,10 +19,17 @@ when the mode ships, the notes get bumped to match exactly what runs.
   eliminated player keeps watching (never kicked, [[Multiplayer Architecture]])
   but stops participating in this match's rounds: they receive no further
   `ROUND_START` challenges for scoring.
-- Play continues until **one player remains**, or everyone is eliminated
-  (host picks the least-stupid survivor/winner deterministically).
-- Winner revealed as **THE LEAST STUPID** / **NOT STUPID AFTER ALL**, with a
-  host winner animation.
+- Play continues until **one player remains** (the winner), or the last
+  survivors all lose their final life in the same round: then there is no
+  winner (`winnerId` is null) and the board says `NOBODY SURVIVED`.
+- **Standings rank by survival**: lives left, then how late a player went out
+  (the first one eliminated ranks last), then join order for players still
+  tied (e.g. eliminated in the same round). Score is always 0 in this mode, so
+  it never decides a rank. The same order feeds every `PLAYER_SCORE.standing`
+  (sent after all of the round's lives are settled) and `GAME_END`, so the
+  phones' final `#n` and the board agree.
+- Winner revealed as **THE LEAST STUPID PERSON IN THE ROOM**, with a host
+  winner animation.
 
 ### MODE 2 — STUPID BATTLE (points)
 

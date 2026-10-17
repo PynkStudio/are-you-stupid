@@ -166,9 +166,13 @@ final class HostViewModel: ObservableObject {
     /// doesn't jitter round to round for equal scores.
     var sortedStandings: [PlayerScore] { ordered(standings) }
 
+    /// Lives first (Last Stupid Standing), then the host's own `standing`
+    /// — which ranks eliminated players by how late they went out — then
+    /// score and name for patches that carry no standing.
     private func ordered(_ scores: [String: PlayerScore]) -> [PlayerScore] {
         scores.values.sorted { a, b in
             if let la = a.lives, let lb = b.lives, la != lb { return la > lb }
+            if a.standing > 0, b.standing > 0, a.standing != b.standing { return a.standing < b.standing }
             if a.score != b.score { return a.score > b.score }
             return name(for: a.playerId) < name(for: b.playerId)
         }

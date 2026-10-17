@@ -3674,3 +3674,18 @@ a full match with bot players for every board change is slow and not
 repeatable. The renders are the same views the app shows (no mocked UI), with
 deterministic names and scores. The old lobby captures still showed the
 removed `● LIVE` capsule. See [[Testing]].
+
+### 2026-10-17 — Last Stupid Standing ranks by survival
+
+**Decision.** `RoomHost.standings()` (and its Dart reference
+`test/support/party_host_reference.dart`) ranks Last Stupid Standing by lives
+left, then by the round a player was eliminated (later is better), then join
+order; Battle still ranks by score. Lives are settled for the whole round before
+any `PLAYER_SCORE` goes out. The board's live standings order by lives, then the
+host's `standing`. No wire change: `standing` keeps its type and meaning.
+
+**Why.** Score is always 0 in this mode, so the score-only sort fell back to
+join order: the winner could sit mid-table on the final screen, and the phones
+showed and recorded the same wrong `#n`. Broadcasting scores inside the
+life-decrement loop also gave early seats a standing computed before later
+seats lost their life. See [[Multiplayer Gameplay]].
