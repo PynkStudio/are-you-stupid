@@ -424,9 +424,11 @@ final class HostViewModel: ObservableObject {
         standings: [PlayerScore],
         stats: [String: PlayerMatchStats] = [:],
         commentary: String? = nil,
+        networkStatus: String? = nil,
         screen: BoardScreen
     ) {
         self.roster = roster
+        if let networkStatus { self.networkStatus = networkStatus }
         matchMode = mode
         self.roundNumber = roundNumber
         standingsBeforeRound = Dictionary(uniqueKeysWithValues: standingsBefore.map { ($0.playerId, $0) })

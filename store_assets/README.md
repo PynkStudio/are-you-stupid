@@ -9,12 +9,29 @@ Ready-to-upload PNG files are generated into `output/`:
 - `ipad-13-carousel/`: five-panel carousel, 2064 × 2752, from native iPad
   Pro 13" simulator captures (`build/screenshots/ipad13-v2/`)
 - `imessage-6.9-carousel/`: five-panel Stupid Streak carousel, 1320 × 2868
-- `apple-tv/`: 3840 × 2160, real Apple TV 4K simulator board captures
-  (`build/screenshots/appletv-v2/`: empty lobby, then 4 and 5 players joined
-  with `dart run tool/dev_bot_players.dart HOST PORT N`)
-- `mac/`: 2880 × 1800 — real captures of the Mac app (single player, the
-  PLAY/HOST chooser and the host board) from `build/screenshots/mac/`, built
-  by `generate_mac_screenshots.py`
+- `apple-tv/`: 3840 × 2160, five board slides (empty lobby, full lobby, round
+  results, elimination, final). The board images are 2x renders of the shipped
+  SwiftUI board views from `build/screenshots/board-v3/` (see below)
+- `mac/`: 2880 × 1800 — real window captures of the Mac app (single player and
+  the PLAY/HOST chooser, `build/screenshots/mac/`) plus three host-board slides
+  (lobby, round results, final) from the same board renders, built by
+  `generate_mac_screenshots.py`. Supporting lines are plain accent text, no
+  pill badges
+
+The board renders come from the AYSHostUI snapshot test, seeded with fixture
+players, so lobby, results and final can be shown without staging a live
+match. Refresh them after any board change, from `tvos/`:
+
+```bash
+AYS_STORE_CAPTURE_DIR="$PWD/../build/screenshots/board-v3" swift test --filter testStoreCaptures
+```
+
+then, from the repository root, regenerate only the Apple TV and Mac sets:
+
+```bash
+python3 -c "import sys; sys.path.insert(0, 'store_assets'); import generate_store_screenshots as g; g.desktop_assets()"
+python3 store_assets/generate_mac_screenshots.py
+```
 - `play-phone/`: 1080 × 1920 (Google Play phone screenshots; Play rejects
   images taller than 2:1)
 - `play-feature/`: Google Play feature graphic (1024 × 500) and hi-res icon

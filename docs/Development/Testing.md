@@ -149,6 +149,13 @@ review, write the PNGs somewhere:
 AYS_BOARD_SNAPSHOT_DIR=/tmp/ays-board swift test --filter AYSHostUITests
 ```
 
+`testStoreCaptures` (skipped unless `AYS_STORE_CAPTURE_DIR` is set) renders the
+lobby, results and final boards at 2x for the Apple TV (3840 × 2160) and Mac
+(2880 × 1800) App Store screenshots; `store_assets/README.md` has the steps.
+Still renders cannot draw a `ScrollView`'s content or a native `NSView`, so the
+lobby only scrolls its cast once it overflows (`ViewThatFits`) and hides the
+AirPlay picker under `boardStill`.
+
 ### `tvos/Tests/AYSHostCoreTests/` — the Swift host authority (Phase 4, partial)
 42 XCTest cases against `RoomHost`, `AYSChallengeCatalog` and the `Net/`/`QR/`
 layers, mirroring the Dart suites above but on the Swift port

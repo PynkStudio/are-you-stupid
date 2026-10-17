@@ -3660,3 +3660,17 @@ crowned nobody under `NOT STUPID AFTER ALL` when the last survivors were
 eliminated together. The capsule chips read as generic AI-generated UI rather
 than broadcast graphics. Fixed point sizes drifted between the Apple TV and a
 small Mac window. See [[Multiplayer Gameplay]] and [[Multiplayer Host (tvOS)]].
+
+### 2026-10-17 — Apple TV and Mac store board shots are view renders
+
+**Decision.** The Apple TV set (now five slides) and the Mac set's three
+host-board slides use 2x renders of the shipped SwiftUI board views produced by
+`AYSHostUITests.testStoreCaptures` with fixture players, instead of simulator
+or window captures of a staged match. The Mac set's supporting line is plain
+accent text instead of a pill badge.
+
+**Why.** The redesigned results and final screens only exist mid-match; staging
+a full match with bot players for every board change is slow and not
+repeatable. The renders are the same views the app shows (no mocked UI), with
+deterministic names and scores. The old lobby captures still showed the
+removed `● LIVE` capsule. See [[Testing]].

@@ -30,20 +30,22 @@ final class BoardSnapshotTests: XCTestCase {
     }
 
     private func render(_ name: String, _ model: HostViewModel,
-                        sizes: [CGSize] = [CGSize(width: 1280, height: 720)]) throws {
+                        sizes: [CGSize] = [CGSize(width: 1280, height: 720)],
+                        scale: CGFloat = 1, directory: String? = nil) throws {
+        let directory = directory ?? ProcessInfo.processInfo.environment["AYS_BOARD_SNAPSHOT_DIR"]
         for size in sizes {
             let view = BoardScreens(model: model)
                 .frame(width: size.width, height: size.height)
                 .environment(\.boardStill, true)
                 .foregroundStyle(.white)
             let renderer = ImageRenderer(content: view)
-            renderer.scale = 1
-            let image = try XCTUnwrap(renderer.nsImage, "\(name) did not render")
-            XCTAssertEqual(image.size.width, size.width)
-            if let dir = ProcessInfo.processInfo.environment["AYS_BOARD_SNAPSHOT_DIR"],
-               let tiff = image.tiffRepresentation,
-               let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
-                let url = URL(fileURLWithPath: dir).appendingPathComponent("\(name)-\(Int(size.width)).png")
+            renderer.scale = scale
+            let image = try XCTUnwrap(renderer.cgImage, "\(name) did not render")
+            XCTAssertEqual(CGFloat(image.width), size.width * scale)
+            if let directory,
+               let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) {
+                let suffix = scale == 1 ? "-\(Int(size.width))" : ""
+                let url = URL(fileURLWithPath: directory).appendingPathComponent("\(name)\(suffix).png")
                 try png.write(to: url)
             }
         }
@@ -61,7 +63,7 @@ final class BoardSnapshotTests: XCTestCase {
         return stats
     }
 
-    func testRoundResultsBattleMixed() throws {
+    private func battleResultsModel() -> HostViewModel {
         let model = HostViewModel()
         let results = [
             PlayerRoundResult(playerId: "p0", correct: true, scoreDelta: 100, reactionMs: 912),
@@ -78,12 +80,16 @@ final class BoardSnapshotTests: XCTestCase {
             standings: battle([600, 700, 500, 500, 400, 300, 500]),
             commentary: "Some read it. Some were present.",
             screen: .results(results: results, roundId: "r7"))
-        try render("results-battle", model, sizes: [CGSize(width: 1280, height: 720),
+        return model
+    }
+
+    func testRoundResultsBattleMixed() throws {
+        try render("results-battle", battleResultsModel(), sizes: [CGSize(width: 1280, height: 720),
                                                      CGSize(width: 1920, height: 1080),
                                                      CGSize(width: 900, height: 560)])
     }
 
-    func testRoundResultsElimination() throws {
+    private func eliminationResultsModel() -> HostViewModel {
         let model = HostViewModel()
         let results = [
             PlayerRoundResult(playerId: "p0", correct: true, reactionMs: 700),
@@ -97,7 +103,11 @@ final class BoardSnapshotTests: XCTestCase {
             standings: lss([3, 0, 1, 2, 0]),
             commentary: "Giulia has left the building. Mentally, a while ago.",
             screen: .results(results: results, roundId: "r9"))
-        try render("results-elimination", model)
+        return model
+    }
+
+    func testRoundResultsElimination() throws {
+        try render("results-elimination", eliminationResultsModel())
     }
 
     func testRoundResultsEveryoneRight() throws {
@@ -126,7 +136,7 @@ final class BoardSnapshotTests: XCTestCase {
         try render("results-crowded", model)
     }
 
-    func testGameEndWinner() throws {
+    private func winnerModel() -> HostViewModel {
         let model = HostViewModel()
         let scores = [1700, 1500, 1200, 1100, 1000, 600, 900]
         let order = scores.enumerated().sorted { $0.element > $1.element }
@@ -136,7 +146,11 @@ final class BoardSnapshotTests: XCTestCase {
             standingsBefore: battle(scores), standings: battle(scores), stats: stats,
             commentary: "Luca wins. Statistically, someone had to.",
             screen: .gameEnd(GameEnd(mode: .stupidBattle, results: entries, winnerId: "p0")))
-        try render("final-winner", model, sizes: [CGSize(width: 1280, height: 720), CGSize(width: 900, height: 560)])
+        return model
+    }
+
+    func testGameEndWinner() throws {
+        try render("final-winner", winnerModel(), sizes: [CGSize(width: 1280, height: 720), CGSize(width: 900, height: 560)])
     }
 
     func testGameEndNobodySurvived() throws {
@@ -157,5 +171,32 @@ final class BoardSnapshotTests: XCTestCase {
             standings: battle([600, 700, 500, 500, 400, 300, 500]),
             screen: .round(roundId: "r8"))
         try render("round", model)
+    }
+
+    /// Raw board captures for the App Store (Apple TV and Mac) campaigns,
+    /// rendered at 2x: `AYS_STORE_CAPTURE_DIR=… swift test --filter
+    /// testStoreCaptures`, then store_assets/generate_*_screenshots.py.
+    func testStoreCaptures() throws {
+        guard let directory = ProcessInfo.processInfo.environment["AYS_STORE_CAPTURE_DIR"] else {
+            throw XCTSkip("AYS_STORE_CAPTURE_DIR not set")
+        }
+        let tv = [CGSize(width: 1920, height: 1080)]
+        let mac = [CGSize(width: 1440, height: 900)]
+
+        let emptyLobby = HostViewModel()
+        emptyLobby.seedForSnapshot(roster: [], mode: .stupidBattle, roundNumber: 0, standingsBefore: [], standings: [],
+                                   networkStatus: "READY TO PARTY", screen: .lobby)
+        let fullLobby = HostViewModel()
+        fullLobby.seedForSnapshot(roster: roster(6), mode: .stupidBattle, roundNumber: 0, standingsBefore: [], standings: [],
+                                  networkStatus: "READY TO PARTY", screen: .lobby)
+        let models: [(String, HostViewModel)] = [
+            ("lobby-empty", emptyLobby), ("lobby-full", fullLobby),
+            ("results-battle", battleResultsModel()), ("results-elimination", eliminationResultsModel()),
+            ("final-winner", winnerModel()),
+        ]
+        for (name, model) in models {
+            try render("tv-\(name)", model, sizes: tv, scale: 2, directory: directory)
+            try render("mac-\(name)", model, sizes: mac, scale: 2, directory: directory)
+        }
     }
 }

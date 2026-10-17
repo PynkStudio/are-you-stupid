@@ -11,6 +11,10 @@ OUT = ROOT / "store_assets" / "output"
 # Pro Max simulator, and the Apple TV 4K simulator board with dev bot players.
 PHONE = ROOT / "build" / "screenshots" / "iphone69-v2"
 TV_SHOTS = ROOT / "build" / "screenshots" / "appletv-v2"
+# Board renders at 3840 × 2160 / 2880 × 1800 from the AYSHostUI snapshot test
+# (2026-10-17 board redesign): `AYS_STORE_CAPTURE_DIR=../build/screenshots/
+# board-v3 swift test --filter testStoreCaptures` from tvos/.
+BOARD_SHOTS = ROOT / "build" / "screenshots" / "board-v3"
 # Native iPad Pro 13" simulator captures, same moments as the phone slides.
 IPAD = ROOT / "build" / "screenshots" / "ipad13-v2"
 IPAD_FILE = {"02_challenge_tapgreen.png": "02_challenge.png"}
@@ -264,9 +268,11 @@ def imessage_assets() -> None:
 
 
 DESKTOP_SLIDES = [
-    ("THE PARTY STARTS HERE.", "HOST ON APPLE TV OR MAC.", BLUE, "lobby0.png"),
-    ("SCAN. JOIN. PANIC.", "PHONES BECOME CONTROLLERS.", GREEN, "lobby4.png"),
-    ("UP TO 16 PLAYERS.", "ONE ROOM. ZERO DIGNITY.", RED, "lobby5.png"),
+    ("THE PARTY STARTS HERE.", "HOST ON APPLE TV OR MAC.", BLUE, "tv-lobby-empty.png"),
+    ("SCAN. JOIN. PANIC.", "PHONES BECOME CONTROLLERS. UP TO 16 PLAYERS.", GREEN, "tv-lobby-full.png"),
+    ("EVERY FAIL GETS NAMED.", "ON THE BIG SCREEN. IN FRONT OF EVERYONE.", RED, "tv-results-battle.png"),
+    ("THREE LIVES. NO MERCY.", "LAST STUPID STANDING.", RED, "tv-results-elimination.png"),
+    ("ONE WINNER.", "EVERYONE ELSE: OFFICIALLY STUPID.", YELLOW, "tv-final-winner.png"),
 ]
 
 
@@ -287,8 +293,10 @@ def wide_asset(size: tuple[int, int], folder: str, index: int, headline: str, su
 
 def desktop_assets() -> None:
     # Mac screenshots come from generate_mac_screenshots.py (real Mac app).
+    for old in (OUT / "apple-tv").glob("*.png"):
+        old.unlink()
     for index, (headline, subhead, accent, shot) in enumerate(DESKTOP_SLIDES, 1):
-        wide_asset((3840, 2160), "apple-tv", index, headline, subhead, accent, TV_SHOTS / shot)
+        wide_asset((3840, 2160), "apple-tv", index, headline, subhead, accent, BOARD_SHOTS / shot)
 
 
 def play_assets() -> None:

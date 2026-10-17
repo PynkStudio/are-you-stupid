@@ -91,6 +91,7 @@ private struct LobbyMarquee: View {
 private struct JoinTicket: View {
     @ObservedObject var model: HostViewModel
     let compact: Bool
+    @Environment(\.boardStill) private var still
 
     var body: some View {
         VStack(spacing: compact ? 12 : 18) {
@@ -116,7 +117,8 @@ private struct JoinTicket: View {
                     .font(Theme.label(11)).lineLimit(1).foregroundStyle(Color.white.opacity(0.65))
             }
             #if os(macOS)
-            AirPlayButton().frame(width: 30, height: 30)
+            // A native NSView: a still render cannot draw it.
+            if !still { AirPlayButton().frame(width: 30, height: 30) }
             #endif
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity).padding(compact ? 18 : 26)
@@ -140,13 +142,13 @@ private struct PartyRoster: View {
                 if model.roster.isEmpty {
                     EmptyDanceFloor()
                 } else {
-                    ScrollView {
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: compact ? 10 : 14) {
-                            ForEach(Array(model.roster.enumerated()), id: \.element.playerId) { index, player in
-                                PlayerCard(player: player, seat: index + 1)
-                            }
-                        }
+                    // Scroll only once the cast outgrows the panel (a 16-player
+                    // Party Pack room on a small window).
+                    ViewThatFits(in: .vertical) {
+                        cast
+                        ScrollView { cast }
                     }
+                    .frame(maxHeight: .infinity, alignment: .top)
                 }
             }
             .frame(maxHeight: .infinity)
@@ -154,6 +156,16 @@ private struct PartyRoster: View {
             StartPanel(model: model)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+private extension PartyRoster {
+    var cast: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: compact ? 10 : 14) {
+            ForEach(Array(model.roster.enumerated()), id: \.element.playerId) { index, player in
+                PlayerCard(player: player, seat: index + 1)
+            }
+        }
     }
 }
 
