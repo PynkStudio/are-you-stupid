@@ -3641,6 +3641,24 @@ and never read the advertising identifier.
 label is per app record, so the iOS AdMob declaration also shows on tvOS;
 Apple's own guidance is to reply when a platform does not track.
 
+### 2026-10-17 — Android beta temporarily uses Skia
+
+**Decision.** Android opts out of Impeller through
+`io.flutter.embedding.android.EnableImpeller=false`; iOS keeps its default
+renderer. The next 1.2.0 Alpha build is a controlled compatibility release,
+and Impeller stays off until the affected Moto G84 5G XT2347-2 (Android 15,
+Adreno 619) completes a first-launch pass or a newer Flutter engine is verified
+against the same device.
+
+**Why.** Closed-test code 9 repeatedly exited from the native Android launch
+screen before Flutter rendered its first frame. The bundle contains both ARM
+architectures and the app-level boot paths handle their errors, while Flutter
+3.47.1 has known device-specific Impeller/driver failures in this startup
+window and on the Adreno 61x family. Disabling Impeller is narrow, reversible
+and produces a decisive A/B test without changing gameplay. The cost is giving
+up Impeller's Android renderer improvements until the device gate is cleared.
+See [[Getting Started]] and [[Release Checklist]].
+
 ### 2026-10-17 — Board results: failure-first hierarchy, no pills
 
 **Decision.** The board's round results and final screens were rebuilt around
@@ -3710,6 +3728,18 @@ beats. Merging baseline copy into a synced book would have revived lines the
 server deliberately removed, so variety must come from publishing more
 variants. See [[Multiplayer Presenter]] and [[Multiplayer Host (tvOS)]].
 
+### 2026-10-17 — A no-survivor final gets a no-winner presenter key
+
+**Decision.** A `GAME_END` with no `winnerId` now selects the dedicated
+`gameEnd.noWinner` line (`CONGRATULATIONS TO ABSOLUTELY NOBODY.` in English).
+The generic `gameEnd` pool, including `WE HAVE A WINNER. TECHNICALLY.`, remains
+the fallback for a real winner whose name cannot be spoken.
+
+**Why.** The generic line contradicted the final board when the last Last
+Stupid Standing survivors lost their final life together. Splitting the keys
+keeps the joke attached to a fact the host can prove without discarding useful
+winner copy. See [[Multiplayer Gameplay]] and [[Multiplayer Presenter]].
+
 ### 2026-10-17 — Presenter: no system voice in release, relevance-bound live speech, round prefetch
 
 **Decision.** The board no longer falls back to the device's system speech in
@@ -3727,18 +3757,6 @@ relevance and the likely named lines are generated before the result
 exists. The prefetch budget keeps the board under the backend's 30 speech
 calls per minute. See [[Multiplayer Presenter]] and [[Multiplayer Host (tvOS)]].
 
-### 2026-10-17 — Boot splash redrawn as the app-icon mascot
-The 2026-09-11 splash (a bouncing 🧠 emoji with ✦ sparks) looked generic and
-rendered differently per platform's emoji font. It is now the app icon's pink
-googly-eyed brain painted with `CustomPainter` (hop + squash, yellow puddle,
-icon sparks on landing, eyes that look around and blink) over a pink glow,
-plus a row of game-colour loading dots whose last dot is always late.
-**Still text-free** on purpose — the locale isn't loaded before
-`AppServices.boot()` resolves, and the home title is translated, so showing
-an English "ARE YOU STUPID?!" here would flash the wrong language for most
-non-English players. Still zero external assets. Honors
-`MediaQuery.disableAnimations` with a static pose. See [[Rendering Pipeline]].
-
 ### 2026-10-17 — Presenter careers store title keys, not wording
 
 **Decision.** `PresenterCareerStore` saves the earned title as a
@@ -3753,6 +3771,18 @@ was earned. The negative check also only recognized Italian wording, so an
 English `THE ONE WHO DOESN'T READ` lived 90 days instead of 7. See
 [[Multiplayer Presenter]] and [[State and Persistence]].
 
+### 2026-10-17 — Boot splash redrawn as the app-icon mascot
+The 2026-09-11 splash (a bouncing 🧠 emoji with ✦ sparks) looked generic and
+rendered differently per platform's emoji font. It is now the app icon's pink
+googly-eyed brain painted with `CustomPainter` (hop + squash, yellow puddle,
+icon sparks on landing, eyes that look around and blink) over a pink glow,
+plus a row of game-colour loading dots whose last dot is always late.
+**Still text-free** on purpose — the locale isn't loaded before
+`AppServices.boot()` resolves, and the home title is translated, so showing
+an English "ARE YOU STUPID?!" here would flash the wrong language for most
+non-English players. Still zero external assets. Honors
+`MediaQuery.disableAnimations` with a static pose. See [[Rendering Pipeline]].
+
 ### 2026-10-17 — The party board speaks the room language
 
 **Decision.** All fixed board copy (tvOS / Mac host) moved into
@@ -3766,3 +3796,24 @@ captures do not change with the Mac's language.
 One room-level language (not per phone) is the only thing a shared TV can
 show; reusing the presenter locale avoids a second setting that could
 disagree with the voice. See [[Multiplayer Host (tvOS)]] and [[Localization]].
+
+### 2026-10-17 — Stupid Streak: device language, no repeats, viewer-side score
+
+**Decision.** The iMessage extension now follows the device language with the
+game's six locales (`MessageStrings`), generates each round in order so no
+family repeats back to back, makes "opposite" always name its word, ports the
+app's real left/right swap, and shows every score as YOU vs RIVAL with a
+per-round breakdown. The viewer's role comes from who sent the bubble
+(`MessageMatch.viewerIsFirst`); the shared transcript card speaks as the
+sender (`ME 1 – 0 YOU`).
+
+**Why.** Testers got English on Italian phones, the same trap twice in a row,
+a "TAP THE OPPOSITE" with nothing to be the opposite of, and a `1 — 0` with no
+names. Role is derived rather than stored because Messages participant IDs are
+per-device. Device language (not the app's in-app setting) because the
+extension process cannot read the app's preferences without an App Group,
+and adding one for this is not worth a new entitlement. The rewrite also fixed
+a real fairness bug: the first player of rounds 2–3 replayed the previous
+round's sequence while the rival played the right one. See
+[[iMessage Multiplayer]].
+

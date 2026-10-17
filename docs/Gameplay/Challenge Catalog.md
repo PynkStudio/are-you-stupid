@@ -1,6 +1,6 @@
 ---
 tags: [gameplay, challenges, reference]
-updated: 2026-10-03
+updated: 2026-10-17
 ---
 
 # Challenge Catalog
@@ -35,7 +35,7 @@ Legend: **Lv** = first level it can appear · **W** = pick weight ·
 | Id | Lv | W | What the player sees | The catch |
 |---|---|---|---|---|
 | `tap_color` ★ | 1 | 1.4 | TAP RED, four honest color buttons | none — this is the hook |
-| `dont_tap_color` ★ | 2 | 1.0 | DON'T TAP RED | doing nothing also loses |
+| `dont_tap_color` ★ | 2 | 1.0 | DON'T TAP RED | doing nothing also loses **`[iMessage: Mirrored]`** |
 | `tap_actual_color` | 4 | 1.2 | TAP BLUE, words and paint disagree | the instruction names a **color** → paint wins |
 | `tap_color_moving` | 6 | 1.0 | TAP RED, buttons wobble | aiming, not reading |
 | `dont_tap_color_shifting` | 11 | 1.0 | DON'T TAP RED, colors repaint every ~0.4 s | red at *tap time* is what counts |
@@ -103,7 +103,7 @@ Legend: **Lv** = first level it can appear · **W** = pick weight ·
 | Id | Lv | W | What the player sees | The catch |
 |---|---|---|---|---|
 | `tap_nothing_button` | 8 | 1.0 | TAP NOTHING | there is a button labelled NOTHING |
-| `left_right_swap` | 8 | 1.0 | TAP LEFT | they swap after ~400 ms; position at tap time wins |
+| `left_right_swap` | 8 | 1.0 | TAP LEFT | they swap after ~400 ms; position at tap time wins **`[iMessage: Mirrored]`** |
 | `tap_in_order` | 9 | 1.0 | TAP 1 THEN 2 THEN 3 | order is enforced |
 | `ignore_next` | 12 | 0.8 | IGNORE THE NEXT LINE / TAP RED | obeying loses |
 | `rule_flip` | 14 | 1.0 | TAP RED … becomes TAP BLUE mid-round | read twice |

@@ -48,6 +48,22 @@ public struct MessageMatch: Codable, Equatable, Sendable {
         }
     }
 
+    /// Whether the device viewing a message is the match's first player.
+    ///
+    /// The first player opens every round, so an `awaitingReply` message is
+    /// always sent by them and every resolved message by the second player.
+    /// Messages participant identifiers differ per device, so the role is
+    /// derived from who sent the bubble rather than stored in the state.
+    public static func viewerIsFirst(stage: Stage, sentByViewer: Bool) -> Bool {
+        (stage == .awaitingReply) == sentByViewer
+    }
+
+    /// The match score as (viewer, rival).
+    public func score(viewerIsFirst: Bool) -> (mine: Int, theirs: Int) {
+        let score = score
+        return viewerIsFirst ? (score.first, score.second) : (score.second, score.first)
+    }
+
     public mutating func recordFirst(_ result: DuelResult) {
         precondition(rounds.count == roundIndex)
         rounds.append(DuelRound(index: roundIndex, first: result))
@@ -89,6 +105,12 @@ public struct DuelRound: Codable, Equatable, Sendable {
             return .tie
         }
         return first.elapsedMilliseconds < second.elapsedMilliseconds ? .first : .second
+    }
+
+    /// True when both streaks match and only speed separated them.
+    public var decidedByTime: Bool {
+        guard let second, let winner, winner != .tie else { return false }
+        return first.streak == second.streak
     }
 }
 

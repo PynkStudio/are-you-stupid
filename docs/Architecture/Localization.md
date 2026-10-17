@@ -144,3 +144,12 @@ see [[Adding a Challenge]]. There is no automated check that the six files
 stay in sync; a stray key only shows up as an English fallback in the other
 five languages, so a quick `grep -c` diff of the key lists is worth running
 before you call a change done.
+
+## Stupid Streak (iMessage)
+
+The native Messages extension cannot use `lib/i18n/`, so it carries its own
+six-language table in `ios/iMessageExtensionCore/.../MessageStrings.swift`,
+selected from the device language. Its challenge copy is copied from the
+app's keys (`challenge.*`, `word.opposite.pair.*`); when one of those changes,
+update the Swift table too. Details in [[iMessage Multiplayer]].
+

@@ -10,6 +10,7 @@
 		C0DE10000000000000000001 /* MessagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE20000000000000000001 /* MessagesViewController.swift */; };
 		C0DE10000000000000000002 /* MessageMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE20000000000000000002 /* MessageMatch.swift */; };
 		C0DE10000000000000000003 /* StupidChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE20000000000000000003 /* StupidChallenge.swift */; };
+		C0DE10000000000000000009 /* MessageStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE20000000000000000009 /* MessageStrings.swift */; };
 		C0DE10000000000000000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C0DE20000000000000000004 /* Assets.xcassets */; };
 		C0DE10000000000000000005 /* StupidStreak.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = C0DE20000000000000000006 /* StupidStreak.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, CodeSignOnCopy, ); }; };
 		A15E00000000000000000002 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A15E00000000000000000001 /* InfoPlist.strings */; };
@@ -75,6 +76,7 @@
 		C0DE20000000000000000001 /* MessagesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesViewController.swift; sourceTree = "<group>"; };
 		C0DE20000000000000000002 /* MessageMatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MessageMatch.swift; path = Sources/AYSMessageCore/MessageMatch.swift; sourceTree = "<group>"; };
 		C0DE20000000000000000003 /* StupidChallenge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = StupidChallenge.swift; path = Sources/AYSMessageCore/StupidChallenge.swift; sourceTree = "<group>"; };
+		C0DE20000000000000000009 /* MessageStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MessageStrings.swift; path = Sources/AYSMessageCore/MessageStrings.swift; sourceTree = "<group>"; };
 		C0DE20000000000000000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C0DE20000000000000000005 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C0DE20000000000000000006 /* StupidStreak.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = StupidStreak.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -143,6 +145,7 @@
 			children = (
 				C0DE20000000000000000002 /* MessageMatch.swift */,
 				C0DE20000000000000000003 /* StupidChallenge.swift */,
+				C0DE20000000000000000009 /* MessageStrings.swift */,
 			);
 			path = iMessageExtensionCore;
 			sourceTree = "<group>";
@@ -397,6 +400,7 @@
 				C0DE10000000000000000001 /* MessagesViewController.swift in Sources */,
 				C0DE10000000000000000002 /* MessageMatch.swift in Sources */,
 				C0DE10000000000000000003 /* StupidChallenge.swift in Sources */,
+				C0DE10000000000000000009 /* MessageStrings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -478,7 +482,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "iMessage App Icon";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				DEVELOPMENT_TEAM = G48384PHQK;
 				INFOPLIST_FILE = iMessageExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
@@ -500,7 +504,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "iMessage App Icon";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				DEVELOPMENT_TEAM = G48384PHQK;
 				INFOPLIST_FILE = iMessageExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
@@ -522,7 +526,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "iMessage App Icon";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				DEVELOPMENT_TEAM = G48384PHQK;
 				INFOPLIST_FILE = iMessageExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;

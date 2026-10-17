@@ -1,6 +1,6 @@
 ---
 tags: [product, roadmap]
-updated: 2026-10-12
+updated: 2026-10-17
 ---
 
 # Roadmap
@@ -38,8 +38,8 @@ those three trains** — only fixes and release gates go in. Everything under
 ## Release gates (before 1.2.0 goes live — no new features)
 
 1. **Real-device manual pass** for the phone game ([[Release Checklist]]).
-2. **Stupid Streak two-device Messages pass** and localization of its native
-   English-only copy ([[iMessage Multiplayer]]).
+2. **Stupid Streak two-device Messages pass** — its copy is now localized in
+   the six game languages (2026-10-17, [[iMessage Multiplayer]]).
 3. **Real-device AI evaluation** — generation quality has never run on
    hardware ([[Testing and Evaluation]]).
 4. **Multiplayer real-device validation** — 2, 4 and 8 phones on one Wi-Fi
