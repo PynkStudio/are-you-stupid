@@ -1,6 +1,6 @@
 ---
 tags: [development, release]
-updated: 2026-10-14
+updated: 2026-10-17
 ---
 
 # Release Checklist
@@ -189,6 +189,16 @@ track ([[Decision Log]]).
       `https://play.google.com/apps/testing/com.ays.are_you_stupid`.
       Sent to Google for the first review together with the store listing
       and app-content declarations.
+- [x] 2026-10-17: Android **1.2.0 code 13**, release name
+      `13 (1.2.0) — Skia compatibility`, uploaded to closed-test Alpha and
+      submitted to Google review for a 100% rollout. Managed publishing is
+      off, so approval distributes it automatically. The signed AAB is
+      `build/app/outputs/bundle/release/app-release.aab` (SHA-256
+      `3ddb0c0d5defda97ade1e1bd32cbfd7ed7120af08b35f0896f46087331d13f13`).
+      Next gate: confirm first launch on the Moto G84 5G XT2347-2 (Android
+      15) that exited during the native launch screen on code 9. Keep Android
+      Impeller disabled until that pass or a conclusive native crash trace;
+      see [[Decision Log]].
 - [x] Form factors: phones only. Google Play Games on PC removed; Android XR
       can't be switched off (it shares the phone track) ([[Decision Log]])
 - [ ] Closed testing track with ≥ 12 testers, opted in for 14 days
@@ -201,6 +211,23 @@ track ([[Decision Log]]).
 flutter build ipa --release
 flutter build appbundle --release
 ```
+
+**iOS 1.0.0 (13) + Android 1.2.0 (code 14), 2026-10-17:** carry the
+Stupid Streak rework (six languages, no back-to-back repeats, self-contained
+"opposite", YOU vs RIVAL scoring, round 2–3 sequence fix — see
+[[iMessage Multiplayer]]). iOS: `flutter build ios --release --config-only
+--build-name=1.0.0 --build-number=13`, `xcodebuild archive` with
+`MARKETING_VERSION=1.0.0 CURRENT_PROJECT_VERSION=13` to
+`build/ios/Runner-13.xcarchive` (app and extension both 1.0.0 (13)),
+exported to `build/ios/export-13/AYS-ios-13.ipa` (SHA-256
+`01bd072d2fb8cdd12931f0de4ce9e301a48b2a34e65e294cfe29ad361366f36b`); it
+replaces 1.0.0 (12) in review. Android: `flutter build appbundle --release`,
+`build/app/outputs/bundle/release/app-release.aab` (SHA-256
+`6ec50b5c1ac0f1b2b1e0263072591096367a20104022e30e26cc0f4a9ab38889`,
+`jarsigner` verified) for the closed-test Alpha track. 369/369 Flutter tests
+and 11 iMessage core Swift tests green. Uploads need the owner: the
+Chrome/Play file-input path is capped at 10 MB and App Store Connect needs an
+interactive sign-in.
 
 **iOS 1.0.0 (12) + tvOS 1.0.0 (12) + macOS 1.0.1 (14), 2026-10-14:**
 App Review rejected tvOS 1.0.0 (11) on two grounds. Under 2.1(a) the reviewer's
