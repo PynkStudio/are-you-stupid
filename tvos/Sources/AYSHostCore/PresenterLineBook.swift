@@ -84,6 +84,7 @@ public struct PresenterLineBook: Codable, Equatable, Sendable {
             "result.player.wrongStreak3",
             "result.player.lss.lastLife",
             "result.player.lss.losingLives",
+            "result.player.again",
         ]
         let mechanicBases = [
             "result.mixed.oneWrong",
@@ -157,10 +158,16 @@ public struct PresenterLineBook: Codable, Equatable, Sendable {
             ?? OfflinePresenterPack.titles["en"]![title.rawValue]!
     }
 
+    /// Every template variant allowed at this intensity, unfilled, in book
+    /// order. The engine renders them itself so it can skip spent jokes.
+    public func templateVariants(for key: String, intensity: PresenterIntensity) -> [Line] {
+        (templates[key] ?? []).filter { $0.intensity.allows(intensity) }
+    }
+
     /// Fills the first template variant allowed at this intensity, rotating by
     /// `seed`. Names are data: they are substituted, never interpreted.
     public func render(template key: String, name: String? = nil, title: String? = nil, intensity: PresenterIntensity, seed: Int) -> String? {
-        let options = (templates[key] ?? []).filter { $0.intensity.allows(intensity) }
+        let options = templateVariants(for: key, intensity: intensity)
         guard !options.isEmpty else { return nil }
         var text = options[abs(seed) % options.count].text
         if let name { text = text.replacingOccurrences(of: "{name}", with: name) }

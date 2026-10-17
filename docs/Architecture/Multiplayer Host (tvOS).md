@@ -416,7 +416,11 @@ playback begins. A line still loading at the next round is discarded; audio
 already playing finishes naturally. Results expire with their round; final
 verdicts remain eligible while Game End is visible. The engine emits at most
 one cue per result and uses combined result/title templates when both facts
-land together.
+land together. Every cue passes the repetition guard (`PresenterLineHistory`:
+6-beat cooldown by normalized text and punchline, named jokes once per match,
+`result.player.again` escalation); a beat with nothing fresh emits no cue, so
+`gameEnd`, `lobbyEmpty` and `returningCue` return optionals
+([[Multiplayer Presenter]] → "Repetition guard").
 The store starts from the board device locale (`en`, `it`, `fr`, `es`, `pt`,
 `de`, otherwise English) and isolates manifest, ETag and audio caches by
 locale. Presenter controls stay behind the lobby's secondary `OPTIONS`

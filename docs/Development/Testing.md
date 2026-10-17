@@ -421,7 +421,14 @@ copy. `PresenterEngineTests` require all 39 challenge ids to map to an
 editorial mechanic, keep mechanic copy out of Neutral mode, and prove the
 sole-wrong, still-zero and late-first-point cues from the engine's own ledger.
 They also lock Battle-versus-LSS wording, localized homonym labels, and the
-single combined cue emitted when a result awards a title.
+single combined cue emitted when a result awards a title. The repetition
+guard is locked by `PresenterEngineTests`: a recurring generic outcome never
+repeats inside the 6-beat cooldown and goes silent instead, the same mechanic
+failing eight times never tells one line twice and reaches the
+`result.player.again` callback, a joke aimed at another player still counts
+as told, and punchline/normalized-text signatures merge near-duplicates.
+`PresenterLineBookTests` require three Savage-only `result.player.again`
+variants per locale and a sanitizer-clean offline book in every locale.
 The `AYSHostUI` library (tvOS app + Flutter macOS board window) builds with
 the AVFoundation/backend/cache controller.
 Still manual: real TTS latency, weak-network expiry, voice quality, tvOS audio

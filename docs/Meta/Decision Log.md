@@ -3689,3 +3689,23 @@ join order: the winner could sit mid-table on the final screen, and the phones
 showed and recorded the same wrong `#n`. Broadcasting scores inside the
 life-decrement loop also gave early seats a standing computed before later
 seats lost their life. See [[Multiplayer Gameplay]].
+
+### 2026-10-17 — Presenter repetition guard: memory by joke, silence over repeats
+
+**Decision.** The board presenter remembers what it said by normalized text
+and by punchline (final sentence), not by line id. Every joke cools down for
+6 presenter beats (results, lobby, game end — counted whether or not the host
+spoke), named per-player jokes are spent for the rest of the match, a spent
+line falls through the specificity ladder, a player roasted twice gets the new
+`result.player.again` callback, and a beat with nothing fresh stays silent.
+The in-code baseline is still used only when the synced book has nothing for
+the beat.
+
+**Why.** Playtests found the host repetitive: templates had no memory and
+universal lines only skipped the last 4 ids, then repeated anyway when all
+variants were recent. Identity by id let near-duplicates (same punch, other
+setup or another target) through. Counting cooldown in spoken cues would have
+muted a one-variant key forever once nothing else spoke, so the clock counts
+beats. Merging baseline copy into a synced book would have revived lines the
+server deliberately removed, so variety must come from publishing more
+variants. See [[Multiplayer Presenter]] and [[Multiplayer Host (tvOS)]].

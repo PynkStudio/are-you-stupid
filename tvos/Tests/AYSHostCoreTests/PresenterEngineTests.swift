@@ -2,8 +2,8 @@ import XCTest
 @testable import AYSHostCore
 
 final class PresenterEngineTests: XCTestCase {
-    func testUniversalCueUsesVersionedOfflinePack() {
-        let cue = PresenterEngine().lobbyEmpty()
+    func testUniversalCueUsesVersionedOfflinePack() throws {
+        let cue = try XCTUnwrap(PresenterEngine().lobbyEmpty())
         XCTAssertTrue(cue.id.hasPrefix("pack.lobby.empty."))
         XCTAssertEqual(cue.expiry, .whileLobby)
         XCTAssertTrue(cue.cacheable)
@@ -88,13 +88,15 @@ final class PresenterEngineTests: XCTestCase {
 
         let zero = PresenterEngine(intensity: .savage)
         let mara = PresenterPlayer(id: "2", displayName: "Mara", spokenName: "Mara")
-        for round in 1...2 {
+        for round in 1...3 {
             _ = zero.roundResult(.init(roundId: "z\(round)", correctPlayerIds: [], wrongPlayerIds: ["1", "2"]), players: [luca, mara])
         }
-        _ = zero.roundResult(.init(roundId: "z3", correctPlayerIds: [], wrongPlayerIds: ["1", "2"]), players: [luca, mara])
         let stillZero = zero.roundResult(.init(roundId: "z4", correctPlayerIds: [], wrongPlayerIds: ["1", "2"]), players: [luca, mara])[0]
         XCTAssertEqual(stillZero.targetPlayerId, "1")
         XCTAssertTrue(stillZero.text.contains("PUNTI"))
+        // The same fact next round: the spent joke is not told again.
+        let next = zero.roundResult(.init(roundId: "z5", correctPlayerIds: [], wrongPlayerIds: ["1", "2"]), players: [luca, mara])
+        XCTAssertFalse(next.contains { $0.text == stillZero.text })
     }
 
     func testLastStupidStandingUsesLivesInsteadOfPointCopy() {
@@ -122,5 +124,80 @@ final class PresenterEngineTests: XCTestCase {
         XCTAssertEqual(cues.count, 1)
         XCTAssertEqual(cues[0].kind, .title)
         XCTAssertTrue(cues[0].text.contains("PUNTO") && cues[0].text.contains("KING"))
+    }
+
+    // MARK: - Repetition guard
+
+    func testRecurringGenericOutcomePrefersSilenceToARepeat() {
+        let engine = PresenterEngine(intensity: .neutral)
+        let luca = PresenterPlayer(id: "1", displayName: "Luca", spokenName: "Luca")
+        var lastRoundByText: [String: Int] = [:]
+        var silentRounds = 0
+        for round in 1...14 {
+            let cues = engine.roundResult(.init(roundId: "r\(round)", correctPlayerIds: [], wrongPlayerIds: ["1"]), players: [luca])
+            if cues.isEmpty { silentRounds += 1 }
+            for cue in cues {
+                if let last = lastRoundByText[cue.text] {
+                    XCTAssertGreaterThanOrEqual(round - last, PresenterLineHistory.cooldownBeats, cue.text)
+                }
+                lastRoundByText[cue.text] = round
+            }
+        }
+        XCTAssertGreaterThan(silentRounds, 0)
+    }
+
+    func testSameMechanicFailureVariesThenEscalatesThenGoesQuiet() {
+        let engine = PresenterEngine(intensity: .savage)
+        let players = [
+            PresenterPlayer(id: "1", displayName: "Chiara", spokenName: "Chiara"),
+            PresenterPlayer(id: "2", displayName: "Mara", spokenName: "Mara"),
+        ]
+        var texts: [String] = []
+        for round in 1...8 {
+            let cues = engine.roundResult(.init(
+                roundId: "r\(round)", correctPlayerIds: ["2"], wrongPlayerIds: ["1"], challengeId: "tap_color"
+            ), players: players)
+            texts += cues.map(\.text)
+        }
+        XCTAssertEqual(texts.count, Set(texts).count, "no line may be told twice in one match: \(texts)")
+        XCTAssertTrue(texts.contains { $0.contains("BOTTONE") })
+        XCTAssertTrue(texts.contains { $0.contains("ANCORA TU") || $0.contains("DI NUOVO") || $0.contains("LA REGIA") })
+    }
+
+    func testSameJokeAimedAtAnotherPlayerIsStillARepeat() {
+        let engine = PresenterEngine(intensity: .savage)
+        let players = [
+            PresenterPlayer(id: "1", displayName: "Luca", spokenName: "Luca"),
+            PresenterPlayer(id: "2", displayName: "Mara", spokenName: "Mara"),
+        ]
+        let first = engine.roundResult(.init(roundId: "r1", correctPlayerIds: ["2"], wrongPlayerIds: ["1"]), players: players)
+        let second = engine.roundResult(.init(roundId: "r2", correctPlayerIds: ["1"], wrongPlayerIds: ["2"]), players: players)
+        XCTAssertEqual(first.first?.text.contains("SPIEGO"), true)
+        XCTAssertFalse(second.contains { $0.text.contains("SPIEGO") })
+    }
+
+    func testNearDuplicatesShareASignature() {
+        XCTAssertEqual(
+            PresenterLineHistory.signatures(of: "RISULTATI MISTI. MOLTO MISTI."),
+            PresenterLineHistory.signatures(of: "Risultati misti... molto misti!")
+        )
+        // Different setup, same punchline: one joke.
+        var history = PresenterLineHistory()
+        history.record("ABBIAMO UN VINCITORE. TECNICAMENTE.")
+        XCTAssertFalse(history.allows("{name} HA VINTO. TECNICAMENTE.", oncePerMatch: false))
+        XCTAssertTrue(history.allows("NESSUNO HA LETTO. PERFETTO.", oncePerMatch: false))
+    }
+
+    func testCooldownAndOncePerMatchRules() {
+        var history = PresenterLineHistory()
+        history.record("{name}, ERA UN BOTTONE.")
+        for index in 0..<PresenterLineHistory.cooldownBeats {
+            XCTAssertFalse(history.allows("{name}, ERA UN BOTTONE.", oncePerMatch: false), "beat \(index)")
+            history.advance()
+        }
+        XCTAssertTrue(history.allows("{name}, ERA UN BOTTONE.", oncePerMatch: false))
+        XCTAssertFalse(history.allows("{name}, ERA UN BOTTONE.", oncePerMatch: true))
+        history.beginMatch()
+        XCTAssertTrue(history.allows("{name}, ERA UN BOTTONE.", oncePerMatch: true))
     }
 }

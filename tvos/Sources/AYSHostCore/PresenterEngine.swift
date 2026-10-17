@@ -261,6 +261,10 @@ public enum OfflinePresenterPack {
         var result: [String: [PresenterLineBook.Line]] = Dictionary(uniqueKeysWithValues: source.map { key, text in
             (key, [PresenterLineBook.Line(id: "\(locale).\(key).0", text: text, intensity: .savage)])
         })
+        let again = againTemplates[locale] ?? againTemplates["en"]!
+        result["result.player.again"] = again.enumerated().map {
+            PresenterLineBook.Line(id: "\(locale).result.player.again.\($0.offset)", text: $0.element, intensity: .savage)
+        }
         if locale == "it" {
             result["result.mixed.oneWrong.mechanic.button", default: []].append(
                 .init(id: "it.button.tutorial", text: "{name}, NON PENSAVO SERVISSE UN TUTORIAL PER PREMERE UN BOTTONE.", intensity: .savage)
@@ -278,6 +282,41 @@ public enum OfflinePresenterPack {
         }
         return result
     }
+
+    /// Escalation for a player the host already roasted this match: the
+    /// callback replaces a second use of a spent joke.
+    private static let againTemplates: [String: [String]] = [
+        "it": [
+            "ANCORA TU, {name}? ORMAI È UN APPUNTAMENTO FISSO.",
+            "{name}, DI NUOVO. A QUESTO PUNTO È UNO STILE.",
+            "LA REGIA HA SMESSO DI CONTARE GLI ERRORI DI {name}. HA FINITO I FOGLI.",
+        ],
+        "en": [
+            "YOU AGAIN, {name}? IT'S BECOMING A TRADITION.",
+            "{name}, AGAIN. AT THIS POINT IT'S A STYLE.",
+            "THE CONTROL ROOM STOPPED COUNTING {name}'S MISTAKES. THEY RAN OUT OF PAPER.",
+        ],
+        "fr": [
+            "ENCORE TOI, {name} ? ÇA DEVIENT UNE TRADITION.",
+            "{name}, ENCORE. À CE STADE, C'EST UN STYLE.",
+            "LA RÉGIE A ARRÊTÉ DE COMPTER LES ERREURS DE {name}. PLUS DE PAPIER.",
+        ],
+        "es": [
+            "¿OTRA VEZ TÚ, {name}? ESTO YA ES UNA TRADICIÓN.",
+            "{name}, OTRA VEZ. A ESTAS ALTURAS ES UN ESTILO.",
+            "EN CONTROL YA NO CUENTAN LOS ERRORES DE {name}. SE QUEDARON SIN PAPEL.",
+        ],
+        "pt": [
+            "OUTRA VEZ TU, {name}? JÁ É UMA TRADIÇÃO.",
+            "{name}, OUTRA VEZ. A ESTA ALTURA É UM ESTILO.",
+            "A REALIZAÇÃO DEIXOU DE CONTAR OS ERROS DE {name}. ACABOU-SE O PAPEL.",
+        ],
+        "de": [
+            "SCHON WIEDER DU, {name}? DAS WIRD LANGSAM TRADITION.",
+            "{name}, SCHON WIEDER. INZWISCHEN IST DAS EIN STIL.",
+            "DIE REGIE ZÄHLT DIE FEHLER VON {name} NICHT MEHR. DAS PAPIER IST AUS.",
+        ],
+    ]
 
     private static func combinedTitleTemplates(locale: String) -> [String: [PresenterLineBook.Line]] {
         let copy: [String]
@@ -299,10 +338,14 @@ public enum OfflinePresenterPack {
 /// Pure presenter director. It consumes verified match facts only and emits
 /// short cues; audio/network concerns live above it. Copy comes from
 /// `lineBook`, which the host may replace with a newer synced pack.
+///
+/// Every cue passes the repetition guard (`PresenterLineHistory`): a beat
+/// whose every line is cooling down or already spent returns no cue at all.
 public final class PresenterEngine {
     public var intensity: PresenterIntensity
     public var lineBook: PresenterLineBook
-    private var recentLineIds: [String] = []
+    private var history = PresenterLineHistory()
+    private var roastedThisMatch: Set<String> = []
     private var wins: [String: Int] = [:]
     private var wrongStreak: [String: Int] = [:]
     private var titleByPlayer: [String: String] = [:]
@@ -324,13 +367,17 @@ public final class PresenterEngine {
         roundsPlayed = 0
         lastOutcome = nil
         outcomeStreak = 0
+        roastedThisMatch = []
+        history.beginMatch()
     }
 
-    public func lobbyEmpty() -> PresenterCue {
-        universal(keys: ["lobby.empty"], kind: .lobby, expiry: .whileLobby)
+    public func lobbyEmpty() -> PresenterCue? {
+        history.advance()
+        return universal(keys: ["lobby.empty"], kind: .lobby, expiry: .whileLobby)
     }
 
     public func roundResult(_ fact: PresenterRoundFact, players: [PresenterPlayer]) -> [PresenterCue] {
+        history.advance()
         let previousWins = wins
         for player in players {
             if fact.correctPlayerIds.contains(player.id) {
@@ -356,12 +403,13 @@ public final class PresenterEngine {
             earnedTitle = (target, title, "doesNotRead")
         }
 
-        if let earnedTitle {
-            return [combinedTitleCue(player: earnedTitle.player, title: earnedTitle.title, key: earnedTitle.key, players: players, expiry: expiry)
-                ?? namedCue(player: earnedTitle.player, title: earnedTitle.title, factKey: "title.\(earnedTitle.key)", expiry: expiry)]
+        if let earnedTitle, let cue = combinedTitleCue(player: earnedTitle.player, title: earnedTitle.title, key: earnedTitle.key, players: players, expiry: expiry)
+            ?? namedCue(player: earnedTitle.player, title: earnedTitle.title, factKey: "title.\(earnedTitle.key)", expiry: expiry) {
+            return [cue]
         }
-        return [personalizedResultCue(fact, players: players, previousWins: previousWins, expiry: expiry)
-            ?? universal(keys: keys, kind: .roundResult, expiry: expiry)]
+        let cue = personalizedResultCue(fact, players: players, previousWins: previousWins, expiry: expiry)
+            ?? universal(keys: keys, kind: .roundResult, expiry: expiry)
+        return cue.map { [$0] } ?? []
     }
 
     /// Line-book keys for a round result, most specific first. The backend
@@ -389,7 +437,8 @@ public final class PresenterEngine {
         return keys
     }
 
-    public func gameEnd(winner: PresenterPlayer?) -> PresenterCue {
+    public func gameEnd(winner: PresenterPlayer?) -> PresenterCue? {
+        history.advance()
         if let winner, let spoken = disambiguatedName(for: winner, among: [winner]),
            let text = render(template: "gameEnd.named", name: spoken) {
             return PresenterCue(id: nextId("gameEnd.named"), kind: .gameEnd, text: text, targetPlayerId: winner.id, expiry: .whileGameEnd, cacheable: true)
@@ -399,9 +448,10 @@ public final class PresenterEngine {
 
     public func currentTitle(for playerId: String) -> String? { titleByPlayer[playerId] }
 
-    public func returningCue(player: PresenterPlayer, title: String) -> PresenterCue {
+    public func returningCue(player: PresenterPlayer, title: String) -> PresenterCue? {
+        history.advance()
         let name = player.spokenName?.uppercased()
-        let text = render(template: name == nil ? "lobby.returning.anonymous" : "lobby.returning.named", name: name, title: title)!
+        guard let text = render(template: name == nil ? "lobby.returning.anonymous" : "lobby.returning.named", name: name, title: title) else { return nil }
         return PresenterCue(id: nextId("lobby.returning"), kind: .lobby, text: text, targetPlayerId: player.id, expiry: .whileLobby, cacheable: name != nil)
     }
 
@@ -426,9 +476,9 @@ public final class PresenterEngine {
         return "\(labels[min(index, 2)]) \(base.uppercased())"
     }
 
-    private func namedCue(player: PresenterPlayer, title: String, factKey: String, expiry: PresenterExpiry) -> PresenterCue {
+    private func namedCue(player: PresenterPlayer, title: String, factKey: String, expiry: PresenterExpiry) -> PresenterCue? {
         let name = player.spokenName?.uppercased()
-        let text = render(template: name == nil ? "title.anonymous" : "title.named", name: name, title: title)!
+        guard let text = render(template: name == nil ? "title.anonymous" : "title.named", name: name, title: title) else { return nil }
         return PresenterCue(id: nextId(factKey), kind: .title, text: text, targetPlayerId: player.id, expiry: expiry, cacheable: name != nil)
     }
 
@@ -495,33 +545,62 @@ public final class PresenterEngine {
         return PresenterCue(id: nextId("result.title.\(key)"), kind: .title, text: text, targetPlayerId: player.id, expiry: expiry, cacheable: true)
     }
 
+    /// Tries [keys] in order; a player already roasted this match also gets
+    /// the escalating callback (`result.player.again`) before the engine
+    /// moves on to another fact or the room-wide line.
     private func resultCue(player: PresenterPlayer, among players: [PresenterPlayer], keys: [String], expiry: PresenterExpiry) -> PresenterCue? {
         guard let name = disambiguatedName(for: player, among: players) else { return nil }
-        for key in keys {
+        let ladder = roastedThisMatch.contains(player.id) ? keys + ["result.player.again"] : keys
+        for key in ladder {
             if let text = render(template: key, name: name) {
+                roastedThisMatch.insert(player.id)
                 return PresenterCue(id: nextId(key), kind: .roundResult, text: text, targetPlayerId: player.id, expiry: expiry, cacheable: true)
             }
         }
         return nil
     }
 
-    private func universal(keys: [String], kind: PresenterCueKind, expiry: PresenterExpiry) -> PresenterCue {
-        let variants = keys.lazy.map { self.lineBook.variants(for: $0, intensity: self.intensity) }.first { !$0.isEmpty }
-            ?? keys.lazy.map { PresenterLineBook.builtIn(locale: self.lineBook.locale).variants(for: $0, intensity: self.intensity) }.first { !$0.isEmpty }
-            ?? [PresenterLineBook.Line(id: "fallback.0", text: "INTERESTING.")]
-        let recent = Set(recentLineIds.suffix(4))
-        let offset = sequence % variants.count
-        let rotated = variants.indices.map { variants[($0 + offset) % variants.count] }
-        let line = rotated.first { !recent.contains($0.id) } ?? rotated[0]
-        recentLineIds.append(line.id)
-        sequence += 1
-        return PresenterCue(id: "pack.\(line.id)", kind: kind, text: line.text, expiry: expiry, cacheable: true, clip: line.clip)
+    /// Walks the specificity ladder: the first key with a line that is not
+    /// cooling down wins, so a spent specific joke falls back to a fresher
+    /// generic one. The in-code baseline is used only when the active book
+    /// has no line for any key (a synced book's removals stay removed).
+    private func universal(keys: [String], kind: PresenterCueKind, expiry: PresenterExpiry) -> PresenterCue? {
+        var pools = keys.map { lineBook.variants(for: $0, intensity: intensity) }
+        if pools.allSatisfy(\.isEmpty) {
+            let baseline = PresenterLineBook.builtIn(locale: lineBook.locale)
+            pools = keys.map { baseline.variants(for: $0, intensity: intensity) }
+        }
+        for variants in pools where !variants.isEmpty {
+            let offset = sequence % variants.count
+            let rotated = variants.indices.map { variants[($0 + offset) % variants.count] }
+            guard let line = rotated.first(where: { history.allows($0.text, oncePerMatch: false) }) else { continue }
+            history.record(line.text)
+            sequence += 1
+            return PresenterCue(id: "pack.\(line.id)", kind: kind, text: line.text, expiry: expiry, cacheable: true, clip: line.clip)
+        }
+        return nil
     }
 
+    /// Fills the first variant of [key] whose joke is neither cooling down
+    /// nor already told this match (whoever it was aimed at), rotating the
+    /// starting variant. Nil when the key is missing or fully spent.
     private func render(template key: String, name: String? = nil, title: String? = nil) -> String? {
-        lineBook.render(template: key, name: name, title: title, intensity: intensity, seed: sequence)
-            ?? PresenterLineBook.builtIn(locale: lineBook.locale)
-                .render(template: key, name: name, title: title, intensity: intensity, seed: sequence)
+        var variants = lineBook.templateVariants(for: key, intensity: intensity)
+        if variants.isEmpty {
+            variants = PresenterLineBook.builtIn(locale: lineBook.locale).templateVariants(for: key, intensity: intensity)
+        }
+        guard !variants.isEmpty else { return nil }
+        let offset = sequence % variants.count
+        for index in variants.indices {
+            var joke = variants[(index + offset) % variants.count].text
+            if let title { joke = joke.replacingOccurrences(of: "{title}", with: title) }
+            guard history.allows(joke, oncePerMatch: true) else { continue }
+            let text = name.map { joke.replacingOccurrences(of: "{name}", with: $0) } ?? joke
+            guard !text.contains("{") else { continue }
+            history.record(joke)
+            return text
+        }
+        return nil
     }
 
     private func nextId(_ prefix: String) -> String {

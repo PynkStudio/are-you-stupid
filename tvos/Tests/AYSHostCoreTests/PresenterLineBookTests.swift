@@ -11,6 +11,9 @@ final class PresenterLineBookTests: XCTestCase {
             XCTAssertNotNil(book.render(template: "gameEnd.named", name: "SAM", intensity: .neutral, seed: 0))
             XCTAssertNotNil(book.render(template: "result.mixed.oneWrong.mechanic.button", name: "SAM", intensity: .savage, seed: 0))
             XCTAssertNotNil(book.render(template: "result.player.lss.lastLife", name: "SAM", intensity: .savage, seed: 0))
+            XCTAssertEqual(book.templateVariants(for: "result.player.again", intensity: .savage).count, 3)
+            XCTAssertTrue(book.templateVariants(for: "result.player.again", intensity: .neutral).isEmpty)
+            XCTAssertEqual(book.sanitized(), book)
             XCTAssertNotNil(book.render(template: "result.title.king.named", name: "SAM", title: book.title(.king), intensity: .neutral, seed: 0))
             XCTAssertFalse(book.title(.king).isEmpty)
         }
@@ -102,11 +105,11 @@ final class PresenterLineBookTests: XCTestCase {
         ], titles: ["kingUndisputed": "IL SOVRANO"])
         let engine = PresenterEngine(lineBook: book)
         let winner = PresenterPlayer(id: "1", displayName: "Luca", spokenName: "Luca")
-        XCTAssertEqual(engine.gameEnd(winner: winner).text, "LUCA HA VINTO. INCREDIBILE.")
+        XCTAssertEqual(engine.gameEnd(winner: winner)?.text, "LUCA HA VINTO. INCREDIBILE.")
         engine.crownWinner("1")
         XCTAssertEqual(engine.currentTitle(for: "1"), "IL SOVRANO")
         // A template missing from the book falls back to the in-code copy.
-        XCTAssertEqual(engine.returningCue(player: winner, title: "IL SOVRANO").text, "È TORNATO LUCA, IL SOVRANO.")
+        XCTAssertEqual(engine.returningCue(player: winner, title: "IL SOVRANO")?.text, "È TORNATO LUCA, IL SOVRANO.")
     }
 
     func testBuiltInBookIsValidAfterSanitizing() {

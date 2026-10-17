@@ -164,7 +164,8 @@ ids maps to exactly one category. `HostViewModel` retains the verified
 field or client-reported description is trusted for this copy.
 
 Templates the app can fill: `title.named`, `title.anonymous`,
-`gameEnd.named` (`{name}`), `lobby.returning.named`,
+`gameEnd.named` (`{name}`), `result.player.again` (`{name}`, the repeat
+callback), `lobby.returning.named`,
 `lobby.returning.anonymous` (`{title}`, plus `{name}` where named). Title
 wording: `king`, `kingUndisputed`, `doesNotRead`. Any line may be restricted
 to `neutral` or `savage` intensity. Unknown keys, bad placeholders or
@@ -336,28 +337,42 @@ The joke may say `THE WORST LUCA IN THIS ROOM`; it may not explain that result
 through anything outside the match. Uncertain output is rejected, not softened
 after synthesis.
 
-## Known issue: repetitive lines (open)
+## Repetition guard
 
-Playtests show the presenter repeating itself: similar situations produce the
-same or near-identical comments within one match. Today only the universal
-pack lines have any memory — `PresenterEngine.universal` skips the last 4 line
-ids — while templated per-player result lines (`render(template:)`) pick by a
-rotating seed with no memory at all, so the same joke comes back as soon as the
-same fact repeats.
+Playtests showed the presenter repeating itself: similar situations produced
+the same or near-identical comments within one match, because only universal
+lines had any memory (the last 4 ids) and per-player templates rotated with
+none. Every cue now passes one guard (`PresenterLineHistory`):
 
-Wanted behaviour, not yet implemented:
+- **Memory by joke, not by id.** A line is remembered by its normalized words
+  (letters and digits, name and punctuation stripped) **and**, for
+  multi-sentence lines, by its final sentence — the punch. Two lines with
+  different ids but the same words, or a new setup with the same punch
+  (`ABBIAMO UN VINCITORE. TECNICAMENTE.` / `{name} HA VINTO. TECNICAMENTE.`),
+  count as one joke.
+- **Cooldown in beats.** A joke may not return for 6 beats — round results,
+  lobby and game-end moments, whether or not the host spoke at them — and the
+  clock runs across rematches.
+- **Named jokes once per match.** Templated per-player lines are spent for
+  the rest of the match once told, whoever they were aimed at.
+  `beginMatch()` clears that, not the cooldown.
+- **Ladder instead of repeat.** A spent specific line falls through to the
+  next key of the specificity ladder or the next matching fact; a player
+  already roasted this match first gets the escalating callback
+  `result.player.again` (`ANCORA TU, {name}? ORMAI È UN APPUNTAMENTO FISSO.`,
+  three Savage variants per locale) before the engine moves on.
+- **Silence beats a repeat.** When every candidate is cooling down or spent,
+  the beat emits no cue. With today's 2–3 published variants per generic
+  outcome, a long run of identical outcomes therefore goes quiet between
+  lines, matching "silence is preferable to commentary every round" above.
+- The in-code baseline still fills a key only when the active book has
+  nothing for the beat, so a line removed from the published book stays
+  removed.
 
-- **Per-line cooldown.** Once a line is used it may not return for a cooldown
-  window measured in cues or rounds (and ideally never twice in one match for
-  the rarer beats), covering templated lines too, not only universal ones.
-- **Near-duplicate guard.** Two lines with a different id but the same punch
-  (same template, same structure) count as the same line for the cooldown.
-- **Variants for recurring situations.** When the situation genuinely repeats
-  (the same player fails again, the same mechanic catches the room twice),
-  the host should reach for a different variant or escalate the callback
-  (`AGAIN, CHIARA.`) rather than reuse the line; with AI generation available,
-  generate a fresh variant of the same beat instead of replaying the cached one.
-- If every variant is cooling down, silence beats a repeat.
+Variety now scales with the line book: publishing more variants per key (and
+`result.player.again` copy, once the publish script's allowlist knows the key)
+directly buys more distinct lines per match. AI-generated fresh variants of a
+spent beat remain future work.
 
 ## Failure, privacy and accessibility contract
 
