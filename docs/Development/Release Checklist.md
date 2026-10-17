@@ -199,6 +199,10 @@ track ([[Decision Log]]).
       15) that exited during the native launch screen on code 9. Keep Android
       Impeller disabled until that pass or a conclusive native crash trace;
       see [[Decision Log]].
+- [x] 2026-10-17: code 13 was approved and published to Alpha the same day.
+      Android **1.2.0 code 14** (release name `14 (1.2.0)`, AAB SHA-256
+      `6ec50b5c…b38889`) uploaded to closed-test Alpha and sent to Google
+      review; code 13 is replaced by it. No supported devices lost.
 - [x] Form factors: phones only. Google Play Games on PC removed; Android XR
       can't be switched off (it shares the phone track) ([[Decision Log]])
 - [ ] Closed testing track with ≥ 12 testers, opted in for 14 days
