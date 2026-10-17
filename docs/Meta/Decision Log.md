@@ -1,6 +1,6 @@
 ---
 tags: [meta, decisions, adr]
-updated: 2026-10-14
+updated: 2026-10-17
 ---
 
 # Decision Log
@@ -3640,3 +3640,23 @@ and never read the advertising identifier.
 **Why.** The name is the owner's call ([[Game Design Pillars]]). The privacy
 label is per app record, so the iOS AdMob declaration also shows on tvOS;
 Apple's own guidance is to reply when a platform does not track.
+
+### 2026-10-17 — Board results: failure-first hierarchy, no pills
+
+**Decision.** The board's round results and final screens were rebuilt around
+one hierarchy: the verdict, then who failed and their real reason (the biggest
+elements on screen), then survivors in one quiet strip, then standings with
+rank movement. The final shows a single winner hero, stat-backed awards and a
+`NOBODY SURVIVED` state when Last Stupid Standing ends without a survivor.
+Capsule badges (`BREAKING NEWS`, `THE DAMAGE REPORT`, `LIVE`) were removed from
+every board screen; boards are composed on a 1280×720 canvas scaled to the
+display. Match stats for the awards are accumulated on the board from
+`ROUND_RESULTS`; the wire protocol did not change.
+
+**Why.** The results hold for 2.5 s, yet the old screen gave every player an
+identical card (five `SOMEHOW GOT IT RIGHT` rows burying two failures) and the
+joke — the failure reason — was the smallest text on it. The old final also
+crowned nobody under `NOT STUPID AFTER ALL` when the last survivors were
+eliminated together. The capsule chips read as generic AI-generated UI rather
+than broadcast graphics. Fixed point sizes drifted between the Apple TV and a
+small Mac window. See [[Multiplayer Gameplay]] and [[Multiplayer Host (tvOS)]].

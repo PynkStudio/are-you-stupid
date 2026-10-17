@@ -1,6 +1,6 @@
 ---
 tags: [gameplay, multiplayer, modes, design]
-updated: 2026-10-03
+updated: 2026-10-17
 ---
 
 # Multiplayer Gameplay
@@ -61,7 +61,7 @@ host-published, not client wall-clock ([[Multiplayer Protocol]]).
 Large typography, dramatic but **short** transitions:
 
 - The game show starts in the **lobby**, not at the first round. A generated
-  purple stage drifts behind a `LIVE` marquee; the join QR is presented as a
+  purple stage drifts behind a plain brand masthead; the join QR is presented as a
   bright ticket, the empty roster has a bouncing dance-floor invitation, and
   joined players appear as numbered two-column cast cards. The copy reacts to
   0, 1, or 2+ players and the two-segment party meter makes the start gate
@@ -69,19 +69,49 @@ Large typography, dramatic but **short** transitions:
 - Motion is ambient and low-frequency so the QR stays easy to scan. The same
   lobby respects Reduce Motion by freezing its generated stage and emoji loop.
 
+Every in-game board shares one broadcast chrome: a `ROUND 7  OF 20 · STUPID
+BATTLE` (or `FINAL`) header with the brand on the right and a hairline below.
+No capsule badges ("pills") anywhere on the board — hierarchy comes from type
+size and colour, not from chips. Layouts are composed on a 1280×720 canvas and
+scaled, so the Apple TV and a small Mac window show the same hierarchy.
+
 During play, the spectacle moves to the **edges**. The active-round board keeps
-one oversized status in an otherwise quiet center; a compact `CURRENT DAMAGE`
+one oversized status in an otherwise quiet center; a compact top-5 standings
 board sits in the lower corner, while slow generated light pools stay
 peripheral. Short, irreverent lines (`THE TV IS JUDGING YOU`, `EVERYONE CAN SEE
 YOU THINKING`) supply character without competing with the actual challenge on
 the phones.
 
-Results are the comedy beat: the headline is derived from the real correct
-count (`SUSPICIOUSLY COMPETENT`, `NOBODY READ THE INSTRUCTION`, or a mixed
-verdict), each wrong card preserves its real one-line failure reason, and the
-latest round-scoped AI Director line may appear as `HOST SAYS`. The final board
-frames the winner as breaking news, calls the ranking `FINAL DAMAGE`, and uses
-a single short spring reveal (disabled by Reduce Motion).
+Results are the comedy beat and hold for only 2.5 s, so their hierarchy is
+strict, in this order:
+
+1. **Verdict** from real facts — an elimination outranks everything
+   (`GIULIA IS OUT.`), then a single failure is named (`CHIARA HAD ONE JOB.`),
+   then the tally (`SUSPICIOUSLY COMPETENT`, `NOBODY READ THE INSTRUCTION`,
+   `ONE BRAINCELL SURVIVED`, `MOSTLY STUPID`, `MIXED LEVELS OF
+   EMBARRASSMENT`), with `2 OF 7 FAILED` as its kicker.
+2. **The fail wall**: one large card per wrong player with the real one-line
+   failure reason at sofa-readable size; in Last Stupid Standing the heart lost
+   this round flashes, and a last life lost gets an `ELIMINATED` stamp. The wall
+   steps from 1 to 2 to 3 columns as it fills instead of scrolling.
+3. **Survivors** in one quiet strip ordered by speed; only the fastest thumb is
+   highlighted. A clean round has no fail wall, so the fastest thumb becomes
+   the hero instead.
+4. **Standings** on the side with rank movement since the round opened (▲/▼);
+   eliminated players sink, fade and are struck through.
+5. The presenter's spoken line as a broadcast subtitle, and a hairline that
+   fills while the board waits for the next round.
+
+The final board has one hero: the winner's emoji and name at full scale with
+their real stat line (points, right answers, average reaction). When Last
+Stupid Standing ends with the last survivors losing their final life together,
+there is no winner and the board says so (`NOBODY SURVIVED / EVERYONE IS
+STUPID.`) instead of crowning a non-winner. Below the hero, up to three awards
+backed by match stats: `FASTEST THUMB` (best single reaction),
+`PROFESSIONALLY STUPID` (most fails) and `ON A ROLL` (longest streak, given to
+someone without an award yet). The ranking calls the clear last place
+`OFFICIALLY THE MOST STUPID` (never on a tie). One short spring reveal, disabled
+by Reduce Motion.
 
 A future optional [[Multiplayer Presenter]] may voice these safe comedy beats,
 use validated spoken names and build room-local titles/rivalries from real

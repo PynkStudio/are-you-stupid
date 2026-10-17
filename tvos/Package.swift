@@ -24,6 +24,10 @@ let package = Package(
             resources: [.process("Resources")]
         ),
         .testTarget(
+            name: "AYSHostUITests",
+            dependencies: ["AYSHostUI", "AYSHostCore", "AYSProtocol"]
+        ),
+        .testTarget(
             name: "AYSHostCoreTests",
             dependencies: ["AYSHostCore", "AYSProtocol"]
         ),

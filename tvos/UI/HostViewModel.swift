@@ -30,6 +30,37 @@ enum PresenterOutputMode: String, CaseIterable {
     case off, mute, voice
 }
 
+/// Per-player facts the board accumulates from `ROUND_RESULTS` during one
+/// match, so the final screen can hand out awards from real play instead of
+/// flavour text. Display-only: never fed back into scoring.
+struct PlayerMatchStats: Equatable {
+    var correct = 0
+    var wrong = 0
+    var bestReactionMs: Int?
+    var reactionTotalMs = 0
+    var reactionCount = 0
+    var streak = 0
+    var longestStreak = 0
+
+    var averageReactionMs: Int? { reactionCount > 0 ? reactionTotalMs / reactionCount : nil }
+
+    mutating func record(_ result: PlayerRoundResult) {
+        if result.correct {
+            correct += 1
+            streak += 1
+            longestStreak = max(longestStreak, streak)
+            if let ms = result.reactionMs {
+                reactionTotalMs += ms
+                reactionCount += 1
+                bestReactionMs = min(bestReactionMs ?? ms, ms)
+            }
+        } else {
+            wrong += 1
+            streak = 0
+        }
+    }
+}
+
 @MainActor
 final class HostViewModel: ObservableObject {
     @Published private(set) var roomCode: String
@@ -63,6 +94,18 @@ final class HostViewModel: ObservableObject {
     /// rematch never shows a stale score from the previous match.
     @Published private(set) var standings: [String: PlayerScore] = [:]
 
+    /// `standings` as they were when the current round opened — what the
+    /// results board diffs against for rank movement and the heart lost
+    /// this round (`ROUND_RESULTS` arrives before the `PLAYER_SCORE` burst).
+    @Published private(set) var standingsBeforeRound: [String: PlayerScore] = [:]
+
+    /// 1-based number of the round on screen; 0 in the lobby.
+    @Published private(set) var roundNumber = 0
+    @Published private(set) var matchStats: [String: PlayerMatchStats] = [:]
+    /// The mode of the match in progress (`selectedMode` may be re-picked in
+    /// the lobby, the running match keeps its own).
+    @Published private(set) var matchMode: GameMode = .stupidBattle
+
     /// The mode the *next* `startGame()` call uses — set from the Lobby's
     /// mode picker before the match starts. Persists across a rematch
     /// (`rematch()` returns to `.lobby` without resetting it) so the host
@@ -88,6 +131,11 @@ final class HostViewModel: ObservableObject {
     private var challengeIdByRound: [String: String] = [:]
 
     var readyCount: Int { roster.filter(\.ready).count }
+    var startingLives: Int { host.lives }
+    /// Total rounds when the mode has a fixed length (Battle), else nil.
+    var totalRounds: Int? { matchMode == .stupidBattle ? host.battleRounds : nil }
+    /// How long the results reveal holds before the next round starts.
+    let resultsPauseSeconds: Double = 2.5
     var canStart: Bool { readyCount >= 2 && screen == .lobby }
     var presenterLocale: String { presenterPacks.locale }
     var presenterLocales: [String] { OfflinePresenterPack.supportedLocales }
@@ -116,16 +164,37 @@ final class HostViewModel: ObservableObject {
     /// Standings sorted for display: highest score (Battle) or most lives
     /// then highest score (LSS) first, ties broken by name so the order
     /// doesn't jitter round to round for equal scores.
-    var sortedStandings: [PlayerScore] {
-        standings.values.sorted { a, b in
+    var sortedStandings: [PlayerScore] { ordered(standings) }
+
+    private func ordered(_ scores: [String: PlayerScore]) -> [PlayerScore] {
+        scores.values.sorted { a, b in
             if let la = a.lives, let lb = b.lives, la != lb { return la > lb }
             if a.score != b.score { return a.score > b.score }
             return name(for: a.playerId) < name(for: b.playerId)
         }
     }
 
+    /// Places climbed (+) or dropped (−) since the round opened; nil before
+    /// the first scored round or for a player new to the board.
+    func rankShift(for playerId: String) -> Int? {
+        guard !standingsBeforeRound.isEmpty,
+              let before = ordered(standingsBeforeRound).firstIndex(where: { $0.playerId == playerId }),
+              let now = sortedStandings.firstIndex(where: { $0.playerId == playerId }) else { return nil }
+        return before - now
+    }
+
+    /// Lives a player had when the current round opened.
+    func livesBeforeRound(for playerId: String) -> Int {
+        standingsBeforeRound[playerId]?.lives ?? startingLives
+    }
+
     func name(for playerId: String) -> String {
         roster.first(where: { $0.playerId == playerId })?.playerName.uppercased() ?? playerId
+    }
+
+    func emoji(for playerId: String) -> String {
+        let emoji = roster.first(where: { $0.playerId == playerId })?.emoji ?? ""
+        return emoji.isEmpty ? "🙂" : emoji
     }
 
     init() {
@@ -186,6 +255,10 @@ final class HostViewModel: ObservableObject {
 
     func startGame() {
         standings = [:]
+        standingsBeforeRound = [:]
+        matchStats = [:]
+        roundNumber = 0
+        matchMode = selectedMode
         challengeIdByRound = [:]
         lastAiCommentary = nil
         presenterEngine.lineBook = presenterPacks.book
@@ -238,7 +311,7 @@ final class HostViewModel: ObservableObject {
     /// `screen` by the time this runs, and this must not then also start a
     /// round nobody asked for.
     private func scheduleAutoAdvance(afterRoundId roundId: String) {
-        let resultsPause: UInt64 = 2_500_000_000
+        let resultsPause = UInt64(resultsPauseSeconds * 1_000_000_000)
         Task {
             try? await Task.sleep(nanoseconds: resultsPause)
             guard case .results(_, let forRoundId) = screen, forRoundId == roundId else { return }
@@ -297,14 +370,13 @@ final class HostViewModel: ObservableObject {
         case let m as RoundStart:
             soundEffects.play(.roundStart)
             challengeIdByRound[m.roundId] = m.challengeId
-            screen = .round(roundId: m.roundId)
-            countdownState = nil
-            lastAiCommentary = nil
+            beginRoundOnBoard(m.roundId)
             refreshAdvertisement(state: "playing")
             scheduleAutoComplete(roundId: m.roundId, closesAt: m.startAt + m.durationMs)
         case let m as RoundCountdown:
             countdownState = m.state
         case let m as RoundResults:
+            for result in m.results { matchStats[result.playerId, default: PlayerMatchStats()].record(result) }
             screen = .results(results: m.results, roundId: m.roundId)
             presentRoundResults(m)
             scheduleAutoAdvance(afterRoundId: m.roundId)
@@ -330,9 +402,7 @@ final class HostViewModel: ObservableObject {
         case let m as AiDirectorAssignment:
             directorName = m.directorPeerId.map(name(for:))
         case let m as AiChallengeRound:
-            screen = .round(roundId: m.roundId)
-            countdownState = nil
-            lastAiCommentary = nil
+            beginRoundOnBoard(m.roundId)
             refreshAdvertisement(state: "playing")
             scheduleAutoComplete(roundId: m.roundId, closesAt: m.startAt + m.durationMs)
         case let m as AiCommentary:
@@ -340,6 +410,39 @@ final class HostViewModel: ObservableObject {
         default:
             break
         }
+    }
+
+    #if DEBUG
+    /// Fixture hook for the board snapshot tests (`AYSHostUITests`) only:
+    /// puts the model in a mid-match state without a network or a RoomHost
+    /// round. Never compiled into release builds.
+    func seedForSnapshot(
+        roster: [PlayerInfo],
+        mode: GameMode,
+        roundNumber: Int,
+        standingsBefore: [PlayerScore],
+        standings: [PlayerScore],
+        stats: [String: PlayerMatchStats] = [:],
+        commentary: String? = nil,
+        screen: BoardScreen
+    ) {
+        self.roster = roster
+        matchMode = mode
+        self.roundNumber = roundNumber
+        standingsBeforeRound = Dictionary(uniqueKeysWithValues: standingsBefore.map { ($0.playerId, $0) })
+        self.standings = Dictionary(uniqueKeysWithValues: standings.map { ($0.playerId, $0) })
+        matchStats = stats
+        lastAiCommentary = commentary
+        self.screen = screen
+    }
+    #endif
+
+    private func beginRoundOnBoard(_ roundId: String) {
+        standingsBeforeRound = standings
+        roundNumber += 1
+        screen = .round(roundId: roundId)
+        countdownState = nil
+        lastAiCommentary = nil
     }
 
     private func presenterPlayer(_ player: PlayerInfo) -> PresenterPlayer {

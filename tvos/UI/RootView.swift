@@ -15,6 +15,18 @@ public struct AYSHostBoardView: View {
     public init() {}
 
     public var body: some View {
+        BoardScreens(model: model)
+            .task { await model.startHosting() }
+            .foregroundStyle(.white)
+    }
+}
+
+/// The screen switch itself, separate from hosting so the snapshot tests can
+/// render any state from a seeded model.
+struct BoardScreens: View {
+    @ObservedObject var model: HostViewModel
+
+    var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
 
@@ -29,8 +41,6 @@ public struct AYSHostBoardView: View {
                 GameEndView(model: model, gameEnd: gameEnd)
             }
         }
-        .task { await model.startHosting() }
-        .foregroundStyle(.white)
     }
 }
 

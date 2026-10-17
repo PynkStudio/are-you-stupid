@@ -1,6 +1,6 @@
 ---
 tags: [development, testing]
-updated: 2026-10-14
+updated: 2026-10-17
 ---
 
 # Testing
@@ -135,6 +135,19 @@ no widget-level test yet, see [[Multiplayer Development]] for that gap:
   get the same `ROUND_START` tuple, and reach `GAME_END` together. Closes
   the gap between "the protocol is correct" (Phase 2, in-memory transport)
   and "the real socket wiring is correct" (nothing exercised that before).
+
+### `tvos/Tests/AYSHostUITests/` — board snapshots
+
+`BoardSnapshotTests.swift` seeds `HostViewModel` through the DEBUG-only
+`seedForSnapshot` hook and renders every in-game board state with
+`ImageRenderer`: Battle results (1280, 1920 and 900 wide), an elimination
+round, a clean round, a 12-player room, the final with a winner and the Last
+Stupid Standing wipe-out. Each case asserts the view rasterizes; for a visual
+review, write the PNGs somewhere:
+
+```bash
+AYS_BOARD_SNAPSHOT_DIR=/tmp/ays-board swift test --filter AYSHostUITests
+```
 
 ### `tvos/Tests/AYSHostCoreTests/` — the Swift host authority (Phase 4, partial)
 42 XCTest cases against `RoomHost`, `AYSChallengeCatalog` and the `Net/`/`QR/`

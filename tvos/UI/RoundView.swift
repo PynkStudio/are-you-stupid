@@ -15,36 +15,43 @@ struct RoundView: View {
         }
     }
 
+    private var headerDetail: String {
+        if let total = model.totalRounds { return "OF \(total)  ·  STUPID BATTLE" }
+        return "LAST STUPID STANDING"
+    }
+
     var body: some View {
         let copy = presentation
         ZStack {
             GameStageBackground(accent: copy.color)
-            VStack(spacing: 0) {
-                HStack {
-                    LiveBug(text: "PARTY IN PROGRESS", color: copy.color)
+            BoardCanvas { u in
+                VStack(spacing: 0) {
+                    BoardHeader(title: "ROUND \(max(1, model.roundNumber))", detail: headerDetail, unit: u)
                     Spacer()
-                    if let directorName = model.directorName {
-                        Text("CHAOS DIRECTOR  ·  \(directorName)")
-                            .font(Theme.label(11)).foregroundStyle(Color.white.opacity(0.45))
+                    VStack(spacing: 16 * u) {
+                        Text(copy.eyebrow).font(Theme.label(18 * u)).tracking(5 * u).foregroundStyle(copy.color)
+                        ShoutText(text: copy.title, size: (copy.title == "GO!" ? 150 : 92) * u)
+                            .shadow(color: copy.color.opacity(0.45), radius: 30 * u)
+                        Text(copy.note).font(Theme.label(18 * u)).foregroundStyle(Color.white.opacity(0.55))
+                    }
+                    Spacer()
+                    HStack(alignment: .bottom) {
+                        VStack(alignment: .leading, spacing: 6 * u) {
+                            if let directorName = model.directorName {
+                                Text("CHAOS DIRECTOR: \(directorName)")
+                                    .font(Theme.label(12 * u)).foregroundStyle(Color.white.opacity(0.45))
+                            }
+                            Text("THE TV IS JUDGING YOU.").font(Theme.label(12 * u)).foregroundStyle(Color.white.opacity(0.32))
+                        }
+                        Spacer()
+                        if !model.standings.isEmpty {
+                            ScoreboardView(model: model, title: "STANDINGS", compact: true, unit: u, maxRows: 5)
+                                .frame(width: 300 * u)
+                        }
                     }
                 }
-                Spacer()
-                VStack(spacing: 15) {
-                    Text(copy.eyebrow).font(Theme.label(16)).tracking(4).foregroundStyle(copy.color)
-                    ShoutText(text: copy.title, size: copy.title == "GO!" ? 116 : 72)
-                        .shadow(color: copy.color.opacity(0.45), radius: 28)
-                    Text(copy.note).font(Theme.label(15)).foregroundStyle(Color.white.opacity(0.52))
-                }
-                Spacer()
-                HStack(alignment: .bottom) {
-                    Text("THE TV IS JUDGING YOU.").font(Theme.label(11)).foregroundStyle(Color.white.opacity(0.32))
-                    Spacer()
-                    if !model.standings.isEmpty {
-                        ScoreboardView(model: model, title: "CURRENT DAMAGE", compact: true).frame(width: 300)
-                    }
-                }
+                .padding(.horizontal, 52 * u).padding(.vertical, 38 * u)
             }
-            .padding(42)
         }
     }
 }

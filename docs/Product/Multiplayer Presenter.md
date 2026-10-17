@@ -1,6 +1,6 @@
 ---
 tags: [product, multiplayer, audio, ai, presenter]
-updated: 2026-10-12
+updated: 2026-10-17
 ---
 
 # Multiplayer Presenter
@@ -335,6 +335,29 @@ trauma, threats, real-world allegations or degrading a person's human worth.
 The joke may say `THE WORST LUCA IN THIS ROOM`; it may not explain that result
 through anything outside the match. Uncertain output is rejected, not softened
 after synthesis.
+
+## Known issue: repetitive lines (open)
+
+Playtests show the presenter repeating itself: similar situations produce the
+same or near-identical comments within one match. Today only the universal
+pack lines have any memory — `PresenterEngine.universal` skips the last 4 line
+ids — while templated per-player result lines (`render(template:)`) pick by a
+rotating seed with no memory at all, so the same joke comes back as soon as the
+same fact repeats.
+
+Wanted behaviour, not yet implemented:
+
+- **Per-line cooldown.** Once a line is used it may not return for a cooldown
+  window measured in cues or rounds (and ideally never twice in one match for
+  the rarer beats), covering templated lines too, not only universal ones.
+- **Near-duplicate guard.** Two lines with a different id but the same punch
+  (same template, same structure) count as the same line for the cooldown.
+- **Variants for recurring situations.** When the situation genuinely repeats
+  (the same player fails again, the same mechanic catches the room twice),
+  the host should reach for a different variant or escalate the callback
+  (`AGAIN, CHIARA.`) rather than reuse the line; with AI generation available,
+  generate a fresh variant of the same beat instead of replaying the cached one.
+- If every variant is cooling down, silence beats a repeat.
 
 ## Failure, privacy and accessibility contract
 

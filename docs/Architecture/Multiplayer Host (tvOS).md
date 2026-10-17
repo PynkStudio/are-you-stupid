@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, tvos, macos, host]
-updated: 2026-10-14
+updated: 2026-10-17
 ---
 
 # Multiplayer Host (tvOS)
@@ -106,14 +106,22 @@ tvos/
 ├── UI/                            the AYSHostUI library: shared SwiftUI board (tvOS app + Mac board
 │                                  window, `#if os()` only where they genuinely differ — the AirPlay button)
 │   ├── HostViewModel.swift        wires RoomHost + NWListenerServer + QRGenerator to SwiftUI via
-│                                  RoomHost.onBroadcast; owns the room code and BoardScreen state
-│   ├── RootView.swift             public `AYSHostBoardView`: LOBBY -> ROUND -> RESULTS -> GAME_END
-│   ├── LobbyView.swift            animated game-show lobby: join ticket, live marquee, two-column
-│                                  player cards, mode picker and 2-ready party meter
-│   ├── RoundView.swift            restrained live-show stage: GET READY / GO + compact damage board
-│   ├── ResultsView.swift          reactive comic verdict, per-player reason + score, live standings
-│   ├── GameEndView.swift          animated winner headline, final damage board + REMATCH (same room, per docs/Gameplay/
+│                                  RoomHost.onBroadcast; owns the room code and BoardScreen state,
+│                                  the round number, the standings snapshot taken when each round
+│                                  opens (rank movement, heart lost this round) and per-player
+│                                  `PlayerMatchStats` (display-only, feed the final awards)
+│   ├── RootView.swift             public `AYSHostBoardView` (hosting) + internal `BoardScreens`
+│                                  switch: LOBBY -> ROUND -> RESULTS -> GAME_END
+│   ├── LobbyView.swift            animated game-show lobby: join ticket, plain brand masthead,
+│                                  two-column player cards, mode picker and 2-ready party meter
+│   ├── RoundView.swift            restrained live-show stage: ROUND n header, GET READY / GO +
+│                                  compact top-5 standings
+│   ├── ResultsView.swift          failure-first reveal: verdict, fail wall with real reasons,
+│                                  eliminations, survivor strip with fastest thumb, standings ▲/▼
+│   ├── GameEndView.swift          winner hero (or NOBODY SURVIVED), stat-backed awards, final
+│                                  standings + REMATCH (same room, per docs/Gameplay/
 │                                  Multiplayer Gameplay.md "instant rematch back into the lobby")
+│   ├── ScoreboardView.swift       shared standings list: rank, emoji, movement, hearts/score
 │   ├── AirPlayButton.swift        macOS-only `AVRoutePickerView` wrapper (Mac board window)
 │   ├── RoundDurationProvider.swift  the App target's `ChallengeJudge` — resolves a duration
 │                                  only, now that content judging moved to the client entirely
@@ -121,7 +129,9 @@ tvos/
 │                                  `maxDurationMs` from `AYSChallengeCatalog` (see [[Decision Log]])
 │   ├── RoomCode.swift             random 4-char room code, ambiguous characters excluded
 │   └── Theme.swift                purple stage palette, generated edge lights and broadcast chrome
-│                                  — bold uppercase type, no bundled assets
+│                                  — bold uppercase type, no bundled assets; `BoardCanvas` (1280×720
+│                                  design canvas scaled by `unit`), `BoardHeader`, `PresenterCaption`,
+│                                  `HeartsView`, `AdvanceBar`. No capsule badges ("pills")
 ├── Sources/
 │   ├── AYSProtocol/                mirrors [[Multiplayer Protocol]] models — landed (Phase 2)
 │   └── AYSHostCore/                 room/round/scoring authority — landed (Phase 4, partial)
@@ -142,6 +152,9 @@ tvos/
 │                                    connected phone gets, without a fake loopback client
 └── Tests/
     ├── AYSProtocolTests/            golden-fixture cross-check against the Dart codec
+    ├── AYSHostUITests/              BoardSnapshotTests.swift: renders every in-game board state
+                                     from seeded fixtures (`HostViewModel.seedForSnapshot`, DEBUG
+                                     only); writes PNGs when `AYS_BOARD_SNAPSHOT_DIR` is set
     └── AYSHostCoreTests/            AIDirectorTests.swift (election, relay, failover — [[Decision
                                      Log]]) plus the pre-AI suites below and NetworkTests.swift
                                      (Bonjour naming unconditionally, real-socket cases opt-in only)
@@ -186,8 +199,9 @@ specifically works — the same open item applies here.
 share card ([[Multiplayer Development]] Phase 9). Winner reveal, result
 verdicts, restrained humor and the live standings overlay have landed
 (`ScoreboardView.swift`, fed by `PLAYER_SCORE` broadcasts via
-`HostViewModel.standings`; see [[Multiplayer Gameplay]]). It also has
-no XCTest target of its own — `RoomCode`/`RoundDurationProvider` are
+`HostViewModel.standings`; see [[Multiplayer Gameplay]]). Its board screens
+are covered by `AYSHostUITests` (render snapshots of every in-game state), but
+`RoomCode`/`RoundDurationProvider` are
 exercised only by building successfully and the one live screenshot above,
 not by an automated suite the way `AYSHostCoreTests` covers the package
 (that package-level suite does now cover the `AYSChallengeCatalog` data

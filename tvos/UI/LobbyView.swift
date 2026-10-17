@@ -34,7 +34,7 @@ struct LobbyView: View {
                             Text("✦").font(.system(size: 30, weight: .black))
                         }
                         .padding(.horizontal, 28).padding(.vertical, 14)
-                        .background(Theme.sunshine, in: Capsule())
+                        .background(Theme.sunshine, in: RoundedRectangle(cornerRadius: 14))
                         .foregroundStyle(Theme.ink)
                         .shadow(color: Theme.sunshine.opacity(0.8), radius: 32)
                         Spacer()
@@ -51,7 +51,7 @@ struct LobbyView: View {
                 Button("OPTIONS") { showingOptions = true }
                     .font(Theme.label(12))
                     .padding(.horizontal, 16).padding(.vertical, 10)
-                    .background(.black.opacity(0.32), in: Capsule())
+                    .background(.black.opacity(0.32), in: RoundedRectangle(cornerRadius: 10))
                     .foregroundStyle(Color.white.opacity(0.68))
                     .padding(compact ? 18 : 28)
                     #if os(tvOS)
@@ -76,17 +76,15 @@ private struct LobbyMarquee: View {
     }
 
     var body: some View {
+        // Plain broadcast masthead: brand, hairline, live subtitle. The brand
+        // never wraps; the divider and subtitle give way instead.
         HStack(spacing: 18) {
-            Text("● LIVE").font(Theme.label(16)).foregroundStyle(Theme.hotPink)
-            // The brand never wraps; the divider and subtitle give way instead.
             ShoutText(text: "ARE YOU STUPID?!", size: 34).fixedSize()
             Rectangle().fill(Color.white.opacity(0.2)).frame(height: 1)
             Text(subtitle)
                 .font(Theme.label(15)).foregroundStyle(Color.white.opacity(0.72)).lineLimit(1)
         }
-        .padding(.horizontal, 22).padding(.vertical, 14)
-        .background(.black.opacity(0.25), in: Capsule())
-        .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1))
+        .padding(.horizontal, 4).padding(.vertical, 6)
     }
 }
 
@@ -215,7 +213,7 @@ private struct PresenterOptionsView: View {
             .font(Theme.label(13)).padding(.horizontal, 18).padding(.vertical, 12)
             .background(selected ? Theme.sunshine : Color.white.opacity(0.09))
             .foregroundStyle(selected ? Theme.ink : .white)
-            .clipShape(Capsule())
+            .clipShape(RoundedRectangle(cornerRadius: 10))
             #if os(tvOS)
             .buttonStyle(.card)
             #else
