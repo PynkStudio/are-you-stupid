@@ -435,6 +435,8 @@ the caption immediately without touching any audio path.
 `PresenterCareerStore` records at most 64 earned careers by opaque `personaId`
 in board `UserDefaults`. A known persona gets one return cue per lobby. Winner
 careers become `IL KING INDISCUSSO`; other earned titles can also carry over.
+Careers store `PresenterLineBook.Title` keys and `returningCue` words them
+with the current line book, so the welcome never mixes languages.
 Positive titles expire after 90 days and negative performance jokes after 7.
 
 The shared backend route lives in the PynkStudio Menuary repository at

@@ -1,6 +1,6 @@
 ---
 tags: [architecture, persistence, offline]
-updated: 2026-10-03
+updated: 2026-10-17
 ---
 
 # State and Persistence
@@ -29,7 +29,10 @@ needed. Everything lives in `SharedPreferences` on the device.
 | `ays.mp.speechPolicy` | cached presenter speech verdict for that exact display name |
 
 The tvOS/macOS board separately keeps up to 64 presenter careers in its local
-`UserDefaults` key `ays.presenter.careers.v1`, keyed by `personaId`. Positive
+`UserDefaults` key `ays.presenter.careers.v1`, keyed by `personaId`; each
+entry holds a title key (`titleKey`) and `lastSeen`. Older entries that stored
+the spoken title text are read back by matching that text against every
+shipped locale's wording and are dropped if it matches none. Positive
 titles expire after 90 days; performance-negative titles after 7. It is not a
 cloud profile and is never sent to the speech backend ([[Multiplayer Presenter]]).
 

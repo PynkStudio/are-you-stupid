@@ -51,8 +51,22 @@ public struct PresenterLineBook: Codable, Equatable, Sendable {
         public let live: String
     }
 
-    public enum Title: String, CaseIterable, Sendable {
+    public enum Title: String, CaseIterable, Codable, Sendable {
         case king, kingUndisputed, doesNotRead
+
+        /// Negative titles describe a bad performance and expire sooner.
+        public var isNegative: Bool { self == .doesNotRead }
+
+        /// Recognizes a title spoken in any shipped locale (or the legacy
+        /// fallback wording), for careers stored before keys were.
+        public init?(localizedText text: String) {
+            let match = Title.allCases.first { title in
+                title.fallback == text
+                    || OfflinePresenterPack.titles.values.contains { $0[title.rawValue] == text }
+            }
+            guard let match else { return nil }
+            self = match
+        }
 
         var fallback: String {
             switch self {

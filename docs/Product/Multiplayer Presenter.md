@@ -329,7 +329,11 @@ become `THE FORMERLY UNBEATABLE`; `THE BAD LUCA` can earn a comeback line.
 The model may phrase a fact but may not invent one. At game end, the board may
 promote an earned title into a small local career record keyed by the phone's
 anonymous `personaId`. When that persona later joins the same board, the host
-can say `È TORNATO IL KING INDISCUSSO`. Positive titles live for 90 days;
+can say `È TORNATO IL KING INDISCUSSO`. The career stores the title's
+language-neutral key (`king`, `kingUndisputed`, `doesNotRead`), never its
+wording, so a title earned while the board spoke English is still announced
+in the presenter's current locale (`È TORNATO LUCA, IL KING INDISCUSSO`, not
+`… THE UNDISPUTED KING`). Positive titles live for 90 days;
 negative titles live for only 7 so a joke cannot become a permanent label.
 The board retains at most 64 careers. This memory is device-local, has no
 account or cloud sync, and the identifier contains no name.

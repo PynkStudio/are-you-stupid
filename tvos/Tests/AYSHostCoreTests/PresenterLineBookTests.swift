@@ -107,9 +107,9 @@ final class PresenterLineBookTests: XCTestCase {
         let winner = PresenterPlayer(id: "1", displayName: "Luca", spokenName: "Luca")
         XCTAssertEqual(engine.gameEnd(winner: winner)?.text, "LUCA HA VINTO. INCREDIBILE.")
         engine.crownWinner("1")
-        XCTAssertEqual(engine.currentTitle(for: "1"), "IL SOVRANO")
+        XCTAssertEqual(engine.currentTitle(for: "1"), .kingUndisputed)
         // A template missing from the book falls back to the in-code copy.
-        XCTAssertEqual(engine.returningCue(player: winner, title: "IL SOVRANO")?.text, "È TORNATO LUCA, IL SOVRANO.")
+        XCTAssertEqual(engine.returningCue(player: winner, title: .kingUndisputed)?.text, "È TORNATO LUCA, IL SOVRANO.")
     }
 
     func testBuiltInBookIsValidAfterSanitizing() {

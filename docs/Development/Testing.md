@@ -407,7 +407,9 @@ Party Pack ownership.
 `PresenterEngineTests` lock the versioned offline manifest, cue expiry,
 homonym labels and Savage-only negative-title threshold. Dart's
 `spoken_identity_test.dart` covers plain, decorated, display-only and blocked
-names; `PresenterCareerStoreTests` cover cross-instance persistence and the
+names; `PresenterCareerStoreTests` cover cross-instance persistence, a title earned
+on an English board announced in Italian, migration of legacy text careers
+(unknown wording dropped) and the
 shorter negative-title expiry; protocol codec coverage keeps optional join
 identity fields tolerant.
 Name coverage also locks leetspeak normalization/blocklist resistance,

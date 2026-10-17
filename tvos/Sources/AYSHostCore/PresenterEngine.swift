@@ -348,7 +348,7 @@ public final class PresenterEngine {
     private var roastedThisMatch: Set<String> = []
     private var wins: [String: Int] = [:]
     private var wrongStreak: [String: Int] = [:]
-    private var titleByPlayer: [String: String] = [:]
+    private var titleByPlayer: [String: PresenterLineBook.Title] = [:]
     private var roundsPlayed = 0
     private var lastOutcome: String?
     private var outcomeStreak = 0
@@ -392,15 +392,13 @@ public final class PresenterEngine {
         let expiry = PresenterExpiry.throughResults(roundId: fact.roundId)
         var earnedTitle: (player: PresenterPlayer, title: String, key: String)?
         if let leader = players.first(where: { wins[$0.id, default: 0] >= 4 }), titleByPlayer[leader.id] == nil {
-            let title = lineBook.title(.king)
-            titleByPlayer[leader.id] = title
-            earnedTitle = (leader, title, "king")
+            titleByPlayer[leader.id] = .king
+            earnedTitle = (leader, lineBook.title(.king), "king")
         } else if intensity == .savage,
                   let target = players.first(where: { wrongStreak[$0.id, default: 0] >= 3 }),
                   titleByPlayer[target.id] == nil {
-            let title = lineBook.title(.doesNotRead)
-            titleByPlayer[target.id] = title
-            earnedTitle = (target, title, "doesNotRead")
+            titleByPlayer[target.id] = .doesNotRead
+            earnedTitle = (target, lineBook.title(.doesNotRead), "doesNotRead")
         }
 
         if let earnedTitle, let cue = combinedTitleCue(player: earnedTitle.player, title: earnedTitle.title, key: earnedTitle.key, players: players, expiry: expiry)
@@ -446,7 +444,9 @@ public final class PresenterEngine {
         return universal(keys: ["gameEnd"], kind: .gameEnd, expiry: .whileGameEnd)
     }
 
-    public func currentTitle(for playerId: String) -> String? { titleByPlayer[playerId] }
+    /// The title a player earned this match, as a key: careers store it
+    /// language-neutral and `returningCue` words it in the current locale.
+    public func currentTitle(for playerId: String) -> PresenterLineBook.Title? { titleByPlayer[playerId] }
 
     /// Named lines the next round's result could need, most likely first,
     /// rendered exactly as `roundResult` would say them. Read-only: it never
@@ -507,15 +507,16 @@ public final class PresenterEngine {
         return ordered.filter { seen.insert($0).inserted }
     }
 
-    public func returningCue(player: PresenterPlayer, title: String) -> PresenterCue? {
+    public func returningCue(player: PresenterPlayer, title key: PresenterLineBook.Title) -> PresenterCue? {
         history.advance()
+        let title = lineBook.title(key)
         let name = player.spokenName?.uppercased()
         guard let text = render(template: name == nil ? "lobby.returning.anonymous" : "lobby.returning.named", name: name, title: title) else { return nil }
         return PresenterCue(id: nextId("lobby.returning"), kind: .lobby, text: text, targetPlayerId: player.id, expiry: .whileLobby, cacheable: name != nil)
     }
 
     public func crownWinner(_ playerId: String) {
-        titleByPlayer[playerId] = lineBook.title(.kingUndisputed)
+        titleByPlayer[playerId] = .kingUndisputed
     }
 
     public func disambiguatedName(for player: PresenterPlayer, among players: [PresenterPlayer]) -> String? {

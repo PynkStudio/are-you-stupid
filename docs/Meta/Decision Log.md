@@ -3738,3 +3738,17 @@ plus a row of game-colour loading dots whose last dot is always late.
 an English "ARE YOU STUPID?!" here would flash the wrong language for most
 non-English players. Still zero external assets. Honors
 `MediaQuery.disableAnimations` with a static pose. See [[Rendering Pipeline]].
+
+### 2026-10-17 — Presenter careers store title keys, not wording
+
+**Decision.** `PresenterCareerStore` saves the earned title as a
+`PresenterLineBook.Title` key and the engine words it with the current line
+book when a returning player joins. Legacy entries holding spoken text are
+mapped back to a key through every shipped locale's wording; text that maps
+to nothing is dropped. The negative-title lifetime now comes from the key.
+
+**Why.** Playtests heard `È TORNATO LUCA, THE UNDISPUTED KING` on an Italian
+board: the career kept the title text from whatever locale was active when it
+was earned. The negative check also only recognized Italian wording, so an
+English `THE ONE WHO DOESN'T READ` lived 90 days instead of 7. See
+[[Multiplayer Presenter]] and [[State and Persistence]].
