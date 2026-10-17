@@ -3752,3 +3752,17 @@ board: the career kept the title text from whatever locale was active when it
 was earned. The negative check also only recognized Italian wording, so an
 English `THE ONE WHO DOESN'T READ` lived 90 days instead of 7. See
 [[Multiplayer Presenter]] and [[State and Persistence]].
+
+### 2026-10-17 — The party board speaks the room language
+
+**Decision.** All fixed board copy (tvOS / Mac host) moved into
+`BoardStrings` (`AYSHostCore`) with the six game locales, selected by the
+presenter locale. The options row is now `LANGUAGE` and drives voice,
+captions and screen text together. Mode names (STUPID BATTLE, LAST STUPID
+STANDING) and the brand stay English. Snapshot fixtures pin `en` so store
+captures do not change with the Mac's language.
+
+**Why.** An Italian room got Italian presenter lines over an English board.
+One room-level language (not per phone) is the only thing a shared TV can
+show; reusing the presenter locale avoids a second setting that could
+disagree with the voice. See [[Multiplayer Host (tvOS)]] and [[Localization]].

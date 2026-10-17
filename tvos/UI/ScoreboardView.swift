@@ -1,3 +1,4 @@
+import AYSHostCore
 import AYSProtocol
 import SwiftUI
 
@@ -25,7 +26,7 @@ struct ScoreboardView: View {
                 ScoreRow(model: model, rank: index + 1, entry: entry, compact: compact || rows.count > 9, unit: unit)
             }
             if rows.count > maxRows {
-                Text("+\(rows.count - maxRows) MORE")
+                Text(model.strings(.moreRows, ["n": rows.count - maxRows]))
                     .font(Theme.label(11 * unit)).foregroundStyle(Color.white.opacity(0.4))
             }
         }
@@ -65,7 +66,7 @@ private struct ScoreRow: View {
             Spacer(minLength: 6 * unit)
             if let lives = entry.lives {
                 if isOut {
-                    Text("OUT").font(Theme.title(12 * unit)).foregroundStyle(Theme.wrong)
+                    Text(model.strings(.out)).font(Theme.title(12 * unit)).foregroundStyle(Theme.wrong)
                 } else {
                     HeartsView(remaining: lives, total: model.startingLives, size: (compact ? 11 : 13) * unit)
                 }

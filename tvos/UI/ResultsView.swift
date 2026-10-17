@@ -1,3 +1,4 @@
+import AYSHostCore
 import AYSProtocol
 import SwiftUI
 
@@ -21,25 +22,27 @@ struct ResultsView: View {
     }
 
     private var tally: (text: String, color: Color) {
-        if failed.isEmpty { return ("EVERYONE GOT IT RIGHT", Theme.correct) }
-        if survived.isEmpty { return ("EVERYONE FAILED", Theme.wrong) }
-        return ("\(failed.count) OF \(results.count) FAILED", Theme.hotPink)
+        let t = model.strings
+        if failed.isEmpty { return (t(.everyoneRight), Theme.correct) }
+        if survived.isEmpty { return (t(.everyoneFailed), Theme.wrong) }
+        return (t(.failedOfTotal, ["n": failed.count, "total": results.count]), Theme.hotPink)
     }
 
     private var verdict: String {
-        if eliminated.count == 1 { return "\(model.name(for: eliminated[0].playerId)) IS OUT." }
-        if eliminated.count > 1 { return "\(eliminated.count) PLAYERS ARE OUT." }
-        if failed.isEmpty { return "SUSPICIOUSLY COMPETENT" }
-        if survived.isEmpty { return "NOBODY READ THE INSTRUCTION" }
-        if failed.count == 1 { return "\(model.name(for: failed[0].playerId)) HAD ONE JOB." }
-        if survived.count == 1 { return "ONE BRAINCELL SURVIVED" }
-        return failed.count > survived.count ? "MOSTLY STUPID" : "MIXED LEVELS OF EMBARRASSMENT"
+        let t = model.strings
+        if eliminated.count == 1 { return t(.playerIsOut, ["name": model.name(for: eliminated[0].playerId)]) }
+        if eliminated.count > 1 { return t(.playersAreOut, ["n": eliminated.count]) }
+        if failed.isEmpty { return t(.suspiciouslyCompetent) }
+        if survived.isEmpty { return t(.nobodyRead) }
+        if failed.count == 1 { return t(.hadOneJob, ["name": model.name(for: failed[0].playerId)]) }
+        if survived.count == 1 { return t(.oneBraincell) }
+        return failed.count > survived.count ? t(.mostlyStupid) : t(.mixedEmbarrassment)
     }
 
     private var headerDetail: String {
-        if let total = model.totalRounds { return "OF \(total)  ·  STUPID BATTLE" }
+        if let total = model.totalRounds { return "\(model.strings(.ofTotal, ["n": total]))  ·  STUPID BATTLE" }
         let alive = results.count - eliminated.count
-        return "LAST STUPID STANDING  ·  \(alive) STILL IN"
+        return "LAST STUPID STANDING  ·  \(model.strings(.stillIn, ["n": alive]))"
     }
 
     var body: some View {
@@ -47,7 +50,7 @@ struct ResultsView: View {
             GameStageBackground(accent: survived.isEmpty || !eliminated.isEmpty ? Theme.wrong : Theme.hotPink)
             BoardCanvas { u in
                 VStack(alignment: .leading, spacing: 0) {
-                    BoardHeader(title: "ROUND \(max(1, model.roundNumber))", detail: headerDetail, unit: u)
+                    BoardHeader(title: model.strings(.roundTitle, ["n": max(1, model.roundNumber)]), detail: headerDetail, unit: u)
                     HStack(alignment: .top, spacing: 40 * u) {
                         VStack(alignment: .leading, spacing: 18 * u) {
                             VStack(alignment: .leading, spacing: 6 * u) {
@@ -69,7 +72,7 @@ struct ResultsView: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
 
-                        ScoreboardView(model: model, title: "STANDINGS", unit: u)
+                        ScoreboardView(model: model, title: model.strings(.standings), unit: u)
                             .frame(width: 340 * u)
                     }
                     .padding(.top, 26 * u)
@@ -79,7 +82,7 @@ struct ResultsView: View {
                         if let line = model.lastAiCommentary, !line.isEmpty {
                             PresenterCaption(text: line, unit: u)
                         }
-                        AdvanceBar(label: "NEXT ROUND", duration: model.resultsPauseSeconds, unit: u)
+                        AdvanceBar(label: model.strings(.nextRound), duration: model.resultsPauseSeconds, unit: u)
                     }
                     .padding(.top, 18 * u)
                 }
@@ -123,7 +126,7 @@ private struct FailCard: View {
 
     private var livesBefore: Int { model.livesBeforeRound(for: result.playerId) }
     private var isOut: Bool { isElimination && livesBefore <= 1 }
-    private var reason: String { result.reason.isEmpty ? "YOU HAD ONE JOB." : result.reason.uppercased() }
+    private var reason: String { model.strings.failReason(result.reason) }
 
     var body: some View {
         HStack(spacing: 16 * unit) {
@@ -137,7 +140,7 @@ private struct FailCard: View {
             }
             Spacer(minLength: 8 * unit)
             if isOut {
-                Text("ELIMINATED")
+                Text(model.strings(.eliminated))
                     .font(Theme.title(17 * unit)).tracking(1.5 * unit).foregroundStyle(Theme.wrong)
                     .padding(.horizontal, 10 * unit).padding(.vertical, 6 * unit)
                     .overlay(Rectangle().stroke(Theme.wrong, lineWidth: 3 * unit))
@@ -172,7 +175,7 @@ private struct SurvivorStrip: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10 * unit) {
-            Text("GOT IT RIGHT").font(Theme.label(12 * unit)).tracking(2.5 * unit).foregroundStyle(Theme.correct)
+            Text(model.strings(.gotItRight)).font(Theme.label(12 * unit)).tracking(2.5 * unit).foregroundStyle(Theme.correct)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 190 * unit), spacing: 10 * unit, alignment: .leading)],
                       alignment: .leading, spacing: 8 * unit) {
                 ForEach(Array(survived.enumerated()), id: \.element.playerId) { index, result in
@@ -204,7 +207,7 @@ private struct FastestHero: View {
     var body: some View {
         if let result {
             VStack(alignment: .leading, spacing: 6 * unit) {
-                Text("FASTEST THUMB").font(Theme.label(13 * unit)).tracking(2.5 * unit).foregroundStyle(Theme.cyan)
+                Text(model.strings(.fastestThumb)).font(Theme.label(13 * unit)).tracking(2.5 * unit).foregroundStyle(Theme.cyan)
                 HStack(alignment: .firstTextBaseline, spacing: 16 * unit) {
                     Text(model.emoji(for: result.playerId)).font(.system(size: 54 * unit))
                     Text(model.name(for: result.playerId))
@@ -214,7 +217,7 @@ private struct FastestHero: View {
                             .foregroundStyle(Theme.sunshine)
                     }
                 }
-                Text("NOBODY FAILED. WE'RE AS SURPRISED AS YOU.")
+                Text(model.strings(.nobodyFailed))
                     .font(Theme.label(15 * unit)).foregroundStyle(Color.white.opacity(0.5))
             }
             .padding(.top, 14 * unit)

@@ -76,7 +76,9 @@ or produces audio. Gameplay never waits for it.
 The room presenter supports the same six locales as the game: English,
 Italian, French, Spanish, Portuguese and German. On launch the board derives
 the presenter's locale from the host device language and falls back to English
-when it is unsupported. Language is deliberately a secondary lobby action:
+when it is unsupported. The same locale is the room language: the board's
+screen text (lobby, round, results, final, options) follows it too, so an
+Italian room never shows English UI. Language is deliberately a secondary lobby action:
 `OPTIONS` opens the presenter panel, where the host can override the locale,
 choose output independently as `OFF`, `MUTE` or `VOICE`, and choose
 `NEUTRAL` or `SAVAGE` intensity whenever output is not Off. `OFF` suppresses

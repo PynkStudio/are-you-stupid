@@ -1,6 +1,6 @@
 ---
 tags: [architecture, localization, i18n]
-updated: 2026-10-02
+updated: 2026-10-17
 ---
 
 # Localization
@@ -90,6 +90,15 @@ update the moment the language changes wraps its body in
 `AnimatedBuilder(animation: services.settings, ...)` — see `home_screen.dart`
 and `settings_screen.dart`.
 
+### Party board (tvOS / Mac host)
+
+The board is native Swift and does not read `Strings`: its fixed copy lives in
+`tvos/Sources/AYSHostCore/BoardStrings.swift`, one table per locale, keyed by
+`BoardStrings.Key`. It follows the room language (the presenter locale chosen
+in the board's `OPTIONS`, defaulting to the board device language), not each
+phone's setting. `BoardStringsTests` fails on a missing key, a placeholder
+mismatch or lowercase copy in any locale. Mode names stay English.
+
 ### iOS system strings
 
 The OS, not the game, renders the permission prompts (ATT, camera, local
@@ -125,6 +134,8 @@ flag this before relying on them for a store listing or marketing copy.
    see the table above.
 4. Register the map in `strings.dart`'s `_tables`.
 5. Update the coverage note in [[Testing]] if you add a key-parity test.
+6. Add the board table in `BoardStrings.swift` and the presenter pack/line
+   book for the locale ([[Multiplayer Presenter]]).
 
 ## Adding a string to an existing challenge
 

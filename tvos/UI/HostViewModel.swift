@@ -67,7 +67,7 @@ final class HostViewModel: ObservableObject {
     @Published private(set) var roster: [PlayerInfo] = []
     @Published private(set) var screen: BoardScreen = .lobby
     @Published private(set) var countdownState: String?
-    @Published private(set) var networkStatus = "STARTING…"
+    @Published private(set) var networkStatus: BoardStrings.Key = .networkStarting
     @Published private(set) var lastError: String?
     @Published private(set) var maxPlayers = 8
     @Published private(set) var partyPackActive = false
@@ -138,6 +138,10 @@ final class HostViewModel: ObservableObject {
     let resultsPauseSeconds: Double = 2.5
     var canStart: Bool { readyCount >= 2 && screen == .lobby }
     var presenterLocale: String { presenterPacks.locale }
+    /// Fixed board copy in the room's language: the presenter locale drives
+    /// the screen text too, so voice, captions and UI never disagree.
+    var strings: BoardStrings { BoardStrings(locale: presenterLocale) }
+    var battleRounds: Int { host.battleRounds }
     var presenterLocales: [String] { OfflinePresenterPack.supportedLocales }
 
     func selectPresenterLocale(_ locale: String) {
@@ -245,9 +249,9 @@ final class HostViewModel: ObservableObject {
         do {
             let port = try await server.start(advertising: advertisement(state: "lobby"))
             directHostHint = QRGenerator.hostHint(address: LocalAddress.primaryIPv4(), port: port)
-            networkStatus = "READY TO PARTY"
+            networkStatus = .networkReady
         } catch {
-            networkStatus = "NETWORK UNAVAILABLE"
+            networkStatus = .networkUnavailable
             lastError = "\(error)"
         }
     }
@@ -429,9 +433,11 @@ final class HostViewModel: ObservableObject {
         standings: [PlayerScore],
         stats: [String: PlayerMatchStats] = [:],
         commentary: String? = nil,
-        networkStatus: String? = nil,
+        networkStatus: BoardStrings.Key? = nil,
+        locale: String = "en",
         screen: BoardScreen
     ) {
+        presenterPacks.selectLocale(locale)
         self.roster = roster
         if let networkStatus { self.networkStatus = networkStatus }
         matchMode = mode

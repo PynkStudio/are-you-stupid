@@ -9,7 +9,8 @@ updated: 2026-10-17
 flutter test          # everything
 flutter analyze       # must be clean, zero issues
 dart run tool/gen_protocol_fixtures.dart   # regenerate Swift golden fixtures (protocol change only)
-swift test             # from tvos/ — AYSProtocol (29) + AYSHostCore (63) = 92 cases, 4 skipped by
+swift test             # from tvos/ — AYSProtocol + AYSHostCore (incl. BoardStringsTests: key/placeholder
+                        # parity across the six board locales) + AYSHostUITests, 4 skipped by
                         # default (real-socket tests — see AYS_RUN_NETWORK_TESTS below)
 swift test --package-path ios/iMessageExtensionCore  # 4 Stupid Streak core tests
 ```
@@ -142,7 +143,9 @@ no widget-level test yet, see [[Multiplayer Development]] for that gap:
 `seedForSnapshot` hook and renders every in-game board state with
 `ImageRenderer`: Battle results (1280, 1920 and 900 wide), an elimination
 round, a clean round, a 12-player room, the final with a winner and the Last
-Stupid Standing wipe-out. Each case asserts the view rasterizes; for a visual
+Stupid Standing wipe-out, plus `testBoardFollowsRoomLanguage` (lobby, round,
+results and final in Italian). Fixtures pin the `en` board locale. Each case
+asserts the view rasterizes; for a visual
 review, write the PNGs somewhere:
 
 ```bash

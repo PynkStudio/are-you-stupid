@@ -63,7 +63,7 @@ final class BoardSnapshotTests: XCTestCase {
         return stats
     }
 
-    private func battleResultsModel() -> HostViewModel {
+    private func battleResultsModel(locale: String = "en") -> HostViewModel {
         let model = HostViewModel()
         let results = [
             PlayerRoundResult(playerId: "p0", correct: true, scoreDelta: 100, reactionMs: 912),
@@ -79,6 +79,7 @@ final class BoardSnapshotTests: XCTestCase {
             standingsBefore: battle([500, 600, 400, 500, 300, 300, 400]),
             standings: battle([600, 700, 500, 500, 400, 300, 500]),
             commentary: "Some read it. Some were present.",
+            locale: locale,
             screen: .results(results: results, roundId: "r7"))
         return model
     }
@@ -89,7 +90,7 @@ final class BoardSnapshotTests: XCTestCase {
                                                      CGSize(width: 900, height: 560)])
     }
 
-    private func eliminationResultsModel() -> HostViewModel {
+    private func eliminationResultsModel(locale: String = "en") -> HostViewModel {
         let model = HostViewModel()
         let results = [
             PlayerRoundResult(playerId: "p0", correct: true, reactionMs: 700),
@@ -102,6 +103,7 @@ final class BoardSnapshotTests: XCTestCase {
             standingsBefore: lss([3, 1, 2, 2, 0]),
             standings: lss([3, 0, 1, 2, 0]),
             commentary: "Giulia has left the building. Mentally, a while ago.",
+            locale: locale,
             screen: .results(results: results, roundId: "r9"))
         return model
     }
@@ -136,7 +138,7 @@ final class BoardSnapshotTests: XCTestCase {
         try render("results-crowded", model)
     }
 
-    private func winnerModel() -> HostViewModel {
+    private func winnerModel(locale: String = "en") -> HostViewModel {
         let model = HostViewModel()
         let scores = [1700, 1500, 1200, 1100, 1000, 600, 900]
         let order = scores.enumerated().sorted { $0.element > $1.element }
@@ -145,6 +147,7 @@ final class BoardSnapshotTests: XCTestCase {
             roster: roster(7), mode: .stupidBattle, roundNumber: 20,
             standingsBefore: battle(scores), standings: battle(scores), stats: stats,
             commentary: "Luca wins. Statistically, someone had to.",
+            locale: locale,
             screen: .gameEnd(GameEnd(mode: .stupidBattle, results: entries, winnerId: "p0")))
         return model
     }
@@ -173,6 +176,29 @@ final class BoardSnapshotTests: XCTestCase {
         try render("round", model)
     }
 
+    /// The board follows the room's language (the presenter locale): every
+    /// state must still lay out with the longer Italian copy.
+    func testBoardFollowsRoomLanguage() throws {
+        let lobby = HostViewModel()
+        lobby.seedForSnapshot(roster: roster(6), mode: .stupidBattle, roundNumber: 0, standingsBefore: [], standings: [],
+                              networkStatus: .networkReady, locale: "it", screen: .lobby)
+        let round = HostViewModel()
+        round.seedForSnapshot(roster: roster(7), mode: .stupidBattle, roundNumber: 8,
+                              standingsBefore: battle([600, 700, 500, 500, 400, 300, 500]),
+                              standings: battle([600, 700, 500, 500, 400, 300, 500]),
+                              locale: "it", screen: .round(roundId: "r8"))
+        let models: [(String, HostViewModel)] = [
+            ("lobby", lobby), ("round", round),
+            ("results-battle", battleResultsModel(locale: "it")),
+            ("results-elimination", eliminationResultsModel(locale: "it")),
+            ("final-winner", winnerModel(locale: "it")),
+        ]
+        for (name, model) in models {
+            XCTAssertEqual(model.strings.locale, "it")
+            try render("it-\(name)", model, sizes: [CGSize(width: 1280, height: 720), CGSize(width: 900, height: 560)])
+        }
+    }
+
     /// Raw board captures for the App Store (Apple TV and Mac) campaigns,
     /// rendered at 2x: `AYS_STORE_CAPTURE_DIR=… swift test --filter
     /// testStoreCaptures`, then store_assets/generate_*_screenshots.py.
@@ -185,10 +211,10 @@ final class BoardSnapshotTests: XCTestCase {
 
         let emptyLobby = HostViewModel()
         emptyLobby.seedForSnapshot(roster: [], mode: .stupidBattle, roundNumber: 0, standingsBefore: [], standings: [],
-                                   networkStatus: "READY TO PARTY", screen: .lobby)
+                                   networkStatus: .networkReady, screen: .lobby)
         let fullLobby = HostViewModel()
         fullLobby.seedForSnapshot(roster: roster(6), mode: .stupidBattle, roundNumber: 0, standingsBefore: [], standings: [],
-                                  networkStatus: "READY TO PARTY", screen: .lobby)
+                                  networkStatus: .networkReady, screen: .lobby)
         let models: [(String, HostViewModel)] = [
             ("lobby-empty", emptyLobby), ("lobby-full", fullLobby),
             ("results-battle", battleResultsModel()), ("results-elimination", eliminationResultsModel()),

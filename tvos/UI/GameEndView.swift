@@ -1,3 +1,4 @@
+import AYSHostCore
 import AYSProtocol
 import SwiftUI
 
@@ -13,7 +14,8 @@ struct GameEndView: View {
     }
 
     private var headerDetail: String {
-        let rounds = "\(model.roundNumber) ROUND\(model.roundNumber == 1 ? "" : "S")"
+        let rounds = model.roundNumber == 1
+            ? model.strings(.roundsOne) : model.strings(.roundsDetail, ["n": model.roundNumber])
         return gameEnd.mode == .stupidBattle ? "STUPID BATTLE  ·  \(rounds)" : "LAST STUPID STANDING  ·  \(rounds)"
     }
 
@@ -22,14 +24,14 @@ struct GameEndView: View {
             GameStageBackground(accent: gameEnd.winnerId == nil ? Theme.wrong : Theme.sunshine)
             BoardCanvas { u in
                 VStack(alignment: .leading, spacing: 0) {
-                    BoardHeader(title: "FINAL", detail: headerDetail, unit: u)
+                    BoardHeader(title: model.strings(.final), detail: headerDetail, unit: u)
                     HStack(alignment: .center, spacing: 44 * u) {
                         VStack(alignment: .leading, spacing: 34 * u) {
                             if let winnerId = gameEnd.winnerId,
                                let entry = standings.first(where: { $0.playerId == winnerId }) {
                                 WinnerHero(model: model, entry: entry, mode: gameEnd.mode, unit: u)
                             } else {
-                                NobodyWonHero(unit: u)
+                                NobodyWonHero(strings: model.strings, unit: u)
                             }
                             AwardsRow(model: model, unit: u)
                         }
@@ -63,14 +65,15 @@ private struct WinnerHero: View {
     @State private var revealed = false
 
     private var statLine: String {
+        let t = model.strings
         var parts: [String] = []
-        if mode == .stupidBattle { parts.append("\(entry.score) PTS") }
+        if mode == .stupidBattle { parts.append(t(.pts, ["n": entry.score])) }
         if let stats = model.matchStats[entry.playerId] {
-            parts.append("\(stats.correct) OF \(stats.correct + stats.wrong) RIGHT")
-            if let avg = stats.averageReactionMs { parts.append("AVG \(avg.asSeconds)") }
+            parts.append(t(.rightOfTotal, ["n": stats.correct, "total": stats.correct + stats.wrong]))
+            if let avg = stats.averageReactionMs { parts.append(t(.avg, ["time": avg.asSeconds])) }
         }
         if mode == .lastStupidStanding, let lives = entry.lives {
-            parts.append(lives == 1 ? "1 LIFE LEFT" : "\(lives) LIVES LEFT")
+            parts.append(lives == 1 ? t(.lifeLeftOne) : t(.livesLeft, ["n": lives]))
         }
         return parts.joined(separator: "  ·  ")
     }
@@ -78,7 +81,7 @@ private struct WinnerHero: View {
     var body: some View {
         let shown = revealed || reduceMotion || still
         VStack(alignment: .leading, spacing: 10 * unit) {
-            Text("THE LEAST STUPID PERSON IN THE ROOM")
+            Text(model.strings(.leastStupid))
                 .font(Theme.label(16 * unit)).tracking(3 * unit).foregroundStyle(Theme.cyan)
             HStack(alignment: .center, spacing: 22 * unit) {
                 Text(model.emoji(for: entry.playerId)).font(.system(size: 92 * unit))
@@ -104,16 +107,17 @@ private struct WinnerHero: View {
 /// Last Stupid Standing can end with the final survivors all losing their
 /// last life on the same round. That is a punchline, not a winner.
 private struct NobodyWonHero: View {
+    let strings: BoardStrings
     let unit: CGFloat
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10 * unit) {
-            Text("NOBODY SURVIVED").font(Theme.label(16 * unit)).tracking(3 * unit).foregroundStyle(Theme.hotPink)
-            Text("EVERYONE\nIS STUPID.")
+            Text(strings(.nobodySurvived)).font(Theme.label(16 * unit)).tracking(3 * unit).foregroundStyle(Theme.hotPink)
+            Text(strings(.everyoneIsStupid))
                 .font(.system(size: 104 * unit, weight: .black, design: .rounded))
                 .foregroundStyle(Theme.sunshine).lineLimit(2).minimumScaleFactor(0.5)
                 .fixedSize(horizontal: false, vertical: true)
-            Text("THE LAST ROUND TOOK OUT EVERY SURVIVOR AT ONCE.")
+            Text(strings(.lastRoundTookOut))
                 .font(Theme.label(19 * unit)).foregroundStyle(Color.white.opacity(0.72))
         }
     }
@@ -135,17 +139,18 @@ private struct AwardsRow: View {
 
     private var awards: [Award] {
         let stats = model.matchStats
+        let t = model.strings
         var list: [Award] = []
         // Ties resolve by name so the same match always awards the same seat.
         let byName = stats.sorted { model.name(for: $0.key) < model.name(for: $1.key) }
         if let fast = byName.filter({ $0.value.bestReactionMs != nil })
             .min(by: { $0.value.bestReactionMs! < $1.value.bestReactionMs! }) {
-            list.append(Award(id: "fast", title: "FASTEST THUMB", playerId: fast.key,
+            list.append(Award(id: "fast", title: t(.fastestThumb), playerId: fast.key,
                               value: fast.value.bestReactionMs!.asSeconds, color: Theme.cyan))
         }
         if let worst = byName.max(by: { $0.value.wrong < $1.value.wrong }), worst.value.wrong > 0 {
-            list.append(Award(id: "fails", title: "PROFESSIONALLY STUPID", playerId: worst.key,
-                              value: worst.value.wrong == 1 ? "1 FAIL" : "\(worst.value.wrong) FAILS",
+            list.append(Award(id: "fails", title: t(.professionallyStupid), playerId: worst.key,
+                              value: worst.value.wrong == 1 ? t(.failOne) : t(.failsMany, ["n": worst.value.wrong]),
                               color: Theme.hotPink))
         }
         // Not a superlative, so it can skip players who already hold an
@@ -154,8 +159,8 @@ private struct AwardsRow: View {
         if let roll = byName.filter({ !awarded.contains($0.key) })
             .max(by: { $0.value.longestStreak < $1.value.longestStreak }),
            roll.value.longestStreak >= 3 {
-            list.insert(Award(id: "streak", title: "ON A ROLL", playerId: roll.key,
-                              value: "\(roll.value.longestStreak) IN A ROW", color: Theme.correct),
+            list.insert(Award(id: "streak", title: t(.onARoll), playerId: roll.key,
+                              value: t(.inARow, ["n": roll.value.longestStreak]), color: Theme.correct),
                         at: min(1, list.count))
         }
         return list
@@ -201,7 +206,7 @@ private struct FinalStandings: View {
     var body: some View {
         let dense = standings.count > 8
         VStack(alignment: .leading, spacing: (dense ? 5 : 9) * unit) {
-            Text("FINAL STANDINGS").font(Theme.label(13 * unit)).tracking(2 * unit)
+            Text(model.strings(.finalStandings)).font(Theme.label(13 * unit)).tracking(2 * unit)
                 .foregroundStyle(Color.white.opacity(0.5)).padding(.bottom, 6 * unit)
             ForEach(standings, id: \.playerId) { entry in
                 let isWinner = entry.playerId == gameEnd.winnerId
@@ -217,7 +222,7 @@ private struct FinalStandings: View {
                             .minimumScaleFactor(0.7)
                             .foregroundStyle(isWinner ? Theme.sunshine : .white)
                         if isLast {
-                            Text("OFFICIALLY THE MOST STUPID").font(Theme.label(10 * unit)).tracking(1 * unit)
+                            Text(model.strings(.mostStupid)).font(Theme.label(10 * unit)).tracking(1 * unit)
                                 .foregroundStyle(Theme.hotPink)
                         }
                     }
@@ -229,7 +234,7 @@ private struct FinalStandings: View {
                         if lives > 0 {
                             HeartsView(remaining: lives, total: model.startingLives, size: 13 * unit)
                         } else {
-                            Text("OUT").font(Theme.title(12 * unit)).foregroundStyle(Theme.wrong.opacity(0.8))
+                            Text(model.strings(.out)).font(Theme.title(12 * unit)).foregroundStyle(Theme.wrong.opacity(0.8))
                         }
                     }
                 }
@@ -251,16 +256,16 @@ private struct RematchFooter: View {
     var body: some View {
         if let adPlayer = model.adBreakPlayerName {
             HStack(alignment: .firstTextBaseline, spacing: 16 * unit) {
-                Text("A WORD FROM OUR SPONSORS.").font(Theme.title(20 * unit))
-                Text("\(adPlayer) PRESSED REMATCH. NOW WE ALL PAY.").font(Theme.label(14 * unit))
+                Text(model.strings(.sponsors)).font(Theme.title(20 * unit))
+                Text(model.strings(.adPressed, ["name": adPlayer])).font(Theme.label(14 * unit))
                 Spacer()
             }
             .padding(.horizontal, 22 * unit).padding(.vertical, 14 * unit)
             .background(Theme.hotPink, in: RoundedRectangle(cornerRadius: 12 * unit))
         } else {
             HStack(alignment: .firstTextBaseline, spacing: 16 * unit) {
-                Text("RUN IT BACK?").font(Theme.title(20 * unit))
-                Text("ANY PLAYER CAN START THE REMATCH FROM THEIR PHONE.")
+                Text(model.strings(.runItBack)).font(Theme.title(20 * unit))
+                Text(model.strings(.anyPlayerRematch))
                     .font(Theme.label(14 * unit)).foregroundStyle(Color.white.opacity(0.5))
             }
         }

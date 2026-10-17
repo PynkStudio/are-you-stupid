@@ -1,3 +1,4 @@
+import AYSHostCore
 import SwiftUI
 
 struct RoundView: View {
@@ -5,18 +6,19 @@ struct RoundView: View {
     let roundId: String
 
     private var presentation: (eyebrow: String, title: String, note: String, color: Color) {
+        let t = model.strings
         switch model.countdownState {
         case "READY", nil:
-            return ("PHONES UP", "GET READY", "READ IT TWICE. YOU'LL STILL GET IT WRONG.", Theme.sunshine)
+            return (t(.phonesUp), t(.getReady), t(.readTwice), Theme.sunshine)
         case "GO":
-            return ("NO EXCUSES", "GO!", "DO THE STUPIDLY SIMPLE THING.", Theme.correct)
+            return (t(.noExcuses), t(.go), t(.doTheThing), Theme.correct)
         default:
-            return ("LIVE ROUND", "DON'T PANIC", "EVERYONE CAN SEE YOU THINKING.", Theme.cyan)
+            return (t(.liveRound), t(.dontPanic), t(.everyoneSees), Theme.cyan)
         }
     }
 
     private var headerDetail: String {
-        if let total = model.totalRounds { return "OF \(total)  ·  STUPID BATTLE" }
+        if let total = model.totalRounds { return "\(model.strings(.ofTotal, ["n": total]))  ·  STUPID BATTLE" }
         return "LAST STUPID STANDING"
     }
 
@@ -26,11 +28,11 @@ struct RoundView: View {
             GameStageBackground(accent: copy.color)
             BoardCanvas { u in
                 VStack(spacing: 0) {
-                    BoardHeader(title: "ROUND \(max(1, model.roundNumber))", detail: headerDetail, unit: u)
+                    BoardHeader(title: model.strings(.roundTitle, ["n": max(1, model.roundNumber)]), detail: headerDetail, unit: u)
                     Spacer()
                     VStack(spacing: 16 * u) {
                         Text(copy.eyebrow).font(Theme.label(18 * u)).tracking(5 * u).foregroundStyle(copy.color)
-                        ShoutText(text: copy.title, size: (copy.title == "GO!" ? 150 : 92) * u)
+                        ShoutText(text: copy.title, size: (model.countdownState == "GO" ? 150 : 92) * u)
                             .shadow(color: copy.color.opacity(0.45), radius: 30 * u)
                         Text(copy.note).font(Theme.label(18 * u)).foregroundStyle(Color.white.opacity(0.55))
                     }
@@ -38,14 +40,14 @@ struct RoundView: View {
                     HStack(alignment: .bottom) {
                         VStack(alignment: .leading, spacing: 6 * u) {
                             if let directorName = model.directorName {
-                                Text("CHAOS DIRECTOR: \(directorName)")
+                                Text(model.strings(.chaosDirector, ["name": directorName]))
                                     .font(Theme.label(12 * u)).foregroundStyle(Color.white.opacity(0.45))
                             }
-                            Text("THE TV IS JUDGING YOU.").font(Theme.label(12 * u)).foregroundStyle(Color.white.opacity(0.32))
+                            Text(model.strings(.tvJudging)).font(Theme.label(12 * u)).foregroundStyle(Color.white.opacity(0.32))
                         }
                         Spacer()
                         if !model.standings.isEmpty {
-                            ScoreboardView(model: model, title: "STANDINGS", compact: true, unit: u, maxRows: 5)
+                            ScoreboardView(model: model, title: model.strings(.standings), compact: true, unit: u, maxRows: 5)
                                 .frame(width: 300 * u)
                         }
                     }

@@ -426,8 +426,14 @@ land together. Every cue passes the repetition guard (`PresenterLineHistory`:
 ([[Multiplayer Presenter]] → "Repetition guard").
 The store starts from the board device locale (`en`, `it`, `fr`, `es`, `pt`,
 `de`, otherwise English) and isolates manifest, ETag and audio caches by
-locale. Presenter controls stay behind the lobby's secondary `OPTIONS`
-button: room-language override, persistent output (`OFF`, `MUTE`, `VOICE`)
+locale. The same locale drives the board's own screen text:
+`HostViewModel.strings` builds a `BoardStrings` (`AYSHostCore`) from the
+presenter locale, and every fixed lobby/round/results/final/options string
+goes through it, so voice, captions and UI never disagree. Mode names and the
+brand stay English, as on the phones; the host's English fallback reason
+`too slow` is localized at display (`BoardStrings.failReason`), while a
+phone's own fail reason is shown as sent. Presenter controls stay behind the
+lobby's secondary `OPTIONS` button: room-language override (`LANGUAGE`), persistent output (`OFF`, `MUTE`, `VOICE`)
 and an independent roast level (`NEUTRAL`, `SAVAGE`) disabled only while
 output is Off. Off suppresses playback and the matching caption; Mute renders
 the caption immediately without touching any audio path.
