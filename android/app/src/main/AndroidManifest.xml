@@ -68,6 +68,13 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-6747636382023443~7869402600" />
+        <!-- Flutter 3.47.1/Impeller exits during the native launch screen on
+             the beta tester's Moto G84 5G (Adreno 619, Android 15). Keep the
+             Android release on Skia until that device passes a real launch
+             test or a newer engine is verified. See docs/Meta/Decision Log.md. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

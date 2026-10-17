@@ -1,6 +1,6 @@
 ---
 tags: [development, setup, troubleshooting]
-updated: 2026-10-06
+updated: 2026-10-17
 ---
 
 # Getting Started
@@ -56,6 +56,13 @@ regression from this change.
 flutter build apk --release        # verified working
 flutter build ios --release        # then archive in Xcode to ship
 ```
+
+Android release builds currently opt out of Impeller in
+`android/app/src/main/AndroidManifest.xml` and use Skia. The closed-test
+1.2.0 build exited before Flutter's first frame on a Moto G84 5G (Adreno 619,
+Android 15); the Skia build is the controlled compatibility test recorded in
+[[Decision Log]]. Do not remove the opt-out without a real-device launch pass
+on that model or a verified Flutter engine fix.
 
 The containing iOS target embeds the native `StupidStreak.appex`. To build the
 extension alone without signing:
