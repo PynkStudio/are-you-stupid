@@ -113,7 +113,9 @@ The final board has one hero: the winner's emoji and name at full scale with
 their real stat line (points, right answers, average reaction). When Last
 Stupid Standing ends with the last survivors losing their final life together,
 there is no winner and the board says so (`NOBODY SURVIVED / EVERYONE IS
-STUPID.`) instead of crowning a non-winner. Below the hero, up to three awards
+STUPID.`); the presenter closes with `CONGRATULATIONS TO ABSOLUTELY NOBODY.`
+instead of crowning a non-winner. `WE HAVE A WINNER. TECHNICALLY.` remains
+available when a real winner exists but cannot be named. Below the hero, up to three awards
 backed by match stats: `FASTEST THUMB` (best single reaction),
 `PROFESSIONALLY STUPID` (most fails) and `ON A ROLL` (longest streak, given to
 someone without an award yet). The ranking calls the clear last place

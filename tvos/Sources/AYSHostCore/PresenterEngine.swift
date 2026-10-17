@@ -108,12 +108,12 @@ public enum OfflinePresenterPack {
     public static let supportedLocales = ["en", "it", "fr", "es", "pt", "de"]
 
     public static let lines: [String: [String: [String]]] = [
-        "en": baseline("NOBODY. PROMISING.", "NOBODY READ IT. PERFECT.", "SUSPICIOUSLY COMPETENT.", "MIXED RESULTS. VERY MIXED.", "WE HAVE A WINNER. TECHNICALLY."),
-        "it": baseline("NESSUNO. PROMETTENTE.", "NESSUNO HA LETTO. PERFETTO.", "SOSPETTOSAMENTE COMPETENTI.", "RISULTATI MISTI. MOLTO MISTI.", "ABBIAMO UN VINCITORE. TECNICAMENTE."),
-        "fr": baseline("PERSONNE. PROMETTEUR.", "PERSONNE N'A LU. PARFAIT.", "ÉTRANGEMENT COMPÉTENTS.", "RÉSULTATS MITIGÉS. TRÈS MITIGÉS.", "NOUS AVONS UN GAGNANT. TECHNIQUEMENT."),
-        "es": baseline("NADIE. PROMETEDOR.", "NADIE LEYÓ. PERFECTO.", "SOSPECHOSAMENTE COMPETENTES.", "RESULTADOS MIXTOS. MUY MIXTOS.", "TENEMOS GANADOR. TÉCNICAMENTE."),
-        "pt": baseline("NINGUÉM. PROMISSOR.", "NINGUÉM LEU. PERFEITO.", "SUSPEITAMENTE COMPETENTES.", "RESULTADOS MISTOS. MUITO MISTOS.", "TEMOS UM VENCEDOR. TECNICAMENTE."),
-        "de": baseline("NIEMAND. VIELVERSPRECHEND.", "NIEMAND HAT GELESEN. PERFEKT.", "VERDÄCHTIG KOMPETENT.", "GEMISCHTE ERGEBNISSE. SEHR GEMISCHT.", "WIR HABEN EINEN SIEGER. TECHNISCH GESEHEN."),
+        "en": baseline("NOBODY. PROMISING.", "NOBODY READ IT. PERFECT.", "SUSPICIOUSLY COMPETENT.", "MIXED RESULTS. VERY MIXED.", "WE HAVE A WINNER. TECHNICALLY.", "CONGRATULATIONS TO ABSOLUTELY NOBODY."),
+        "it": baseline("NESSUNO. PROMETTENTE.", "NESSUNO HA LETTO. PERFETTO.", "SOSPETTOSAMENTE COMPETENTI.", "RISULTATI MISTI. MOLTO MISTI.", "ABBIAMO UN VINCITORE. TECNICAMENTE.", "CONGRATULAZIONI ASSOLUTAMENTE A NESSUNO."),
+        "fr": baseline("PERSONNE. PROMETTEUR.", "PERSONNE N'A LU. PARFAIT.", "ÉTRANGEMENT COMPÉTENTS.", "RÉSULTATS MITIGÉS. TRÈS MITIGÉS.", "NOUS AVONS UN GAGNANT. TECHNIQUEMENT.", "FÉLICITATIONS À ABSOLUMENT PERSONNE."),
+        "es": baseline("NADIE. PROMETEDOR.", "NADIE LEYÓ. PERFECTO.", "SOSPECHOSAMENTE COMPETENTES.", "RESULTADOS MIXTOS. MUY MIXTOS.", "TENEMOS GANADOR. TÉCNICAMENTE.", "ENHORABUENA A ABSOLUTAMENTE NADIE."),
+        "pt": baseline("NINGUÉM. PROMISSOR.", "NINGUÉM LEU. PERFEITO.", "SUSPEITAMENTE COMPETENTES.", "RESULTADOS MISTOS. MUITO MISTOS.", "TEMOS UM VENCEDOR. TECNICAMENTE.", "PARABÉNS A ABSOLUTAMENTE NINGUÉM."),
+        "de": baseline("NIEMAND. VIELVERSPRECHEND.", "NIEMAND HAT GELESEN. PERFEKT.", "VERDÄCHTIG KOMPETENT.", "GEMISCHTE ERGEBNISSE. SEHR GEMISCHT.", "WIR HABEN EINEN SIEGER. TECHNISCH GESEHEN.", "HERZLICHEN GLÜCKWUNSCH AN ABSOLUT NIEMANDEN."),
     ]
 
     public static let templates: [String: [String: [PresenterLineBook.Line]]] = Dictionary(
@@ -148,8 +148,8 @@ public enum OfflinePresenterPack {
         "de": ["king": "DER KÖNIG", "kingUndisputed": "DER UNANGEFOCHTENE KÖNIG", "doesNotRead": "DER, DER NICHT LIEST"],
     ]
 
-    private static func baseline(_ lobby: String, _ wrong: String, _ correct: String, _ mixed: String, _ end: String) -> [String: [String]] {
-        ["lobby.empty": [lobby], "result.everyoneWrong": [wrong], "result.everyoneCorrect": [correct], "result.mixed": [mixed], "gameEnd": [end]]
+    private static func baseline(_ lobby: String, _ wrong: String, _ correct: String, _ mixed: String, _ end: String, _ noWinner: String) -> [String: [String]] {
+        ["lobby.empty": [lobby], "result.everyoneWrong": [wrong], "result.everyoneCorrect": [correct], "result.mixed": [mixed], "gameEnd": [end], "gameEnd.noWinner": [noWinner]]
     }
 
     private static func resultTemplates(locale: String) -> [String: [PresenterLineBook.Line]] {
@@ -437,7 +437,10 @@ public final class PresenterEngine {
 
     public func gameEnd(winner: PresenterPlayer?) -> PresenterCue? {
         history.advance()
-        if let winner, let spoken = disambiguatedName(for: winner, among: [winner]),
+        guard let winner else {
+            return universal(keys: ["gameEnd.noWinner"], kind: .gameEnd, expiry: .whileGameEnd)
+        }
+        if let spoken = disambiguatedName(for: winner, among: [winner]),
            let text = render(template: "gameEnd.named", name: spoken) {
             return PresenterCue(id: nextId("gameEnd.named"), kind: .gameEnd, text: text, targetPlayerId: winner.id, expiry: .whileGameEnd, cacheable: true)
         }

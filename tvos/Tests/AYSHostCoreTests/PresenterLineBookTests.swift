@@ -8,6 +8,7 @@ final class PresenterLineBookTests: XCTestCase {
             let book = PresenterLineBook.builtIn(locale: locale)
             XCTAssertEqual(book.locale, locale)
             XCTAssertFalse(book.variants(for: "result.everyoneWrong", intensity: .neutral).isEmpty)
+            XCTAssertFalse(book.variants(for: "gameEnd.noWinner", intensity: .neutral).isEmpty)
             XCTAssertNotNil(book.render(template: "gameEnd.named", name: "SAM", intensity: .neutral, seed: 0))
             XCTAssertNotNil(book.render(template: "result.mixed.oneWrong.mechanic.button", name: "SAM", intensity: .savage, seed: 0))
             XCTAssertNotNil(book.render(template: "result.player.lss.lastLife", name: "SAM", intensity: .savage, seed: 0))
@@ -115,5 +116,13 @@ final class PresenterLineBookTests: XCTestCase {
     func testBuiltInBookIsValidAfterSanitizing() {
         let book = PresenterLineBook.builtIn
         XCTAssertEqual(book.sanitized(), book)
+    }
+
+    func testNoWinnerGetsItsOwnGameEndLineWithoutReplacingWinnerFallback() {
+        let engine = PresenterEngine(lineBook: .builtIn(locale: "en"))
+        XCTAssertEqual(engine.gameEnd(winner: nil)?.text, "CONGRATULATIONS TO ABSOLUTELY NOBODY.")
+
+        let anonymousWinner = PresenterPlayer(id: "1", displayName: "Player")
+        XCTAssertEqual(engine.gameEnd(winner: anonymousWinner)?.text, "WE HAVE A WINNER. TECHNICALLY.")
     }
 }

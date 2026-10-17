@@ -1,6 +1,6 @@
 ---
 tags: [development, multiplayer, testing, roadmap]
-updated: 2026-10-11
+updated: 2026-10-17
 ---
 
 # Multiplayer Development
@@ -304,6 +304,8 @@ bounded, expiring narrative careers and greet returning players. The shared Pynk
 (ElevenLabs, OpenAI fallback), the private cache and the remote pack
 (`/api/ays/presenter/pack`). The host syncs that pack and picks its lines by
 most-specific key, so copy and recordings change without a release.
+Backend changes go in the `~/Documents/Unreal Projects/siti/BePork` checkout
+(see [[Multiplayer Presenter]] → Remote presenter pack).
 **Local setup:** the shared token lives in the untracked
 `tvos/Config/Presenter.secrets.xcconfig`
 (`AYS_PRESENTER_API_TOKEN = …`, the same value as on Vercel production).

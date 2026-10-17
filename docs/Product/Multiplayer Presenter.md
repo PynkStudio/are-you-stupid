@@ -120,6 +120,13 @@ still permanent and versioned with the app.
 
 ## Remote presenter pack
 
+The working checkout of the PynkStudio backend (GitHub `PynkStudio/Menuary`) is
+`~/Documents/Unreal Projects/siti/BePork`: make every backend change and run
+every `npm run ays:*` script there. Its `.env.local` holds the Supabase and
+ElevenLabs keys; it does not define `AYS_PRESENTER_ELEVENLABS_VOICE_ID`, so
+pass it inline (`AYS_PRESENTER_ELEVENLABS_VOICE_ID=C5m0ozw0kWxM7oU5fgRY npm
+run ays:pack -- --locale it`) or the pack is re-recorded with the OpenAI voice.
+
 Universal lines, spoken-name templates and narrative title wording live in a
 **line book** published by the PynkStudio backend, so copy and recordings can
 change without an app release:
@@ -162,7 +169,8 @@ keys, most specific first, and plays the first one that has lines:
 | Round result | `<outcome>.streak3`, `result.mixed.oneWrong` / `result.mixed.oneCorrect`, `<outcome>.mechanic.<category>`, `<outcome>.firstRound`, `<outcome>` |
 | Named Savage result | `result.mixed.oneWrong.mechanic.<category>`, late first point, still zero after 3+ rounds, or wrong streak 3+, then its generic named key |
 | Lobby | `lobby.empty` |
-| Game end, no name | `gameEnd` |
+| Game end, real winner without a spoken name | `gameEnd` |
+| Game end, no winner | `gameEnd.noWinner` |
 
 `<outcome>` is `result.everyoneWrong`, `result.everyoneCorrect` or
 `result.mixed`. Publishing lines under a narrower key covers that case with
