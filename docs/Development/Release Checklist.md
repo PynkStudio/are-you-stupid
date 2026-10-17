@@ -232,6 +232,13 @@ replaces 1.0.0 (12) in review. Android: `flutter build appbundle --release`,
 and 11 iMessage core Swift tests green. Uploads need the owner: the
 Chrome/Play file-input path is capped at 10 MB and App Store Connect needs an
 interactive sign-in.
+Transporter crashed on the first delivery; the second (by the owner) landed
+1.0.0 (13) at 20:32. `xcodebuild -exportArchive` with `destination: upload`
+still fails ("Unexpected nil property at path: 'Actor/relationships/providerId'").
+iOS 1.0 (12) was removed from review (developer rejected), build 13 attached
+and a new submission draft started with iOS 1.0 (13) + Party Pack. Still to
+add before **Invia per la verifica**: Party Pack + Remove Ads and Remove Ads
+(both back to "developer rejected" after the withdrawal).
 
 **iOS 1.0.0 (12) + tvOS 1.0.0 (12) + macOS 1.0.1 (14), 2026-10-14:**
 App Review rejected tvOS 1.0.0 (11) on two grounds. Under 2.1(a) the reviewer's
