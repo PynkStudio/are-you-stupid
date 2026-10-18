@@ -11,6 +11,7 @@ library;
 import 'dart:async';
 
 import '../../core/challenge.dart';
+import '../../i18n/app_locale.dart';
 import '../networking/party_transport.dart';
 import '../protocol/protocol.dart';
 import 'party_challenge_runner.dart';
@@ -22,7 +23,9 @@ class PartySession {
     required PartyTransport transport,
     required this.appName,
     required this.appVersion,
+    AppLocale Function()? locale,
   }) : _transport = transport,
+       _locale = locale ?? (() => AppLocale.en),
        state = PartyState(),
        _events = StreamController<PartyEvent>.broadcast(sync: true),
        _stateStream = StreamController<PartyState>.broadcast(sync: true) {
@@ -32,6 +35,11 @@ class PartySession {
   final PartyTransport _transport;
   final String appName;
   final String appVersion;
+
+  /// The phone's current language, read at every `ROUND_START` so scripted
+  /// challenges speak it (a mid-match Settings change applies from the next
+  /// round). Judging is local, so phones in different languages stay fair.
+  final AppLocale Function() _locale;
 
   final PartyState state;
   late final StreamSubscription<String> _sub;
@@ -350,7 +358,7 @@ class PartySession {
       case RoundStart():
         state.round = PartyRound(
           id: message.roundId,
-          challenge: buildPartyChallenge(message),
+          challenge: buildPartyChallenge(message, locale: _locale()),
           startAt: message.startAt,
           duration: Duration(milliseconds: message.durationMs),
           challengeId: message.challengeId,

@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, client, flutter]
-updated: 2026-10-14
+updated: 2026-10-18
 ---
 
 # Multiplayer Client (Mobile)
@@ -162,13 +162,22 @@ lib/services/multiplayer_profile.dart  name/emoji/stats, SharedPreferences — l
 lib/ui/screens/multiplayer/         widget layer (controller UX) — landed (Phase 3)
 ├── mp_common.dart                  MpBackground / MpAvatar / MpTextField / leaveAndExit
 ├── mp_home_screen.dart             discovered room cards / in-app QR scan / enter code
-├── mp_join_screen.dart             resolve room → connect → name + JOIN + waiting state
+├── mp_join_screen.dart             resolve room → connect → icon + name (live pronunciation
+│                                  preview + warnings) + JOIN + waiting state
 ├── mp_lobby_screen.dart            "✓ JOINED … waiting for players" + roster + ready toggle
 ├── mp_game_screen.dart             controller ChallengeView + input (ChallengeRenderer reused);
 │                                  owns the Ticker that drives PartySession.tick each frame
-├── mp_result_screen.dart           standings + share
+├── mp_result_screen.dart           standings (Battle points, LSS `LEVEL n`), draw line + share
 └── mp_disconnect_view.dart         host-disconnected / rejected overlay
 ```
+
+**Language.** `PartySession` takes the phone's locale as a getter and
+`buildPartyChallenge` builds every scripted round in it, read at each
+`ROUND_START` (a Settings change applies from the next round). It used to
+default to English, so an all-Italian room played English challenges. The
+seed still decides the round; the locale only decides its words, and judging
+is local, so mixed-language rooms stay fair. AI-authored rounds stay English
+([[Localization and Language]]).
 
 The multiplayer widget layer reuses the existing [[Rendering Pipeline]]
 (`ChallengeRenderer`, `TargetButton`, flash overlays) to draw the controller's
@@ -233,8 +242,13 @@ is cached for the exact display name, reused on a later join, and invalidated
 as soon as the display name changes. A random persistent `personaId` lets the
 same board recognize a returning narrative career without an account or name-
 based matching. Ambiguous input tries the local Apple model, then privately
-borrows an AI-capable phone already in the room. The join form previews changed
-pronunciation and marks display-only or blocked names; the structured verdict
+borrows an AI-capable phone already in the room. The join form shows, as the
+player types, how the host will say the name (`VERRÀ PRONUNCIATO COME: LUCA`,
+always, not only when it differs from the spelling), and warns about
+display-only, still-uncertain (`name_checking`) or blocked names. It also
+offers a row of curated system-emoji icons (`MpEmojiPicker`,
+`kMpEmojiChoices`; the first chip is the default colored initial), sent as
+`JOIN_ROOM.emoji` and remembered in the profile; the structured verdict
 uses the same exact-name cache. Ambiguous players enter immediately; a lobby
 status opens the game-toned `COME TI CHIAMERÀ?` sheet, which can edit the name
 in place while analysis continues and pushes the final identity to the roster.

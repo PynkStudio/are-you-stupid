@@ -305,6 +305,9 @@ const Map<String, String> kStringsFr = {
   'ui.mp.join.playing_on': 'TU JOUES SUR : {host}',
   'ui.mp.join.name_label': 'NOM DU JOUEUR',
   'ui.mp.join.name_hint': 'TON NOM',
+  'ui.mp.join.icon_label': 'TON ICÔNE',
+  'ui.mp.join.name_checking':
+      'NOM COMPLIQUÉ. LE PRÉSENTATEUR ESSAIERA DE LE LIRE DANS LA SALLE.',
   'ui.mp.join.spoken_as': 'SERA PRONONCÉ : {name}',
   'ui.mp.join.not_spoken': 'LE PRÉSENTATEUR NE POURRA PAS PRONONCER CE NOM.',
   'ui.mp.join.nice_try': 'BIEN TENTÉ. CHOISIS UN AUTRE NOM.',
@@ -350,6 +353,7 @@ const Map<String, String> kStringsFr = {
 
   'ui.mp.result.title': 'PARTIE TERMINÉE',
   'ui.mp.result.winner': '{name} GAGNE',
+  'ui.mp.result.tie': 'ÉGALITÉ. ÉGALEMENT STUPIDES.',
   'ui.mp.result.your_standing': 'TU AS FINI #{n}',
   'ui.mp.result.share': 'PARTAGER',
   'ui.mp.result.menu': 'RETOUR AU MENU',
@@ -359,7 +363,8 @@ const Map<String, String> kStringsFr = {
   'ui.mp.disconnect.rejected': 'IMPOSSIBLE DE REJOINDRE : {reason}',
   'ui.mp.disconnect.menu': 'RETOUR AU MENU',
 
-  'ui.mp.share.line1': 'On a joué à ES-TU STUPIDE ?! sur la TV. {name} a gagné.',
+  'ui.mp.share.line1':
+      'On a joué à ES-TU STUPIDE ?! sur la TV. {name} a gagné.',
   'ui.mp.share.line2': 'Tu penses pouvoir nous battre ?',
 
   'share.line1': 'J\'ai atteint le Niveau {level} dans ES-TU STUPIDE ?!',

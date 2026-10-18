@@ -80,6 +80,61 @@ class MpAvatar extends StatelessWidget {
   }
 }
 
+/// Curated player icons: system emoji, so still no bundled assets. Picked
+/// for reading at a glance on the board, never people or flags.
+const kMpEmojiChoices = [
+  '🤡', '🦄', '🐸', '🦆', '🐷', '🐵', '🦖', '🐙', //
+  '🍕', '🌮', '🥔', '🔥', '💀', '👽', '🤖', '🧠',
+];
+
+/// One horizontal row of icons. The first chip is the default
+/// colored-initial avatar (empty emoji); tapping the selected icon keeps it.
+class MpEmojiPicker extends StatelessWidget {
+  const MpEmojiPicker({
+    super.key,
+    required this.seed,
+    required this.name,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String seed;
+  final String name;
+  final String selected;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 52,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: kMpEmojiChoices.length + 1,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (context, i) {
+          final emoji = i == 0 ? '' : kMpEmojiChoices[i - 1];
+          final isSelected = emoji == selected;
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => onSelected(emoji),
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? Ays.ink : Colors.transparent,
+                  width: 3,
+                ),
+              ),
+              child: MpAvatar(seed: seed, name: name, emoji: emoji, size: 40),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 /// The one themed text input used across the join flow (name, room code) —
 /// no Material defaults, matches [AysButton]'s flat/dark language.
 class MpTextField extends StatelessWidget {

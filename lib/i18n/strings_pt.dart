@@ -302,6 +302,9 @@ const Map<String, String> kStringsPt = {
   'ui.mp.join.playing_on': 'VOCÊ ESTÁ JOGANDO EM: {host}',
   'ui.mp.join.name_label': 'NOME DO JOGADOR',
   'ui.mp.join.name_hint': 'SEU NOME',
+  'ui.mp.join.icon_label': 'O TEU ÍCONE',
+  'ui.mp.join.name_checking':
+      'NOME DIFÍCIL. O APRESENTADOR VAI TENTAR LÊ-LO NA SALA.',
   'ui.mp.join.spoken_as': 'SERÁ PRONUNCIADO: {name}',
   'ui.mp.join.not_spoken': 'O APRESENTADOR NÃO PODERÁ PRONUNCIAR ESTE NOME.',
   'ui.mp.join.nice_try': 'BOA TENTATIVA. ESCOLHA OUTRO NOME.',
@@ -347,6 +350,7 @@ const Map<String, String> kStringsPt = {
 
   'ui.mp.result.title': 'FIM DE JOGO',
   'ui.mp.result.winner': '{name} VENCEU',
+  'ui.mp.result.tie': 'EMPATE. IGUALMENTE ESTÚPIDOS.',
   'ui.mp.result.your_standing': 'VOCÊ FICOU EM #{n}',
   'ui.mp.result.share': 'COMPARTILHAR',
   'ui.mp.result.menu': 'VOLTAR AO MENU',

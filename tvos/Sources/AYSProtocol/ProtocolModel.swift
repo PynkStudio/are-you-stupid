@@ -631,6 +631,16 @@ public struct GameEnd: PartyMessage, Equatable {
         return envelope(type, ts, wire)
     }
 
+    /// Players sharing first place when a Stupid Battle ends in a draw (no
+    /// `winnerId`, several standing-1 entries). Derived, not on the wire:
+    /// shared standings already say it. Empty for a decided match and for a
+    /// Last Stupid Standing wipe-out, which is "nobody survived", not a draw.
+    public var tiedLeaderIds: [String] {
+        guard mode == .stupidBattle, winnerId == nil else { return [] }
+        let leaders = results.filter { $0.standing == 1 }.map(\.playerId)
+        return leaders.count > 1 ? leaders : []
+    }
+
     public static func fromWire(_ w: [String: Any], ts: Int) -> GameEnd {
         GameEnd(
             mode: GameMode.fromWire(w["mode"]),

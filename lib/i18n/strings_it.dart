@@ -276,7 +276,8 @@ const Map<String, String> kStringsIt = {
   'ui.mp.enter_code.join': 'ENTRA',
 
   'ui.mp.primer.title': 'PRIMA UNA COSA',
-  'ui.mp.primer.body': 'PER GIOCARE SULLA TV, QUESTO DISPOSITIVO HA BISOGNO DI:',
+  'ui.mp.primer.body':
+      'PER GIOCARE SULLA TV, QUESTO DISPOSITIVO HA BISOGNO DI:',
   'ui.mp.primer.macos_body':
       'PER ENTRARE NELLA PARTITA, QUESTO MAC HA BISOGNO DI:',
   'ui.mp.primer.network_title': 'RETE LOCALE',
@@ -285,7 +286,8 @@ const Map<String, String> kStringsIt = {
   'ui.mp.primer.camera_title': 'FOTOCAMERA (FACOLTATIVA)',
   'ui.mp.primer.camera_body':
       'SOLO PER SCANSIONARE IL QR CODE. PUOI ANCHE SCRIVERE IL CODICE.',
-  'ui.mp.primer.footer': 'TI VERRÀ CHIESTO. TOCCA CONSENTI. NON È UNA DOMANDA TRABOCCHETTO.',
+  'ui.mp.primer.footer':
+      'TI VERRÀ CHIESTO. TOCCA CONSENTI. NON È UNA DOMANDA TRABOCCHETTO.',
   'ui.mp.primer.macos_footer':
       'IL MAC POTREBBE CHIEDERLO. FAI CLIC SU CONSENTI PER TROVARE LA PARTITA.',
   'ui.mp.primer.continue': 'CONTINUA',
@@ -307,6 +309,9 @@ const Map<String, String> kStringsIt = {
   'ui.mp.join.playing_on': 'STAI GIOCANDO SU: {host}',
   'ui.mp.join.name_label': 'NOME GIOCATORE',
   'ui.mp.join.name_hint': 'IL TUO NOME',
+  'ui.mp.join.icon_label': 'LA TUA ICONA',
+  'ui.mp.join.name_checking':
+      'NOME DIFFICILE. IL PRESENTATORE PROVERÀ A LEGGERLO IN STANZA.',
   'ui.mp.join.spoken_as': 'VERRÀ PRONUNCIATO COME: {name}',
   'ui.mp.join.not_spoken':
       'QUESTO NOME NON POTRÀ ESSERE PRONUNCIATO DAL PRESENTATORE.',
@@ -354,6 +359,7 @@ const Map<String, String> kStringsIt = {
 
   'ui.mp.result.title': 'PARTITA FINITA',
   'ui.mp.result.winner': '{name} VINCE',
+  'ui.mp.result.tie': 'PAREGGIO. UGUALMENTE STUPIDI.',
   'ui.mp.result.your_standing': 'TI SEI CLASSIFICATO #{n}',
   'ui.mp.result.share': 'CONDIVIDI',
   'ui.mp.result.menu': 'TORNA AL MENU',

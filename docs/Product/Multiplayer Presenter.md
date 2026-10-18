@@ -1,6 +1,6 @@
 ---
 tags: [product, multiplayer, audio, ai, presenter]
-updated: 2026-10-17
+updated: 2026-10-18
 ---
 
 # Multiplayer Presenter
@@ -56,6 +56,26 @@ contract.
 
 Lines stay short and subtitle verbatim. Highlighting the target card makes
 `MA CE LA FAI?` unambiguous without a name. Voice has a separate toggle.
+
+## When the host speaks
+
+Playtests (2026-10-18) found a comment after every round tiresome: the host
+must have a reason to talk. `PresenterEngine.roundResult` now passes a story
+gate (`hasStory`) before it picks any line; an ordinary round emits no cue.
+A round result is worth a line when:
+
+- a narrative title is earned (always, it is the strongest fact);
+- the whole room failed;
+- the same outcome happened three rounds running (including three
+  all-correct rounds), then again every third round, not every round;
+- a player failed again (wrong streak of 2+);
+- Last Stupid Standing: a player who failed is down to the last life or out;
+- Stupid Battle: a player scores for the first time four rounds in;
+- a lone failure in a room that otherwise got it right — but only after a
+  silent result beat, so a big room does not hear one every round.
+
+Lobby, returning-player and game-end beats are unchanged. Silent beats still
+advance the repetition clock below.
 
 ## Cache-first voice ladder
 
@@ -170,7 +190,8 @@ keys, most specific first, and plays the first one that has lines:
 | Named Savage result | `result.mixed.oneWrong.mechanic.<category>`, late first point, still zero after 3+ rounds, or wrong streak 3+, then its generic named key |
 | Lobby | `lobby.empty` |
 | Game end, real winner without a spoken name | `gameEnd` |
-| Game end, no winner | `gameEnd.noWinner` |
+| Game end, no winner (Last Stupid Standing wipe-out) | `gameEnd.noWinner` |
+| Game end, Stupid Battle draw | `gameEnd.tie` |
 
 `<outcome>` is `result.everyoneWrong`, `result.everyoneCorrect` or
 `result.mixed`. Publishing lines under a narrower key covers that case with

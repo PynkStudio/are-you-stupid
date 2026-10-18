@@ -304,6 +304,9 @@ const Map<String, String> kStringsDe = {
   'ui.mp.join.playing_on': 'DU SPIELST AUF: {host}',
   'ui.mp.join.name_label': 'SPIELERNAME',
   'ui.mp.join.name_hint': 'DEIN NAME',
+  'ui.mp.join.icon_label': 'DEIN ICON',
+  'ui.mp.join.name_checking':
+      'SCHWIERIGER NAME. DER MODERATOR VERSUCHT ES IM RAUM.',
   'ui.mp.join.spoken_as': 'WIRD AUSGESPROCHEN ALS: {name}',
   'ui.mp.join.not_spoken': 'DER MODERATOR KANN DIESEN NAMEN NICHT AUSSPRECHEN.',
   'ui.mp.join.nice_try': 'NETTER VERSUCH. NIMM EINEN ANDEREN NAMEN.',
@@ -351,6 +354,7 @@ const Map<String, String> kStringsDe = {
 
   'ui.mp.result.title': 'SPIEL VORBEI',
   'ui.mp.result.winner': '{name} GEWINNT',
+  'ui.mp.result.tie': 'UNENTSCHIEDEN. GLEICH DUMM.',
   'ui.mp.result.your_standing': 'DU HAST PLATZ #{n} ERREICHT',
   'ui.mp.result.share': 'TEILEN',
   'ui.mp.result.menu': 'ZURÜCK ZUM MENÜ',

@@ -407,7 +407,7 @@ final class HostViewModel: ObservableObject {
                 rememberCareer(playerId: winnerId)
             }
             for player in roster where player.playerId != m.winnerId { rememberCareer(playerId: player.playerId) }
-            if let cue = presenterEngine.gameEnd(winner: winner) { present(cue) }
+            if let cue = presenterEngine.gameEnd(winner: winner, tie: !m.tiedLeaderIds.isEmpty) { present(cue) }
         case let m as AiDirectorAssignment:
             directorName = m.directorPeerId.map(name(for:))
         case let m as AiChallengeRound:

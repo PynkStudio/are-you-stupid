@@ -588,6 +588,8 @@ class PartyHostReference {
           if (seat.alive) seat,
       ];
       for (final seat in alive) {
+        // LSS score = the round reached (mirrors RoomHost).
+        seat.score = _roundIndex;
         final r = round.judged[seat.playerId];
         if (r != null && !r.correct) {
           seat.lives -= 1;
@@ -653,23 +655,31 @@ class PartyHostReference {
     order.sort((a, b) {
       final sa = _seat(a)!;
       final sb = _seat(b)!;
-      if (_mode == GameMode.lastStupidStanding) {
-        final livesDiff = sb.lives.compareTo(sa.lives);
-        if (livesDiff != 0) return livesDiff;
-        const alive = 1 << 30;
-        final outDiff = (sb.eliminatedAtRound ?? alive).compareTo(
-          sa.eliminatedAtRound ?? alive,
-        );
-        if (outDiff != 0) return outDiff;
-      }
-      final scoreDiff = sb.score.compareTo(sa.score);
-      if (scoreDiff != 0) return scoreDiff;
+      final rank = _compareResult(sa, sb);
+      if (rank != 0) return rank;
       return sa.joinOrder.compareTo(sb.joinOrder);
     });
     return order;
   }
 
-  int _standingFor(_Seat seat) => _standings().indexOf(seat.playerId) + 1;
+  /// Negative when [sa] has the strictly better result; 0 is a tie (join
+  /// order excluded). Mirrors `RoomHost.outranks`.
+  int _compareResult(_Seat sa, _Seat sb) {
+    if (_mode == GameMode.lastStupidStanding) {
+      final livesDiff = sb.lives.compareTo(sa.lives);
+      if (livesDiff != 0) return livesDiff;
+      const alive = 1 << 30;
+      final outDiff = (sb.eliminatedAtRound ?? alive).compareTo(
+        sa.eliminatedAtRound ?? alive,
+      );
+      if (outDiff != 0) return outDiff;
+    }
+    return sb.score.compareTo(sa.score);
+  }
+
+  /// Competition ranking (1, 1, 3): tied seats share a standing.
+  int _standingFor(_Seat seat) =>
+      _seats.values.where((s) => _compareResult(s, seat) < 0).length + 1;
 
   String? _soleSurvivor() {
     for (final seat in _seats.values) {
@@ -701,7 +711,9 @@ class PartyHostReference {
         return;
       }
     } else if (_roundIndex >= battleRounds) {
-      _finish(winnerId: _standings().first);
+      final order = _standings();
+      final leaders = order.where((id) => _standingFor(_seat(id)!) == 1);
+      _finish(winnerId: leaders.length == 1 ? order.first : null);
       return;
     }
   }
@@ -720,7 +732,7 @@ class PartyHostReference {
               lives: _mode == GameMode.lastStupidStanding
                   ? _seat(standings[i])!.lives
                   : null,
-              standing: i + 1,
+              standing: _standingFor(_seat(standings[i])!),
             ),
         ],
         winnerId: winnerId,

@@ -48,9 +48,15 @@ struct LobbyView: View {
                 PresenterOptionsView(model: model)
             }
             .overlay(alignment: .bottomLeading) {
-                Button(model.strings(.options)) { showingOptions = true }
-                    .font(Theme.label(12))
-                    .padding(.horizontal, 16).padding(.vertical, 10)
+                // The padding and contentShape live inside the label: a
+                // macOS `.plain` button only hit-tests its label, so the
+                // whole pill must be label or only the text is clickable.
+                Button { showingOptions = true } label: {
+                    Text(model.strings(.options))
+                        .font(Theme.label(12))
+                        .padding(.horizontal, 16).padding(.vertical, 10)
+                        .contentShape(Rectangle())
+                }
                     .background(.black.opacity(0.32), in: RoundedRectangle(cornerRadius: 10))
                     .foregroundStyle(Color.white.opacity(0.68))
                     .padding(compact ? 18 : 28)
@@ -237,8 +243,11 @@ private struct PresenterOptionsView: View {
     }
 
     private func option(_ label: String, selected: Bool, action: @escaping () -> Void) -> some View {
-        Button(label, action: action)
-            .font(Theme.label(13)).padding(.horizontal, 18).padding(.vertical, 12)
+        Button(action: action) {
+            Text(label)
+                .font(Theme.label(13)).padding(.horizontal, 18).padding(.vertical, 12)
+                .contentShape(Rectangle())
+        }
             .background(selected ? Theme.sunshine : Color.white.opacity(0.09))
             .foregroundStyle(selected ? Theme.ink : .white)
             .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -325,6 +334,7 @@ private struct StartPanel: View {
                     Text(model.canStart ? "→" : "\(model.readyCount)/2")
                 }
                 .font(Theme.title(20)).padding(.horizontal, 22).padding(.vertical, 16).frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
             }
             .disabled(!model.canStart)
             .background(model.canStart ? Theme.sunshine : Color.white.opacity(0.09))
@@ -356,6 +366,7 @@ private struct ModePicker: View {
                 Text(title).font(Theme.label(13)).lineLimit(1)
                 Text(detail).font(Theme.label(9)).opacity(0.65)
             }.frame(maxWidth: .infinity).padding(.vertical, 11)
+            .contentShape(Rectangle())
         }
         .background(selected ? Theme.cyan : Theme.cardBackground.opacity(0.8))
         .foregroundStyle(selected ? Theme.ink : .white)

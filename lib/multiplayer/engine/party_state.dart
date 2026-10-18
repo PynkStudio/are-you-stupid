@@ -333,13 +333,18 @@ class PartyAiNameAnalysisResultEvent extends PartyEvent {
 }
 
 /// Builds the canonical local challenge for a round, exactly as every other
-/// clip does, from the host's `ROUND_START` tuple.
-Challenge buildPartyChallenge(RoundStart start) {
+/// clip does, from the host's `ROUND_START` tuple, in this phone's [locale]
+/// (the seed decides the round; the locale only decides its words).
+Challenge buildPartyChallenge(
+  RoundStart start, {
+  AppLocale locale = AppLocale.en,
+}) {
   final level = (start.config['level'] as int?) ?? 1;
   return buildFromSeed(
     challengeId: start.challengeId,
     seed: start.seed,
     level: level,
+    locale: locale,
   );
 }
 

@@ -280,6 +280,25 @@ void main() {
       expect(a.state.gameEnd!.results, isNotEmpty);
     });
 
+    test('a shared top score is a draw, not a win by join order', () {
+      final h = PartyHarness(battleRounds: 1);
+      final a = h.addClient(name: 'Ana');
+      final b = h.addClient(name: 'Bob');
+      a.join(name: 'Ana');
+      b.join(name: 'Bob');
+      a.ready();
+      b.ready();
+      h.host.startGame(mode: GameMode.stupidBattle);
+      h.host.startRound(challengeId: 'tap_exactly_n', seed: 21, level: 2);
+      a.commitCount(a.correctTapCount()!);
+      b.commitCount(b.correctTapCount()!);
+      h.host.completeRound();
+
+      final end = a.state.gameEnd!;
+      expect(end.winnerId, isNull);
+      expect([for (final r in end.results) r.standing], [1, 1]);
+    });
+
     test('correct but slower player does not get the top bonus', () {
       // Both correct, but Ana reacts first, Bob later. Ana takes the +50 top
       // bonus (150), Bob only the +25 second-place bonus (125). If the

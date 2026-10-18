@@ -220,7 +220,8 @@ const Map<String, String> kStringsEs = {
   'ui.settings.privacy_choices': 'OPCIONES DE PRIVACIDAD (ANUNCIOS)',
   'ui.settings.reset_stats': 'REINICIAR ESTADÍSTICAS',
   'ui.settings.back': 'ATRÁS',
-  'ui.settings.footer': 'SIN CONEXIÓN. SIN CUENTA. NADA SALE DE ESTE DISPOSITIVO.',
+  'ui.settings.footer':
+      'SIN CONEXIÓN. SIN CUENTA. NADA SALE DE ESTE DISPOSITIVO.',
   'ui.settings.made_by': 'Creado por PynkStudio',
   'ui.settings.reset_title': '¿REINICIAR TODO?',
   'ui.settings.reset_body': 'Mejor nivel, intentos y rachas. Desaparecidos.',
@@ -303,6 +304,9 @@ const Map<String, String> kStringsEs = {
   'ui.mp.join.playing_on': 'ESTÁS JUGANDO EN: {host}',
   'ui.mp.join.name_label': 'NOMBRE DE JUGADOR',
   'ui.mp.join.name_hint': 'TU NOMBRE',
+  'ui.mp.join.icon_label': 'TU ICONO',
+  'ui.mp.join.name_checking':
+      'NOMBRE DIFÍCIL. EL PRESENTADOR INTENTARÁ LEERLO EN LA SALA.',
   'ui.mp.join.spoken_as': 'SE PRONUNCIARÁ: {name}',
   'ui.mp.join.not_spoken': 'EL PRESENTADOR NO PODRÁ PRONUNCIAR ESTE NOMBRE.',
   'ui.mp.join.nice_try': 'BUEN INTENTO. ELIGE OTRO NOMBRE.',
@@ -349,6 +353,7 @@ const Map<String, String> kStringsEs = {
 
   'ui.mp.result.title': 'PARTIDA TERMINADA',
   'ui.mp.result.winner': '{name} GANA',
+  'ui.mp.result.tie': 'EMPATE. IGUAL DE ESTÚPIDOS.',
   'ui.mp.result.your_standing': 'TERMINASTE #{n}',
   'ui.mp.result.share': 'COMPARTIR',
   'ui.mp.result.menu': 'VOLVER AL MENÚ',

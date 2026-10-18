@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, protocol, contract]
-updated: 2026-10-14
+updated: 2026-10-18
 ---
 
 # Multiplayer Protocol
@@ -112,7 +112,7 @@ Message := { "protocolVersion": int,
 | `START_GAME` | host → clients | `{ mode, config }` | only sent when ≥2 ready |
 | `PLAYER_DISCONNECTED` | host → clients | `{ playerId }` | in-match disconnect, grace window applies (below) |
 | `PLAYER_RECONNECTED` | host → clients | `{ playerId }` | grace-window reconnect restored state |
-| `GAME_END` | host → clients | `{ mode, results[], winnerId }` | final; clients render result + share |
+| `GAME_END` | host → clients | `{ mode, results[], winnerId }` | final; clients render result + share. `winnerId` is absent on a Last Stupid Standing wipe-out and on a Stupid Battle draw; tied results share a `standing` (competition ranking, `1, 1, 3`), so a draw is "Battle, no `winnerId`, several standing-1 entries" (Swift `GameEnd.tiedLeaderIds`). In Last Stupid Standing `score` is the round reached, not points |
 | `REMATCH_REQUEST` | client → host | `{}` | explicit result-screen tap; first request wins |
 | `AD_BREAK_STARTED` | host → clients | `{ playerId }` | requesting phone alone shows the ad; peers/board show troll copy |
 | `AD_BREAK_FINISHED` | requesting client → host | `{}` | dismissal, failure, offline or no-fill all complete the break |

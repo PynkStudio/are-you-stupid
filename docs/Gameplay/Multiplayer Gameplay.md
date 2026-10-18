@@ -1,6 +1,6 @@
 ---
 tags: [gameplay, multiplayer, modes, design]
-updated: 2026-10-17
+updated: 2026-10-18
 ---
 
 # Multiplayer Gameplay
@@ -23,11 +23,14 @@ when the mode ships, the notes get bumped to match exactly what runs.
   survivors all lose their final life in the same round: then there is no
   winner (`winnerId` is null) and the board says `NOBODY SURVIVED`.
 - **Standings rank by survival**: lives left, then how late a player went out
-  (the first one eliminated ranks last), then join order for players still
-  tied (e.g. eliminated in the same round). Score is always 0 in this mode, so
-  it never decides a rank. The same order feeds every `PLAYER_SCORE.standing`
-  (sent after all of the round's lives are settled) and `GAME_END`, so the
-  phones' final `#n` and the board agree.
+  (the first one eliminated ranks last). There are no points in this mode:
+  the score field carries the **round the player reached** (the round that
+  knocked them out, or the last round for the survivor), and the phones'
+  final list shows it as `LEVEL n` instead of a meaningless `0`. Players
+  still tied (out in the same round) **share** the standing (`1, 2, 2, 4`);
+  join order only orders the list. The same ranking feeds every
+  `PLAYER_SCORE.standing` (sent after all of the round's lives are settled)
+  and `GAME_END`, so the phones' final `#n` and the board agree.
 - Winner revealed as **THE LEAST STUPID PERSON IN THE ROOM**, with a host
   winner animation.
 
@@ -42,6 +45,11 @@ when the mode ships, the notes get bumped to match exactly what runs.
 - After each round the TV shows a standings board (medals + scores), and at the
   end shows `FINAL RESULTS` + `WINNER`.
 - Lives are not used; elimination never happens. Losing is just a low score.
+- **A shared top score is a draw.** `GAME_END` carries no `winnerId` and every
+  leader has standing 1; nobody is crowned by join order (the 2026-10-18
+  playtest bug). The board shows `IT'S A TIE / EQUALLY STUPID.` with every
+  leader and the shared score, the phones show the draw line plus the
+  leaders' names, and the presenter uses its own `gameEnd.tie` line.
 
 ## Shared round flow (both modes)
 
@@ -143,7 +151,9 @@ GIULIA   490
 ## Humor lines (playful, never every round)
 
 The TV occasionally reacts to mistakes, drawn from a small pool — never shown
-after every round, never hostile to the person ([[Humor and Roasts]] tone):
+after every round, never hostile to the person ([[Humor and Roasts]] tone).
+The presenter enforces this with a story gate: an ordinary round is silent
+([[Multiplayer Presenter]] "When the host speaks"):
 
 - `LUCA. REALLY?` · `YOU HAD ONE JOB.` · `MASSIMO IS COOKING.`
 - `NOBODY READS INSTRUCTIONS.` · `THAT WAS EMBARRASSING.` · `BRO.`

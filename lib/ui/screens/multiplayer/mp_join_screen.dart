@@ -76,6 +76,9 @@ class _MpJoinScreenState extends State<MpJoinScreen>
   bool _nameSeeded = false;
   SpokenIdentity? _resolvedIdentity;
 
+  /// The icon picked on this form; seeded from the saved profile.
+  String? _emoji;
+
   @override
   void initState() {
     super.initState();
@@ -207,6 +210,7 @@ class _MpJoinScreenState extends State<MpJoinScreen>
     }
 
     setState(() => _stage = _Stage.connecting);
+    final settings = AppServices.of(context).settings;
     try {
       final transport = await SocketPartyTransport.connect(
         candidate.address,
@@ -220,6 +224,7 @@ class _MpJoinScreenState extends State<MpJoinScreen>
         transport: transport,
         appName: 'ARE YOU STUPID?!',
         appVersion: _kAppVersion,
+        locale: () => settings.locale,
       );
       _session = session;
       _aiDirector = PartyAiDirector(
@@ -283,7 +288,7 @@ class _MpJoinScreenState extends State<MpJoinScreen>
     final services = AppServices.of(context);
     await services.multiplayerProfile.setProfile(
       playerName: _nameController.text.trim(),
-      emoji: services.multiplayerProfile.emoji,
+      emoji: _emoji ?? services.multiplayerProfile.emoji,
       spokenIdentity:
           _resolvedIdentity ??
           services.multiplayerProfile.spokenIdentityFor(_nameController.text),
@@ -314,7 +319,7 @@ class _MpJoinScreenState extends State<MpJoinScreen>
     _resolvedIdentity = identity;
     session.joinRoom(
       playerName: name,
-      emoji: services.multiplayerProfile.emoji,
+      emoji: _emoji ?? services.multiplayerProfile.emoji,
       noAds: services.settings.adsRemoved,
       partyPack: services.settings.partyCapacityUnlocked,
       personaId: services.multiplayerProfile.personaId,
@@ -503,6 +508,11 @@ class _MpJoinScreenState extends State<MpJoinScreen>
 
       case _Stage.form:
         final hostName = _lastState?.host?.hostName ?? '';
+        final emoji = _emoji ?? services.multiplayerProfile.emoji;
+        final typed = _nameController.text.trim();
+        // Refreshed on every keystroke (`_refreshNamePreview`), so the
+        // pronunciation and any warning show before joining.
+        final identity = typed.isEmpty ? null : _resolvedIdentity;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -521,16 +531,43 @@ class _MpJoinScreenState extends State<MpJoinScreen>
               style: Ays.label(14, color: Ays.inkDim),
             ),
             const SizedBox(height: 8),
-            MpTextField(
-              controller: _nameController,
-              hint: t('ui.mp.join.name_hint'),
-              autofocus: true,
-              onSubmitted: (_) => _submitJoin(),
+            Row(
+              children: [
+                MpAvatar(
+                  seed: services.multiplayerProfile.personaId,
+                  name: typed,
+                  emoji: emoji,
+                  size: 56,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: MpTextField(
+                    controller: _nameController,
+                    hint: t('ui.mp.join.name_hint'),
+                    autofocus: true,
+                    onSubmitted: (_) => _submitJoin(),
+                  ),
+                ),
+              ],
             ),
-            if (_resolvedIdentity case final identity?) ...[
+            const SizedBox(height: 14),
+            Text(
+              t('ui.mp.join.icon_label'),
+              style: Ays.label(14, color: Ays.inkDim),
+            ),
+            const SizedBox(height: 6),
+            MpEmojiPicker(
+              seed: services.multiplayerProfile.personaId,
+              name: typed,
+              selected: emoji,
+              onSelected: (value) {
+                services.sound.button();
+                setState(() => _emoji = value);
+              },
+            ),
+            if (identity != null) ...[
               if (identity.spokenName != null &&
-                  identity.spokenName!.toLowerCase() !=
-                      identity.displayName.toLowerCase()) ...[
+                  identity.policy != NameSpeechPolicy.blocked) ...[
                 const SizedBox(height: 10),
                 Text(
                   t('ui.mp.join.spoken_as', {
@@ -538,6 +575,14 @@ class _MpJoinScreenState extends State<MpJoinScreen>
                   }),
                   textAlign: TextAlign.center,
                   style: Ays.mono(12, color: Ays.inkDim),
+                ),
+              ],
+              if (identity.needsAi) ...[
+                const SizedBox(height: 10),
+                Text(
+                  t('ui.mp.join.name_checking'),
+                  textAlign: TextAlign.center,
+                  style: Ays.mono(12, color: Ays.warning),
                 ),
               ],
               if (identity.policy == NameSpeechPolicy.displayOnly) ...[

@@ -241,4 +241,40 @@ final class PresenterEngineTests: XCTestCase {
         ]
         XCTAssertTrue(engine.likelyNamedLines(challengeId: "math", mode: .battle, players: players).isEmpty)
     }
+
+    /// Playtest: a line after every round was noise. An ordinary round is
+    /// silent; the whole room failing, the same player failing twice, and a
+    /// room-wide streak of three still get a line.
+    func testHostOnlySpeaksWhenTheRoundHasAStory() {
+        let players = ["1", "2", "3"].map { PresenterPlayer(id: $0, displayName: "P\($0)") }
+        func engine() -> (_ right: [String], _ wrong: [String]) -> [PresenterCue] {
+            let engine = PresenterEngine(intensity: .neutral, lineBook: .builtIn(locale: "en"))
+            return { right, wrong in
+                engine.roundResult(.init(roundId: UUID().uuidString, correctPlayerIds: right, wrongPlayerIds: wrong), players: players)
+            }
+        }
+        var result = engine()
+        XCTAssertTrue(result(["1", "2", "3"], []).isEmpty, "everyone right once is not a story")
+        XCTAssertTrue(result(["1"], ["2", "3"]).isEmpty, "an ordinary mixed round is not a story")
+        XCTAssertFalse(result(["1"], ["2", "3"]).isEmpty, "the same players failed again")
+
+        result = engine()
+        XCTAssertFalse(result([], ["1", "2", "3"]).isEmpty, "the whole room failed")
+
+        result = engine()
+        XCTAssertTrue(result(["1", "2", "3"], []).isEmpty)
+        XCTAssertTrue(result(["1", "2", "3"], []).isEmpty)
+        XCTAssertFalse(result(["1", "2", "3"], []).isEmpty, "three all-correct rounds in a row")
+
+        result = engine()
+        XCTAssertFalse(result(["1", "2"], ["3"]).isEmpty, "a lone failure after a quiet beat")
+        XCTAssertTrue(result(["2", "3"], ["1"]).isEmpty, "but not two rounds running")
+    }
+
+    func testBattleDrawGetsATieLineNotANoWinnerLine() throws {
+        let engine = PresenterEngine(lineBook: .builtIn(locale: "it"))
+        let cue = try XCTUnwrap(engine.gameEnd(winner: nil, tie: true))
+        XCTAssertTrue(cue.text.contains("PAREGGIO") || cue.text.contains("PARI"))
+        XCTAssertFalse(cue.text.contains("NESSUNO.") && cue.text.contains("CONGRATULAZIONI"))
+    }
 }

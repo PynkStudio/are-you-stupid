@@ -1,6 +1,6 @@
 ---
 tags: [ai, localization, language]
-updated: 2026-10-02
+updated: 2026-10-18
 ---
 
 # Localization and Language
@@ -24,7 +24,7 @@ supports all six languages; the limit was ours, not Apple Intelligence's.
 |---|---|---|
 | `en` | generated, instruction **under 8 words**, strict ASCII | generated, ASCII |
 | it/fr/es/pt/de | generated **in that language**, instruction **up to 10 words**, Latin script, **+1 s** (+2 s past 7 words) | generated in that language, Latin script |
-| multiplayer (any) | English (the Director asks in `en` for everyone) | English, ASCII on the wire |
+| multiplayer (any) | English (the Director asks in `en` for everyone); scripted rounds use each phone's language | English, ASCII on the wire |
 
 Anything the model gets wrong still lands on the fully-localized scripted
 bank / static roasts — the fallback ladder is unchanged.

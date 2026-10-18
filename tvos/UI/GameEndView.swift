@@ -21,7 +21,7 @@ struct GameEndView: View {
 
     var body: some View {
         ZStack {
-            GameStageBackground(accent: gameEnd.winnerId == nil ? Theme.wrong : Theme.sunshine)
+            GameStageBackground(accent: gameEnd.winnerId == nil && gameEnd.tiedLeaderIds.isEmpty ? Theme.wrong : Theme.sunshine)
             BoardCanvas { u in
                 VStack(alignment: .leading, spacing: 0) {
                     BoardHeader(title: model.strings(.final), detail: headerDetail, unit: u)
@@ -30,6 +30,8 @@ struct GameEndView: View {
                             if let winnerId = gameEnd.winnerId,
                                let entry = standings.first(where: { $0.playerId == winnerId }) {
                                 WinnerHero(model: model, entry: entry, mode: gameEnd.mode, unit: u)
+                            } else if !gameEnd.tiedLeaderIds.isEmpty {
+                                TieHero(model: model, gameEnd: gameEnd, unit: u)
                             } else {
                                 NobodyWonHero(strings: model.strings, unit: u)
                             }
@@ -123,6 +125,30 @@ private struct NobodyWonHero: View {
     }
 }
 
+/// A Stupid Battle that ends on a shared top score: nobody is crowned by
+/// join order. Every leader is named, and the score they share.
+private struct TieHero: View {
+    @ObservedObject var model: HostViewModel
+    let gameEnd: GameEnd
+    let unit: CGFloat
+
+    var body: some View {
+        let leaders = gameEnd.tiedLeaderIds
+        let score = gameEnd.results.first { $0.standing == 1 }?.score ?? 0
+        VStack(alignment: .leading, spacing: 10 * unit) {
+            Text(model.strings(.itsATie)).font(Theme.label(16 * unit)).tracking(3 * unit).foregroundStyle(Theme.cyan)
+            Text(model.strings(.equallyStupid))
+                .font(.system(size: 104 * unit, weight: .black, design: .rounded))
+                .foregroundStyle(Theme.sunshine).lineLimit(2).minimumScaleFactor(0.5)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(leaders.map { "\(model.emoji(for: $0)) \(model.name(for: $0))" }.joined(separator: "   "))
+                .font(Theme.title(30 * unit)).lineLimit(2).minimumScaleFactor(0.5)
+            Text(model.strings(.tiedOn, ["n": score]))
+                .font(Theme.label(19 * unit)).foregroundStyle(Color.white.opacity(0.72))
+        }
+    }
+}
+
 /// Up to three awards, each backed by a real stat from this match. An award
 /// with no qualifying data (nobody failed, no reaction times) is skipped.
 private struct AwardsRow: View {
@@ -209,7 +235,7 @@ private struct FinalStandings: View {
             Text(model.strings(.finalStandings)).font(Theme.label(13 * unit)).tracking(2 * unit)
                 .foregroundStyle(Color.white.opacity(0.5)).padding(.bottom, 6 * unit)
             ForEach(standings, id: \.playerId) { entry in
-                let isWinner = entry.playerId == gameEnd.winnerId
+                let isWinner = entry.playerId == gameEnd.winnerId || gameEnd.tiedLeaderIds.contains(entry.playerId)
                 let isLast = entry.playerId == clearLastPlace
                 let size: CGFloat = (dense ? 15 : 19) * unit
                 HStack(spacing: 12 * unit) {

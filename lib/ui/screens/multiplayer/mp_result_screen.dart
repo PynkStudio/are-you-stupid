@@ -145,11 +145,23 @@ class _MpResultScreenState extends State<MpResultScreen> {
           }
           _recordOnce(end, state.selfClientId);
 
-          final winnerName = end.winnerId != null
-              ? _nameFor(end.winnerId!)
-              : '';
           final sorted = [...end.results]
             ..sort((a, b) => a.standing.compareTo(b.standing));
+          // A Battle with a shared top score ends without a winner and
+          // with every leader on standing 1: a draw, not a win by join order.
+          final tied = end.mode == GameMode.stupidBattle && end.winnerId == null
+              ? [
+                  for (final r in sorted)
+                    if (r.standing == 1) _nameFor(r.playerId).toUpperCase(),
+                ]
+              : const <String>[];
+          final isTie = tied.length > 1;
+          final winnerName = end.winnerId != null
+              ? _nameFor(end.winnerId!)
+              : isTie
+              ? tied.join(' & ')
+              : '';
+          final isLss = end.mode == GameMode.lastStupidStanding;
           final mine = end.results
               .where((r) => r.playerId == state.selfClientId)
               .firstOrNull;
@@ -165,7 +177,20 @@ class _MpResultScreenState extends State<MpResultScreen> {
               children: [
                 const SizedBox(height: 8),
                 BalancedText(t('ui.mp.result.title'), style: Ays.title(36)),
-                if (winnerName.isNotEmpty) ...[
+                if (isTie) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    t('ui.mp.result.tie'),
+                    textAlign: TextAlign.center,
+                    style: Ays.label(18, color: Ays.warning),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    winnerName,
+                    textAlign: TextAlign.center,
+                    style: Ays.label(14),
+                  ),
+                ] else if (winnerName.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
                     t('ui.mp.result.winner', {
@@ -219,7 +244,14 @@ class _MpResultScreenState extends State<MpResultScreen> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            Text('${r.score}', style: Ays.mono(14)),
+                            // LSS has no points: its score is the round
+                            // the player reached before going out.
+                            Text(
+                              isLss
+                                  ? t('ui.game.level', {'n': '${r.score}'})
+                                  : '${r.score}',
+                              style: Ays.mono(14),
+                            ),
                           ],
                         ),
                       );

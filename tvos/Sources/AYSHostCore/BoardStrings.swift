@@ -43,6 +43,7 @@ public struct BoardStrings: Sendable {
         // Final
         case final, roundsOne, pts, rightOfTotal, avg, lifeLeftOne, livesLeft
         case leastStupid, nobodySurvived, everyoneIsStupid, lastRoundTookOut
+        case itsATie, equallyStupid, tiedOn
         case professionallyStupid, failOne, failsMany, onARoll, inARow
         case finalStandings, mostStupid, out
         case sponsors, adPressed, runItBack, anyPlayerRematch
@@ -157,6 +158,9 @@ public struct BoardStrings: Sendable {
         .nobodySurvived: "NOBODY SURVIVED",
         .everyoneIsStupid: "EVERYONE\nIS STUPID.",
         .lastRoundTookOut: "THE LAST ROUND TOOK OUT EVERY SURVIVOR AT ONCE.",
+        .itsATie: "IT'S A TIE",
+        .equallyStupid: "EQUALLY\nSTUPID.",
+        .tiedOn: "{n} PTS EACH. NOBODY IS LESS STUPID.",
         .professionallyStupid: "PROFESSIONALLY STUPID",
         .failOne: "1 FAIL",
         .failsMany: "{n} FAILS",
@@ -252,6 +256,9 @@ public struct BoardStrings: Sendable {
         .nobodySurvived: "NESSUNO È SOPRAVVISSUTO",
         .everyoneIsStupid: "SIETE TUTTI\nSTUPIDI.",
         .lastRoundTookOut: "L'ULTIMO ROUND HA ELIMINATO TUTTI I SOPRAVVISSUTI IN UN COLPO.",
+        .itsATie: "PAREGGIO",
+        .equallyStupid: "UGUALMENTE\nSTUPIDI.",
+        .tiedOn: "{n} PUNTI A TESTA. NESSUNO È MENO STUPIDO.",
         .professionallyStupid: "STUPIDO DI PROFESSIONE",
         .failOne: "1 ERRORE",
         .failsMany: "{n} ERRORI",
@@ -347,6 +354,9 @@ public struct BoardStrings: Sendable {
         .nobodySurvived: "PERSONNE N'A SURVÉCU",
         .everyoneIsStupid: "TOUT LE MONDE\nEST STUPIDE.",
         .lastRoundTookOut: "LA DERNIÈRE MANCHE A ÉLIMINÉ TOUS LES SURVIVANTS D'UN COUP.",
+        .itsATie: "ÉGALITÉ",
+        .equallyStupid: "ÉGALEMENT\nSTUPIDES.",
+        .tiedOn: "{n} PTS CHACUN. PERSONNE N'EST MOINS STUPIDE.",
         .professionallyStupid: "STUPIDE PROFESSIONNEL",
         .failOne: "1 RATÉ",
         .failsMany: "{n} RATÉS",
@@ -442,6 +452,9 @@ public struct BoardStrings: Sendable {
         .nobodySurvived: "NADIE SOBREVIVIÓ",
         .everyoneIsStupid: "TODOS SOIS\nESTÚPIDOS.",
         .lastRoundTookOut: "LA ÚLTIMA RONDA ELIMINÓ A TODOS LOS SUPERVIVIENTES A LA VEZ.",
+        .itsATie: "EMPATE",
+        .equallyStupid: "IGUAL DE\nESTÚPIDOS.",
+        .tiedOn: "{n} PTS CADA UNO. NADIE ES MENOS ESTÚPIDO.",
         .professionallyStupid: "ESTÚPIDO PROFESIONAL",
         .failOne: "1 FALLO",
         .failsMany: "{n} FALLOS",
@@ -537,6 +550,9 @@ public struct BoardStrings: Sendable {
         .nobodySurvived: "NINGUÉM SOBREVIVEU",
         .everyoneIsStupid: "TODO MUNDO\nÉ ESTÚPIDO.",
         .lastRoundTookOut: "A ÚLTIMA RODADA ELIMINOU TODOS OS SOBREVIVENTES DE UMA VEZ.",
+        .itsATie: "EMPATE",
+        .equallyStupid: "IGUALMENTE\nESTÚPIDOS.",
+        .tiedOn: "{n} PTS CADA UM. NINGUÉM É MENOS ESTÚPIDO.",
         .professionallyStupid: "ESTÚPIDO PROFISSIONAL",
         .failOne: "1 ERRO",
         .failsMany: "{n} ERROS",
@@ -632,6 +648,9 @@ public struct BoardStrings: Sendable {
         .nobodySurvived: "NIEMAND HAT ÜBERLEBT",
         .everyoneIsStupid: "ALLE\nSIND DUMM.",
         .lastRoundTookOut: "DIE LETZTE RUNDE HAT ALLE ÜBERLEBENDEN AUF EINMAL ERWISCHT.",
+        .itsATie: "UNENTSCHIEDEN",
+        .equallyStupid: "GLEICH\nDUMM.",
+        .tiedOn: "JE {n} PUNKTE. KEINER IST WENIGER DUMM.",
         .professionallyStupid: "PROFESSIONELL DUMM",
         .failOne: "1 FEHLER",
         .failsMany: "{n} FEHLER",

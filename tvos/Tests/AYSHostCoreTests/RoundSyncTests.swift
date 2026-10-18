@@ -190,4 +190,42 @@ final class RoundSyncTests: XCTestCase {
             .last { $0.playerId == clients[3].selfId }
         XCTAssertEqual(winnerScore?.standing, 1)
     }
+
+    /// Playtest: a Battle ending on a shared top score crowned whoever
+    /// joined first. A draw has no winner and both leaders share #1.
+    func testBattleDrawHasNoWinnerAndSharedFirstPlace() throws {
+        let (host, clients) = makeHarness(playerCount: 3, battleRounds: 1, speedBonus: false)
+        clients.forEach { $0.ready(true) }
+        try host.startGame(mode: .stupidBattle)
+        try host.startRound(challengeId: "tap_color", seed: 1, level: 1)
+        let roundId = clients[0].lastRoundStart!.roundId
+        clients[0].tap("correct", roundId: roundId, correct: true)
+        clients[1].tap("correct", roundId: roundId, correct: true)
+        clients[2].tap("wrong", roundId: roundId, correct: false)
+        host.completeRound()
+
+        let end = try XCTUnwrap(clients[0].lastGameEnd)
+        XCTAssertNil(end.winnerId)
+        XCTAssertEqual(Set(end.tiedLeaderIds), [clients[0].selfId, clients[1].selfId])
+        XCTAssertEqual(end.results.map(\.standing), [1, 1, 3])
+    }
+
+    /// LSS has no points: the score is the round each player reached, so
+    /// phones show the level a player got to before going out.
+    func testLSSScoreIsTheRoundReached() throws {
+        let (host, clients) = makeHarness(playerCount: 2, lives: 1)
+        clients.forEach { $0.ready(true) }
+        try host.startGame(mode: .lastStupidStanding)
+        for round in 0..<3 {
+            try host.startRound(challengeId: "tap_color", seed: 20 + round, level: 1)
+            let roundId = clients[0].lastRoundStart!.roundId
+            clients[0].tap("correct", roundId: roundId, correct: true)
+            clients[1].tap(round == 2 ? "wrong" : "correct", roundId: roundId, correct: round != 2)
+            host.completeRound()
+        }
+        let end = try XCTUnwrap(clients[0].lastGameEnd)
+        XCTAssertEqual(end.winnerId, clients[0].selfId)
+        XCTAssertEqual(end.results.first { $0.playerId == clients[1].selfId }?.score, 3)
+        XCTAssertTrue(end.tiedLeaderIds.isEmpty)
+    }
 }

@@ -291,8 +291,7 @@ const Map<String, String> kStringsEn = {
   'ui.mp.primer.camera_title': 'CAMERA (OPTIONAL)',
   'ui.mp.primer.camera_body':
       'ONLY TO SCAN THE QR CODE. YOU CAN TYPE THE CODE INSTEAD.',
-  'ui.mp.primer.footer':
-      'IT WILL ASK. TAP ALLOW. IT IS NOT A TRICK QUESTION.',
+  'ui.mp.primer.footer': 'IT WILL ASK. TAP ALLOW. IT IS NOT A TRICK QUESTION.',
   'ui.mp.primer.macos_footer':
       'YOUR MAC MAY ASK. CLICK ALLOW SO IT CAN FIND THE PARTY.',
   'ui.mp.primer.continue': 'CONTINUE',
@@ -315,6 +314,9 @@ const Map<String, String> kStringsEn = {
   'ui.mp.join.playing_on': "YOU'RE PLAYING ON: {host}",
   'ui.mp.join.name_label': 'PLAYER NAME',
   'ui.mp.join.name_hint': 'YOUR NAME',
+  'ui.mp.join.icon_label': 'YOUR ICON',
+  'ui.mp.join.name_checking':
+      'TRICKY NAME. THE HOST WILL TRY TO READ IT IN THE ROOM.',
   'ui.mp.join.spoken_as': 'IT WILL BE PRONOUNCED: {name}',
   'ui.mp.join.not_spoken': 'THE PRESENTER WILL NOT BE ABLE TO SAY THIS NAME.',
   'ui.mp.join.nice_try': 'NICE TRY. PICK ANOTHER NAME.',
@@ -358,6 +360,7 @@ const Map<String, String> kStringsEn = {
 
   'ui.mp.result.title': 'GAME OVER',
   'ui.mp.result.winner': '{name} WINS',
+  'ui.mp.result.tie': "IT'S A TIE. EQUALLY STUPID.",
   'ui.mp.result.your_standing': 'YOU FINISHED #{n}',
   'ui.mp.result.share': 'SHARE',
   'ui.mp.result.menu': 'BACK TO MENU',

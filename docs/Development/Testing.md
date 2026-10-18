@@ -1,6 +1,6 @@
 ---
 tags: [development, testing]
-updated: 2026-10-17
+updated: 2026-10-18
 ---
 
 # Testing
@@ -98,6 +98,10 @@ which speaks the same [[Multiplayer Protocol]] the future Swift host will:
 The four new pieces this phase added — the client screens themselves have
 no widget-level test yet, see [[Multiplayer Development]] for that gap:
 
+- `party_challenge_locale_test.dart` — scripted rounds are built in the
+  phone's language (the 2026-10-18 "Italian room, English challenges" bug);
+  `round_sync_test.dart` also covers a Battle draw (no winner, standings
+  `1, 1`).
 - `session_socket_test.dart` — real loopback TCP: `SocketPartyTransport`
   delivers lines both directions, `inbound` completes when the peer closes,
   `send()` after `close()` is a safe no-op, `connect()` throws
@@ -408,7 +412,9 @@ Party Pack ownership.
 ### Multiplayer presenter
 
 `PresenterEngineTests` lock the versioned offline manifest, cue expiry,
-homonym labels and Savage-only negative-title threshold. Dart's
+homonym labels, Savage-only negative-title threshold, the story gate (an
+ordinary round is silent) and the draw line. `RoundSyncTests` cover a
+Battle draw and the Last Stupid Standing round-reached score. Dart's
 `spoken_identity_test.dart` covers plain, decorated, display-only and blocked
 names; `PresenterCareerStoreTests` cover cross-instance persistence, a title earned
 on an English board announced in Italian, migration of legacy text careers

@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, tvos, macos, host]
-updated: 2026-10-17
+updated: 2026-10-18
 ---
 
 # Multiplayer Host (tvOS)
@@ -40,6 +40,11 @@ to the join screen.
   screen via AirPlay, for groups gathered around a regular monitor or a big
   screen. On tvOS there is no mirror button — the board *is* the primary
   output.
+- **Whole controls are clickable on the Mac.** A macOS `.plain` button only
+  hit-tests its label, so a background added outside the label left only the
+  text clickable (2026-10-18 playtest: mode picker and START). Every lobby
+  button keeps its padding/frame inside the label with a `contentShape`, so
+  the full pill or card responds; tvOS keeps its `.card` focus style.
 - The protocol, authority rules, scoring and UI are shared unchanged between
   the tvOS app and the Mac board window; [[Decision Log]] records both the
   original board-only call and the 2026-10-05 consolidation.
@@ -118,7 +123,8 @@ tvos/
 │                                  compact top-5 standings
 │   ├── ResultsView.swift          failure-first reveal: verdict, fail wall with real reasons,
 │                                  eliminations, survivor strip with fastest thumb, standings ▲/▼
-│   ├── GameEndView.swift          winner hero (or NOBODY SURVIVED), stat-backed awards, final
+│   ├── GameEndView.swift          winner hero (or NOBODY SURVIVED, or IT'S A TIE for a Battle
+│                                  draw with every leader highlighted), stat-backed awards, final
 │                                  standings + REMATCH (same room, per docs/Gameplay/
 │                                  Multiplayer Gameplay.md "instant rematch back into the lobby")
 │   ├── ScoreboardView.swift       shared standings list: rank, emoji, movement, hearts/score

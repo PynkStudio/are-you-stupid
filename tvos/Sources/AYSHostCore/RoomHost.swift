@@ -688,6 +688,9 @@ public final class RoomHost {
             // post-round standing, not one computed half-way through.
             let alive = seats.values.filter(\.alive)
             for seat in alive {
+                // LSS has no points: its score is the round a player reached,
+                // so phones show "LEVEL 7" for the round that knocked them out.
+                seat.score = roundIndex
                 if let res = r.judged(for: seat.playerId), !res.correct {
                     seat.lives -= 1
                     if seat.lives <= 0 {
@@ -737,18 +740,27 @@ public final class RoomHost {
     private func standings() -> [String] {
         joinOrder.sorted { a, b in
             let sa = seats[a]!, sb = seats[b]!
-            if mode == .lastStupidStanding {
-                if sa.lives != sb.lives { return sa.lives > sb.lives }
-                let outA = sa.eliminatedAtRound ?? .max, outB = sb.eliminatedAtRound ?? .max
-                if outA != outB { return outA > outB }
-            }
-            if sa.score != sb.score { return sa.score > sb.score }
+            if outranks(sa, sb) { return true }
+            if outranks(sb, sa) { return false }
             return sa.joinOrder < sb.joinOrder
         }
     }
 
+    /// Strictly better result, join order deliberately excluded: two seats
+    /// that neither outranks are tied and share a standing.
+    private func outranks(_ sa: Seat, _ sb: Seat) -> Bool {
+        if mode == .lastStupidStanding {
+            if sa.lives != sb.lives { return sa.lives > sb.lives }
+            let outA = sa.eliminatedAtRound ?? .max, outB = sb.eliminatedAtRound ?? .max
+            if outA != outB { return outA > outB }
+        }
+        return sa.score > sb.score
+    }
+
+    /// Competition ranking (1, 1, 3): a tie shares the standing instead of
+    /// letting join order hand one player the better number.
     private func standing(for seat: Seat) -> Int {
-        (standings().firstIndex(of: seat.playerId) ?? -1) + 1
+        seats.values.filter { outranks($0, seat) }.count + 1
     }
 
     private func soleSurvivor() -> String? {
@@ -781,20 +793,24 @@ public final class RoomHost {
             return
         }
         if roundIndex >= battleRounds {
-            finish(winnerId: standings().first)
+            // A shared top score is a draw, not a win for whoever joined
+            // first: no winnerId, and both share standing 1.
+            let order = standings()
+            let leaders = order.filter { standing(for: seats[$0]!) == 1 }
+            finish(winnerId: leaders.count == 1 ? order.first : nil)
         }
     }
 
     private func finish(winnerId: String?) {
         inGame = false
         let order = standings()
-        let results = order.enumerated().map { i, playerId -> GameResultEntry in
+        let results = order.map { playerId -> GameResultEntry in
             let seat = seats[playerId]!
             return GameResultEntry(
                 playerId: playerId,
                 score: seat.score,
                 lives: mode == .lastStupidStanding ? seat.lives : nil,
-                standing: i + 1
+                standing: standing(for: seat)
             )
         }
         broadcast(GameEnd(mode: mode, results: results, winnerId: winnerId, ts: nowMs))

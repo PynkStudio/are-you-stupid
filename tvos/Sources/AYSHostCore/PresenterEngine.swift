@@ -108,12 +108,12 @@ public enum OfflinePresenterPack {
     public static let supportedLocales = ["en", "it", "fr", "es", "pt", "de"]
 
     public static let lines: [String: [String: [String]]] = [
-        "en": baseline("NOBODY. PROMISING.", "NOBODY READ IT. PERFECT.", "SUSPICIOUSLY COMPETENT.", "MIXED RESULTS. VERY MIXED.", "WE HAVE A WINNER. TECHNICALLY.", "CONGRATULATIONS TO ABSOLUTELY NOBODY."),
-        "it": baseline("NESSUNO. PROMETTENTE.", "NESSUNO HA LETTO. PERFETTO.", "SOSPETTOSAMENTE COMPETENTI.", "RISULTATI MISTI. MOLTO MISTI.", "ABBIAMO UN VINCITORE. TECNICAMENTE.", "CONGRATULAZIONI ASSOLUTAMENTE A NESSUNO."),
-        "fr": baseline("PERSONNE. PROMETTEUR.", "PERSONNE N'A LU. PARFAIT.", "ÉTRANGEMENT COMPÉTENTS.", "RÉSULTATS MITIGÉS. TRÈS MITIGÉS.", "NOUS AVONS UN GAGNANT. TECHNIQUEMENT.", "FÉLICITATIONS À ABSOLUMENT PERSONNE."),
-        "es": baseline("NADIE. PROMETEDOR.", "NADIE LEYÓ. PERFECTO.", "SOSPECHOSAMENTE COMPETENTES.", "RESULTADOS MIXTOS. MUY MIXTOS.", "TENEMOS GANADOR. TÉCNICAMENTE.", "ENHORABUENA A ABSOLUTAMENTE NADIE."),
-        "pt": baseline("NINGUÉM. PROMISSOR.", "NINGUÉM LEU. PERFEITO.", "SUSPEITAMENTE COMPETENTES.", "RESULTADOS MISTOS. MUITO MISTOS.", "TEMOS UM VENCEDOR. TECNICAMENTE.", "PARABÉNS A ABSOLUTAMENTE NINGUÉM."),
-        "de": baseline("NIEMAND. VIELVERSPRECHEND.", "NIEMAND HAT GELESEN. PERFEKT.", "VERDÄCHTIG KOMPETENT.", "GEMISCHTE ERGEBNISSE. SEHR GEMISCHT.", "WIR HABEN EINEN SIEGER. TECHNISCH GESEHEN.", "HERZLICHEN GLÜCKWUNSCH AN ABSOLUT NIEMANDEN."),
+        "en": baseline("NOBODY. PROMISING.", "NOBODY READ IT. PERFECT.", "SUSPICIOUSLY COMPETENT.", "MIXED RESULTS. VERY MIXED.", "WE HAVE A WINNER. TECHNICALLY.", "CONGRATULATIONS TO ABSOLUTELY NOBODY.", tie: ["A TIE. EQUALLY DISAPPOINTING, DOWN TO THE POINT.", "A DRAW. NOBODY MANAGED TO BE LESS STUPID."]),
+        "it": baseline("NESSUNO. PROMETTENTE.", "NESSUNO HA LETTO. PERFETTO.", "SOSPETTOSAMENTE COMPETENTI.", "RISULTATI MISTI. MOLTO MISTI.", "ABBIAMO UN VINCITORE. TECNICAMENTE.", "CONGRATULAZIONI ASSOLUTAMENTE A NESSUNO.", tie: ["PAREGGIO. UGUALMENTE DELUDENTI, AL PUNTO.", "PARI. NESSUNO È RIUSCITO A ESSERE MENO STUPIDO."]),
+        "fr": baseline("PERSONNE. PROMETTEUR.", "PERSONNE N'A LU. PARFAIT.", "ÉTRANGEMENT COMPÉTENTS.", "RÉSULTATS MITIGÉS. TRÈS MITIGÉS.", "NOUS AVONS UN GAGNANT. TECHNIQUEMENT.", "FÉLICITATIONS À ABSOLUMENT PERSONNE.", tie: ["ÉGALITÉ. AUSSI DÉCEVANTS, AU POINT PRÈS.", "MATCH NUL. PERSONNE N'A RÉUSSI À ÊTRE MOINS BÊTE."]),
+        "es": baseline("NADIE. PROMETEDOR.", "NADIE LEYÓ. PERFECTO.", "SOSPECHOSAMENTE COMPETENTES.", "RESULTADOS MIXTOS. MUY MIXTOS.", "TENEMOS GANADOR. TÉCNICAMENTE.", "ENHORABUENA A ABSOLUTAMENTE NADIE.", tie: ["EMPATE. IGUAL DE DECEPCIONANTES, PUNTO POR PUNTO.", "EMPATE. NADIE HA LOGRADO SER MENOS TONTO."]),
+        "pt": baseline("NINGUÉM. PROMISSOR.", "NINGUÉM LEU. PERFEITO.", "SUSPEITAMENTE COMPETENTES.", "RESULTADOS MISTOS. MUITO MISTOS.", "TEMOS UM VENCEDOR. TECNICAMENTE.", "PARABÉNS A ABSOLUTAMENTE NINGUÉM.", tie: ["EMPATE. IGUALMENTE DECEPCIONANTES, PONTO A PONTO.", "EMPATE. NINGUÉM CONSEGUIU SER MENOS BURRO."]),
+        "de": baseline("NIEMAND. VIELVERSPRECHEND.", "NIEMAND HAT GELESEN. PERFEKT.", "VERDÄCHTIG KOMPETENT.", "GEMISCHTE ERGEBNISSE. SEHR GEMISCHT.", "WIR HABEN EINEN SIEGER. TECHNISCH GESEHEN.", "HERZLICHEN GLÜCKWUNSCH AN ABSOLUT NIEMANDEN.", tie: ["UNENTSCHIEDEN. PUNKTGENAU GLEICH ENTTÄUSCHEND.", "UNENTSCHIEDEN. KEINER WAR WENIGER DUMM."]),
     ]
 
     public static let templates: [String: [String: [PresenterLineBook.Line]]] = Dictionary(
@@ -148,8 +148,8 @@ public enum OfflinePresenterPack {
         "de": ["king": "DER KÖNIG", "kingUndisputed": "DER UNANGEFOCHTENE KÖNIG", "doesNotRead": "DER, DER NICHT LIEST"],
     ]
 
-    private static func baseline(_ lobby: String, _ wrong: String, _ correct: String, _ mixed: String, _ end: String, _ noWinner: String) -> [String: [String]] {
-        ["lobby.empty": [lobby], "result.everyoneWrong": [wrong], "result.everyoneCorrect": [correct], "result.mixed": [mixed], "gameEnd": [end], "gameEnd.noWinner": [noWinner]]
+    private static func baseline(_ lobby: String, _ wrong: String, _ correct: String, _ mixed: String, _ end: String, _ noWinner: String, tie: [String]) -> [String: [String]] {
+        ["lobby.empty": [lobby], "result.everyoneWrong": [wrong], "result.everyoneCorrect": [correct], "result.mixed": [mixed], "gameEnd": [end], "gameEnd.noWinner": [noWinner], "gameEnd.tie": tie]
     }
 
     private static func resultTemplates(locale: String) -> [String: [PresenterLineBook.Line]] {
@@ -352,6 +352,7 @@ public final class PresenterEngine {
     private var roundsPlayed = 0
     private var lastOutcome: String?
     private var outcomeStreak = 0
+    private var spokeLastResult = false
     private var sequence = 0
 
     public init(intensity: PresenterIntensity = .neutral, lineBook: PresenterLineBook = .builtIn) {
@@ -367,6 +368,7 @@ public final class PresenterEngine {
         roundsPlayed = 0
         lastOutcome = nil
         outcomeStreak = 0
+        spokeLastResult = false
         roastedThisMatch = []
         history.beginMatch()
     }
@@ -403,11 +405,41 @@ public final class PresenterEngine {
 
         if let earnedTitle, let cue = combinedTitleCue(player: earnedTitle.player, title: earnedTitle.title, key: earnedTitle.key, players: players, expiry: expiry)
             ?? namedCue(player: earnedTitle.player, title: earnedTitle.title, factKey: "title.\(earnedTitle.key)", expiry: expiry) {
+            spokeLastResult = true
             return [cue]
+        }
+        guard hasStory(fact, previousWins: previousWins) else {
+            spokeLastResult = false
+            return []
         }
         let cue = personalizedResultCue(fact, players: players, previousWins: previousWins, expiry: expiry)
             ?? universal(keys: keys, kind: .roundResult, expiry: expiry)
+        spokeLastResult = cue != nil
         return cue.map { [$0] } ?? []
+    }
+
+    /// Playtests: a comment after every round stopped being a joke and
+    /// became noise. The host speaks on a round result only when the round
+    /// produced a story; an ordinary round stays silent. Call after the
+    /// streak counters for this round are updated.
+    func hasStory(_ fact: PresenterRoundFact, previousWins: [String: Int]) -> Bool {
+        // The whole room failed.
+        if fact.correctPlayerIds.isEmpty, !fact.wrongPlayerIds.isEmpty { return true }
+        // Same outcome three rounds running (three all-correct rounds
+        // included), then again every third one rather than every round.
+        if outcomeStreak >= 3, outcomeStreak % 3 == 0 { return true }
+        // The same player failed again.
+        if fact.wrongPlayerIds.contains(where: { wrongStreak[$0, default: 0] >= 2 }) { return true }
+        // Last Stupid Standing: a player is down to the last life, or out.
+        if fact.mode == .lastStupidStanding,
+           fact.wrongPlayerIds.contains(where: { (fact.remainingLivesByPlayer[$0] ?? .max) <= 1 }) { return true }
+        // A Battle player finally scores, four rounds in.
+        if fact.mode == .battle, roundsPlayed >= 4,
+           fact.correctPlayerIds.contains(where: { previousWins[$0, default: 0] == 0 }) { return true }
+        // A lone failure in a room that got it right: worth a line, but not
+        // two rounds in a row, or a big room hears one after every round.
+        if fact.wrongPlayerIds.count == 1, !fact.correctPlayerIds.isEmpty, !spokeLastResult { return true }
+        return false
     }
 
     /// Line-book keys for a round result, most specific first. The backend
@@ -435,8 +467,13 @@ public final class PresenterEngine {
         return keys
     }
 
-    public func gameEnd(winner: PresenterPlayer?) -> PresenterCue? {
+    /// [tie] is a Stupid Battle draw: no winner, but not the Last Stupid
+    /// Standing wipe-out `gameEnd.noWinner` jokes about either.
+    public func gameEnd(winner: PresenterPlayer?, tie: Bool = false) -> PresenterCue? {
         history.advance()
+        if winner == nil, tie {
+            return universal(keys: ["gameEnd.tie"], kind: .gameEnd, expiry: .whileGameEnd)
+        }
         guard let winner else {
             return universal(keys: ["gameEnd.noWinner"], kind: .gameEnd, expiry: .whileGameEnd)
         }

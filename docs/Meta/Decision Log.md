@@ -1,6 +1,6 @@
 ---
 tags: [meta, decisions, adr]
-updated: 2026-10-17
+updated: 2026-10-18
 ---
 
 # Decision Log
@@ -3817,3 +3817,39 @@ a real fairness bug: the first player of rounds 2–3 replayed the previous
 round's sequence while the rival played the right one. See
 [[iMessage Multiplayer]].
 
+
+### 2026-10-18 — Playtest fixes: a quieter host, draws, levels, language, icons
+
+**Decision.** Six fixes from a live party playtest:
+
+1. The presenter speaks on a round result only when the round has a story
+   (`PresenterEngine.hasStory`: whole room wrong, a repeat failure, a streak of
+   three, last life/out, a late first point, or a lone failure after a silent
+   beat; titles always). Ordinary rounds are silent.
+2. Phones build scripted multiplayer rounds in their own language
+   (`PartySession(locale:)` → `buildPartyChallenge(locale:)`); it defaulted to
+   English.
+3. Last Stupid Standing reports the round reached as `score`; phones show
+   `LEVEL n` instead of `0`.
+4. Ranks are competition rankings (ties share a standing) and a Stupid Battle
+   with a shared top score has no `winnerId`: a draw, with its own board hero,
+   phone line and presenter key `gameEnd.tie`.
+5. Mac lobby buttons hit-test their whole surface (`contentShape` inside the
+   label).
+6. The join form offers an icon picker and always previews the spoken name and
+   its warnings while typing.
+
+**Why.** (1) A line every round turned the host into noise; "silence is
+preferable" was already the brief, but the engine only went quiet when it ran
+out of fresh lines. A lone failure is the most common event in a big room, so
+it is rate-limited rather than banned. (3) Reusing `score` avoids a protocol
+change: LSS never had points, and the round reached is consistent with the
+existing survival ranking. (4) Join order deciding a winner was a bug the
+players noticed; inferring the draw from shared standings keeps the wire
+unchanged and forward-compatible (older phones just see no winner). LSS
+wipe-outs keep the existing `NOBODY SURVIVED` story rather than becoming
+"draws" between losers. (2) AI-authored rounds stay English for now: one
+proposal serves the whole room and its timing bonus depends on the locale it
+is built in, so following the room language there needs a wire field. The
+`gameEnd.tie` key exists only in the in-code baseline until the backend pack
+publishes recorded variants.
