@@ -263,7 +263,12 @@ Mac Developer Installer). **macOS was rebuilt from a clean `git worktree` at
 HEAD** because another session had uncommitted protocol/host edits in the
 main checkout; a build from a dirty tree must never be uploaded. `xcodebuild`
 `destination: upload` still fails with the providerId error, so both go
-through Transporter.
+through Transporter. tvOS 1.0 (12) was withdrawn and **tvOS 1.0 (13)
+resubmitted** on 2026-10-18; once 1.0.1 (15) finished processing, macOS
+1.0.1 (14) was withdrawn and **macOS 1.0.1 (15) resubmitted** too. All
+three Apple versions (iOS 1.0 (13) + 3 IAPs, tvOS 1.0 (13), macOS 1.0.1
+(15)) are waiting for review. Withdraw an old build only after the new one
+shows "Ready to submit", so the version never sits without a build.
 
 **iOS 1.0.0 (12) + tvOS 1.0.0 (12) + macOS 1.0.1 (14), 2026-10-14:**
 App Review rejected tvOS 1.0.0 (11) on two grounds. Under 2.1(a) the reviewer's
