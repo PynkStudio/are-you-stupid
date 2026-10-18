@@ -252,6 +252,18 @@ Fix: Xcode → Settings → Accounts → add the PynkStudio Apple ID, then
 re-run the export with `build/hosts/tvos-export-12/ExportOptions.plist` and
 the macOS build/archive/export with build number 15. tvOS 1.0.0 (12) and
 macOS 1.0.1 (14) stay in review meanwhile.
+Resolved the same day once the Apple ID was back in Xcode (it had to be
+re-added *and* Xcode relaunched before `xcodebuild` saw it). Exports:
+`build/hosts/tvos-export-13/AYS-tvos-13.ipa` (SHA-256
+`20ca6637a1235a6c819a4a296c340bef5b593a8f26989ee3680d46c7699f565f`, archived
+from commit-clean sources at 01:30) and
+`build/hosts/macos-export-15/AYS-mac-15.pkg` (SHA-256
+`c455b18aa7bdac06a93e0d778c056755ca53742c2d0e063fcae99a3112b92868`, 3rd Party
+Mac Developer Installer). **macOS was rebuilt from a clean `git worktree` at
+HEAD** because another session had uncommitted protocol/host edits in the
+main checkout; a build from a dirty tree must never be uploaded. `xcodebuild`
+`destination: upload` still fails with the providerId error, so both go
+through Transporter.
 
 **iOS 1.0.0 (12) + tvOS 1.0.0 (12) + macOS 1.0.1 (14), 2026-10-14:**
 App Review rejected tvOS 1.0.0 (11) on two grounds. Under 2.1(a) the reviewer's
