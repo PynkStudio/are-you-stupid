@@ -459,7 +459,12 @@ shared token is set on Vercel production and in the untracked
 both read. As of 2026-10-11, the multilingual backend is deployed and revision
 1 is published for `en`, `it`, `fr`, `es`, `pt` and `de`: 11 permanent
 ElevenLabs `eleven_v3` clips per locale plus the localized named/result
-templates. All six manifests and 66 content-addressed clips are also bundled
+templates. Revision 2 expanded the quips, and revision 3 (2026-10-18) added
+three recorded `gameEnd.tie` (Stupid Battle draw) variants per locale, so
+draws play a curated clip instead of live TTS. Revision 4 (2026-10-18) added
+three recorded `gameEnd.noWinner` (Last Stupid Standing wipe-out) variants
+per locale, so a no-survivor final is pre-recorded too: 30 clips per locale.
+All six revision-4 manifests and 180 content-addressed clips are also bundled
 under `tvos/TVResources/PresenterPack/`; first launch still syncs a newer
 revision when one exists. Local/LAN AI name
 refinement and join-form pronunciation warnings are wired. Language, output
