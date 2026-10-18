@@ -236,9 +236,22 @@ Transporter crashed on the first delivery; the second (by the owner) landed
 1.0.0 (13) at 20:32. `xcodebuild -exportArchive` with `destination: upload`
 still fails ("Unexpected nil property at path: 'Actor/relationships/providerId'").
 iOS 1.0 (12) was removed from review (developer rejected), build 13 attached
-and a new submission draft started with iOS 1.0 (13) + Party Pack. Still to
-add before **Invia per la verifica**: Party Pack + Remove Ads and Remove Ads
-(both back to "developer rejected" after the withdrawal).
+and on 2026-10-18 iOS 1.0 (13) was resubmitted together with its three
+in-app purchases (Party Pack, Party Pack + Remove Ads, Remove Ads — all three
+fall back to "developer rejected" when the version is withdrawn and must be
+re-added to the new submission).
+
+**tvOS 1.0.0 (13) + macOS 1.0.1 (15), 2026-10-18 — blocked on signing:**
+meant to carry the board-language and presenter fixes. The tvOS archive
+`build/hosts/tvos-13.xcarchive` (unsigned, 1.0.0 (13)) succeeds, but export
+fails with `No Accounts` / `No "iOS Distribution" signing certificate`: Xcode
+has no Apple ID signed in, and distribution signing here is cloud-managed
+through that account (the keychain only holds an Apple Development
+identity). `flutter build macos` hung after `pub get` for the same reason.
+Fix: Xcode → Settings → Accounts → add the PynkStudio Apple ID, then
+re-run the export with `build/hosts/tvos-export-12/ExportOptions.plist` and
+the macOS build/archive/export with build number 15. tvOS 1.0.0 (12) and
+macOS 1.0.1 (14) stay in review meanwhile.
 
 **iOS 1.0.0 (12) + tvOS 1.0.0 (12) + macOS 1.0.1 (14), 2026-10-14:**
 App Review rejected tvOS 1.0.0 (11) on two grounds. Under 2.1(a) the reviewer's
