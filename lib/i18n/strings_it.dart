@@ -286,12 +286,10 @@ const Map<String, String> kStringsIt = {
   'ui.mp.primer.camera_title': 'FOTOCAMERA (FACOLTATIVA)',
   'ui.mp.primer.camera_body':
       'SOLO PER SCANSIONARE IL QR CODE. PUOI ANCHE SCRIVERE IL CODICE.',
-  'ui.mp.primer.footer':
-      'TI VERRÀ CHIESTO. TOCCA CONSENTI. NON È UNA DOMANDA TRABOCCHETTO.',
+  'ui.mp.primer.footer': 'CONTINUA APRE LA RICHIESTA DI SISTEMA. SCEGLI LÌ.',
   'ui.mp.primer.macos_footer':
-      'IL MAC POTREBBE CHIEDERLO. FAI CLIC SU CONSENTI PER TROVARE LA PARTITA.',
+      'CONTINUA APRE LA RICHIESTA DI SISTEMA. SCEGLI LÌ.',
   'ui.mp.primer.continue': 'CONTINUA',
-  'ui.mp.primer.not_now': 'NON ORA',
   'ui.mp.permission.network_denied': "L'ACCESSO ALLA RETE LOCALE È DISATTIVATO. SENZA, IL DISPOSITIVO NON TROVA LA TV.",
   'ui.mp.permission.open_settings': 'APRI IMPOSTAZIONI',
   'ui.mp.network.wifi_disconnected':

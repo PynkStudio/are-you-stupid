@@ -30,6 +30,7 @@
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		A15A00012F00000000000001 /* AYSHostUI in Frameworks */ = {isa = PBXBuildFile; productRef = A15A00032F00000000000003 /* AYSHostUI */; };
 		A1C0FFEE0000000000000002 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000000000001 /* AppIcon.icon */; };
+		A1C0FFEE0000000000000004 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000000000003 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,6 +84,7 @@
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		A1C0FFEE0000000000000001 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; name = AppIcon.icon; path = Runner/AppIcon.icon; sourceTree = "<group>"; };
+		A1C0FFEE0000000000000003 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -175,6 +177,7 @@
 				33CC11122044BFA00003C045 /* MainFlutterWindow.swift */,
 				33E51913231747F40026EE4D /* DebugProfile.entitlements */,
 				33E51914231749380026EE4D /* Release.entitlements */,
+				A1C0FFEE0000000000000003 /* PrivacyInfo.xcprivacy */,
 				33CC11242044D66E0003C045 /* Resources */,
 				33BA886A226E78AF003329D5 /* Configs */,
 			);
@@ -302,6 +305,7 @@
 			files = (
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
 				A1C0FFEE0000000000000002 /* AppIcon.icon in Resources */,
+				A1C0FFEE0000000000000004 /* PrivacyInfo.xcprivacy in Resources */,
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

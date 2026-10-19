@@ -279,12 +279,10 @@ const Map<String, String> kStringsPt = {
   'ui.mp.primer.camera_title': 'CÂMERA (OPCIONAL)',
   'ui.mp.primer.camera_body':
       'SÓ PARA ESCANEAR O QR CODE. VOCÊ TAMBÉM PODE DIGITAR O CÓDIGO.',
-  'ui.mp.primer.footer':
-      'VAI APARECER UMA PERGUNTA. TOQUE EM PERMITIR. NÃO É PEGADINHA.',
+  'ui.mp.primer.footer': 'CONTINUAR ABRE O PEDIDO DO SISTEMA. VOCÊ ESCOLHE LÁ.',
   'ui.mp.primer.macos_footer':
-      'SEU MAC PODE PEDIR. CLIQUE EM PERMITIR PARA ENCONTRAR O JOGO.',
+      'CONTINUAR ABRE O PEDIDO DO SISTEMA. VOCÊ ESCOLHE LÁ.',
   'ui.mp.primer.continue': 'CONTINUAR',
-  'ui.mp.primer.not_now': 'AGORA NÃO',
   'ui.mp.permission.network_denied': 'O ACESSO À REDE LOCAL ESTÁ DESLIGADO. SEM ELE, ESTE APARELHO NÃO ENCONTRA A TV.',
   'ui.mp.permission.open_settings': 'ABRIR AJUSTES',
   'ui.mp.network.wifi_disconnected':

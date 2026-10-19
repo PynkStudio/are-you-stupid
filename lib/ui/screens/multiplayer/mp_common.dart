@@ -189,9 +189,10 @@ class MpTextField extends StatelessWidget {
 }
 
 /// The multiplayer permissions primer: explains Local Network (required) and
-/// Camera (optional, QR only) *before* the OS asks. Resolves true on
-/// CONTINUE, false on NOT NOW ([[Multiplayer Client (Mobile)]]
-/// "Permissions").
+/// Camera (optional, QR only) *before* the OS asks. Apple requires a
+/// pre-permission view to expose one neutral action only, so CONTINUE is the
+/// sole way out and opens the system choice next ([[Multiplayer Client
+/// (Mobile)]] "Permissions").
 Future<bool> showMpPermissionsPrimer(
   BuildContext context,
   AppLocale locale, {
@@ -202,59 +203,56 @@ Future<bool> showMpPermissionsPrimer(
     context: context,
     barrierDismissible: false,
     barrierColor: Colors.black87,
-    builder: (context) => Dialog(
-      backgroundColor: Ays.surface,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      shape: const RoundedRectangleBorder(borderRadius: Ays.radius),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(22, 26, 22, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            BalancedText(t('ui.mp.primer.title'), style: Ays.title(30)),
-            const SizedBox(height: 12),
-            Text(
-              t(isMacOS ? 'ui.mp.primer.macos_body' : 'ui.mp.primer.body'),
-              textAlign: TextAlign.center,
-              style: Ays.label(14, color: Ays.inkDim),
-            ),
-            const SizedBox(height: 20),
-            _PrimerItem(
-              icon: Icons.wifi_rounded,
-              title: t('ui.mp.primer.network_title'),
-              body: t('ui.mp.primer.network_body'),
-            ),
-            if (!isMacOS) ...[
-              const SizedBox(height: 14),
+    builder: (context) => PopScope(
+      canPop: false,
+      child: Dialog(
+        backgroundColor: Ays.surface,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        shape: const RoundedRectangleBorder(borderRadius: Ays.radius),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(22, 26, 22, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              BalancedText(t('ui.mp.primer.title'), style: Ays.title(30)),
+              const SizedBox(height: 12),
+              Text(
+                t(isMacOS ? 'ui.mp.primer.macos_body' : 'ui.mp.primer.body'),
+                textAlign: TextAlign.center,
+                style: Ays.label(14, color: Ays.inkDim),
+              ),
+              const SizedBox(height: 20),
               _PrimerItem(
-                icon: Icons.qr_code_scanner_rounded,
-                title: t('ui.mp.primer.camera_title'),
-                body: t('ui.mp.primer.camera_body'),
+                icon: Icons.wifi_rounded,
+                title: t('ui.mp.primer.network_title'),
+                body: t('ui.mp.primer.network_body'),
+              ),
+              if (!isMacOS) ...[
+                const SizedBox(height: 14),
+                _PrimerItem(
+                  icon: Icons.qr_code_scanner_rounded,
+                  title: t('ui.mp.primer.camera_title'),
+                  body: t('ui.mp.primer.camera_body'),
+                ),
+              ],
+              const SizedBox(height: 20),
+              Text(
+                t(
+                  isMacOS ? 'ui.mp.primer.macos_footer' : 'ui.mp.primer.footer',
+                ),
+                textAlign: TextAlign.center,
+                style: Ays.label(13, color: Ays.warning),
+              ),
+              const SizedBox(height: 20),
+              AysButton(
+                label: t('ui.mp.primer.continue'),
+                height: 64,
+                fontSize: 24,
+                onTap: () => Navigator.of(context).pop(true),
               ),
             ],
-            const SizedBox(height: 20),
-            Text(
-              t(isMacOS ? 'ui.mp.primer.macos_footer' : 'ui.mp.primer.footer'),
-              textAlign: TextAlign.center,
-              style: Ays.label(13, color: Ays.warning),
-            ),
-            const SizedBox(height: 20),
-            AysButton(
-              label: t('ui.mp.primer.continue'),
-              height: 64,
-              fontSize: 24,
-              onTap: () => Navigator.of(context).pop(true),
-            ),
-            const SizedBox(height: 10),
-            AysButton(
-              label: t('ui.mp.primer.not_now'),
-              height: 52,
-              fontSize: 16,
-              outlined: true,
-              onTap: () => Navigator.of(context).pop(false),
-            ),
-          ],
+          ),
         ),
       ),
     ),

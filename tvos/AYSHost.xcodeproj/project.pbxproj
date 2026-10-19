@@ -21,6 +21,7 @@
 		291D07DADABFF7CC36CCC970 /* 084a4c0faaa9d3234ed5edaa5139f91345f53a38d0a4ae2021557691a5f8464c.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = F6DCED717021044B18988218 /* 084a4c0faaa9d3234ed5edaa5139f91345f53a38d0a4ae2021557691a5f8464c.mp3 */; };
 		2D915F20C4DD375296E6AA56 /* 2760d383fb65fb769352e8b312e174d860e1ed81cfdb125314d7eb9788bed2cf.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 80D051A7D4530EEA142A7689 /* 2760d383fb65fb769352e8b312e174d860e1ed81cfdb125314d7eb9788bed2cf.mp3 */; };
 		30D3E114377BFF21055FB21A /* AYSHostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71DF5E0910424EFB8B0809F6 /* AYSHostApp.swift */; };
+		30D3E114377BFF21055FB21B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 71DF5E0910424EFB8B0809F7 /* PrivacyInfo.xcprivacy */; };
 		322C6C9C1B146D3B67FBDF34 /* 43e0cba5ab7ed5f8e792206ab37a242051686739bb3714f9047da5ee65316828.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 4D5BE70565047A36BE8042FD /* 43e0cba5ab7ed5f8e792206ab37a242051686739bb3714f9047da5ee65316828.mp3 */; };
 		389156AAEE78C029429268EC /* 688ad231d6dbd1090c503f90918b0d8339279e5bedd5c9c0fb787b7ba04f2932.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 256714020DF7F89FFC718E5C /* 688ad231d6dbd1090c503f90918b0d8339279e5bedd5c9c0fb787b7ba04f2932.mp3 */; };
 		3CA90E15E4EC5078E34140E7 /* 61603980d0227425acd91f2d21f4c3a878abacff6500bd1270529000d32d1048.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 130F9E74AB6CE53DE16D0457 /* 61603980d0227425acd91f2d21f4c3a878abacff6500bd1270529000d32d1048.mp3 */; };
@@ -129,6 +130,7 @@
 		6DF479F6BEE1578D3891605F /* 0e3b632834f45021d5593c8d87cbb9238c43e15c0c83211774a08cd28247fc0b.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = 0e3b632834f45021d5593c8d87cbb9238c43e15c0c83211774a08cd28247fc0b.mp3; sourceTree = "<group>"; };
 		6FF6522331A25A5DC36E8D79 /* 50bc7f97924746d3047cc184d3facc61c4e1b818997bd91631253e0b0f49c166.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = 50bc7f97924746d3047cc184d3facc61c4e1b818997bd91631253e0b0f49c166.mp3; sourceTree = "<group>"; };
 		71DF5E0910424EFB8B0809F6 /* AYSHostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AYSHostApp.swift; sourceTree = "<group>"; };
+		71DF5E0910424EFB8B0809F7 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		7263D987C3FC8318D7451B91 /* 332ca5ed7f0d4607dc0223481af31d044238ad9b5f8900d522558dca0f1429d5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = 332ca5ed7f0d4607dc0223481af31d044238ad9b5f8900d522558dca0f1429d5.mp3; sourceTree = "<group>"; };
 		75D43362E01BD1611832026D /* AYSHost-tvOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "AYSHost-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		80D051A7D4530EEA142A7689 /* 2760d383fb65fb769352e8b312e174d860e1ed81cfdb125314d7eb9788bed2cf.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = 2760d383fb65fb769352e8b312e174d860e1ed81cfdb125314d7eb9788bed2cf.mp3; sourceTree = "<group>"; };
@@ -288,6 +290,7 @@
 			isa = PBXGroup;
 			children = (
 				71DF5E0910424EFB8B0809F6 /* AYSHostApp.swift */,
+				71DF5E0910424EFB8B0809F7 /* PrivacyInfo.xcprivacy */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -378,6 +381,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				30D3E114377BFF21055FB21B /* PrivacyInfo.xcprivacy in Resources */,
 				AD3F89E252DF62EADC00DEA8 /* 05c557cca1a898d8090b10e5a56a08c87150570ddd013b2bc08be889746a00f0.mp3 in Resources */,
 				291D07DADABFF7CC36CCC970 /* 084a4c0faaa9d3234ed5edaa5139f91345f53a38d0a4ae2021557691a5f8464c.mp3 in Resources */,
 				E70BD642448739742FECB855 /* 0e3b632834f45021d5593c8d87cbb9238c43e15c0c83211774a08cd28247fc0b.mp3 in Resources */,

@@ -1,6 +1,6 @@
 ---
 tags: [moc, index]
-updated: 2026-10-18
+updated: 2026-10-19
 ---
 
 # ARE YOU STUPID? — Documentation Home
@@ -148,7 +148,7 @@ Implementation phases are tracked in [[Development Plan]].
 |---|---|
 | `flutter analyze` | clean |
 | `flutter test` | 371/371 passing (2026-10-18, playtest draw/language fixes included) — see [[Testing]] |
-| `swift test` (from `tvos/`) | 104 host core cases plus protocol and board UI suites, all green (2026-10-18); 4 real-socket cases skip by default (`AYS_RUN_NETWORK_TESTS=1` to run for real) — see [[Testing]] |
+| `swift test` (from `tvos/`) | 104 host core cases plus protocol and board UI suites, all green (2026-10-19); 5 real-socket cases skip by default (`AYS_RUN_NETWORK_TESTS=1` to run for real) — see [[Testing]] |
 | Android debug APK | builds |
 | Android release APK | builds, signed with a real upload key (not debug) — see [[Release Checklist]] |
 | iOS simulator | builds and runs via `flutter run`, hot reload included |

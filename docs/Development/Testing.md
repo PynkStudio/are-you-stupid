@@ -1,6 +1,6 @@
 ---
 tags: [development, testing]
-updated: 2026-10-18
+updated: 2026-10-19
 ---
 
 # Testing
@@ -10,16 +10,18 @@ flutter test          # everything
 flutter analyze       # must be clean, zero issues
 dart run tool/gen_protocol_fixtures.dart   # regenerate Swift golden fixtures (protocol change only)
 swift test             # from tvos/ — AYSProtocol + AYSHostCore (incl. BoardStringsTests: key/placeholder
-                        # parity across the six board locales) + AYSHostUITests, 4 skipped by
+                        # parity across the six board locales) + AYSHostUITests, 5 skipped by
                         # default (real-socket tests — see AYS_RUN_NETWORK_TESTS below)
-swift test --package-path ios/iMessageExtensionCore  # 4 Stupid Streak core tests
+swift test --package-path ios/iMessageExtensionCore  # 11 Stupid Streak core tests
 ```
 
 ### `ios/iMessageExtensionCore` — asynchronous iMessage matches
 
-Four headless Swift tests cover the native extension's versioned URL codec and
-Messages size ceiling, identical sequences for identical seeds across all
-three difficulty bands, streak-then-time round judging, and match score
+Eleven headless Swift tests cover the native extension's versioned URL codec
+and Messages size ceiling, identical sequences for identical seeds and across
+languages, family variety, self-contained opposite challenges, six-language
+completeness and instruction length, device-language selection,
+streak-then-time round judging, viewer perspective and match score
 aggregation. The `StupidStreak` simulator target build separately checks the
 UIKit/Messages controller and icon catalog. Actual turn delivery remains a
 two-device release gate; see [[iMessage Multiplayer]].

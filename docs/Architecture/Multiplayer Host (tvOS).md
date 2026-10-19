@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, tvos, macos, host]
-updated: 2026-10-18
+updated: 2026-10-19
 ---
 
 # Multiplayer Host (tvOS)
@@ -82,6 +82,10 @@ Dart one). That single contract is the only coupling between the two ends.
 It deliberately does **not** do: ad serving, accounts, cloud profiles or
 identity lookup. It only persists local settings/match stats and the bounded
 anonymous presenter-career cache described below ([[Multiplayer Product]]).
+Both host shells embed `PrivacyInfo.xcprivacy`: they declare the local
+`UserDefaults` access with Apple's `CA92.1` reason, no tracking and no
+collected data. Plugin-owned manifests remain responsible for Flutter plugin
+APIs in the Mac shell.
 
 ## Structure (Swift)
 

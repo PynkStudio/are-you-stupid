@@ -282,11 +282,10 @@ const Map<String, String> kStringsEs = {
   'ui.mp.primer.camera_body':
       'SOLO PARA ESCANEAR EL QR. TAMBIÉN PUEDES ESCRIBIR EL CÓDIGO.',
   'ui.mp.primer.footer':
-      'TE LO VA A PREGUNTAR. TOCA PERMITIR. NO ES UNA PREGUNTA TRAMPA.',
+      'CONTINUAR ABRE LA SOLICITUD DEL SISTEMA. ELIGES ALLÍ.',
   'ui.mp.primer.macos_footer':
-      'TU MAC PUEDE PEDIRLO. HAZ CLIC EN PERMITIR PARA ENCONTRAR LA PARTIDA.',
+      'CONTINUAR ABRE LA SOLICITUD DEL SISTEMA. ELIGES ALLÍ.',
   'ui.mp.primer.continue': 'CONTINUAR',
-  'ui.mp.primer.not_now': 'AHORA NO',
   'ui.mp.permission.network_denied': 'EL ACCESO A LA RED LOCAL ESTÁ DESACTIVADO. SIN ÉL, ESTE DISPOSITIVO NO ENCUENTRA LA TV.',
   'ui.mp.permission.open_settings': 'ABRIR AJUSTES',
   'ui.mp.network.wifi_disconnected':

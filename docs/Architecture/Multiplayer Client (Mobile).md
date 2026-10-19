@@ -1,6 +1,6 @@
 ---
 tags: [architecture, multiplayer, client, flutter]
-updated: 2026-10-18
+updated: 2026-10-19
 ---
 
 # Multiplayer Client (Mobile)
@@ -85,11 +85,14 @@ any macOS system prompt.
 
 - **Primer first.** The first time `MpHomeScreen` opens, a primer dialog
   (`showMpPermissionsPrimer`, `mp_common.dart`) explains both permissions
-  *before* anything touches the network. CONTINUE stores
+  *before* anything touches the network. It has one neutral **CONTINUE**
+  action, cannot be dismissed with Back, and never tells the player which
+  system choice to make; Apple's privacy HIG requires that shape for a
+  pre-alert. CONTINUE stores
   `ays.mp.permissionsPrimerSeen` and only then probes the local network —
   which is what makes iOS show its system prompt, so the prompt always
-  follows the explanation. NOT NOW backs out of multiplayer, stores nothing,
-  and the primer shows again next time.
+  follows the explanation. The system prompt remains the place where the
+  player grants or denies access.
 - **System-Camera deep link.** The same primer gates a direct QR launch. The
   room code is held while services boot, then the primer and iOS Local Network
   prompt run before `MpJoinScreen` starts Bonjour resolution. A duplicate

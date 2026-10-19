@@ -282,11 +282,10 @@ const Map<String, String> kStringsDe = {
   'ui.mp.primer.camera_body':
       'NUR ZUM SCANNEN DES QR-CODES. DU KANNST DEN CODE AUCH EINTIPPEN.',
   'ui.mp.primer.footer':
-      'GLEICH KOMMT EINE FRAGE. TIPP AUF ERLAUBEN. ES IST KEINE FANGFRAGE.',
+      'WEITER ÖFFNET DIE SYSTEMANFRAGE. DORT ENTSCHEIDEST DU.',
   'ui.mp.primer.macos_footer':
-      'DEIN MAC FRAGT EVENTUELL. KLICKE AUF ERLAUBEN, UM DIE PARTY ZU FINDEN.',
+      'WEITER ÖFFNET DIE SYSTEMANFRAGE. DORT ENTSCHEIDEST DU.',
   'ui.mp.primer.continue': 'WEITER',
-  'ui.mp.primer.not_now': 'NICHT JETZT',
   'ui.mp.permission.network_denied': 'ZUGRIFF AUFS LOKALE NETZWERK IST AUS. OHNE IHN FINDET DIESES GERÄT DEN TV NICHT.',
   'ui.mp.permission.open_settings': 'EINSTELLUNGEN ÖFFNEN',
   'ui.mp.network.wifi_disconnected':

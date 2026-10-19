@@ -291,11 +291,10 @@ const Map<String, String> kStringsEn = {
   'ui.mp.primer.camera_title': 'CAMERA (OPTIONAL)',
   'ui.mp.primer.camera_body':
       'ONLY TO SCAN THE QR CODE. YOU CAN TYPE THE CODE INSTEAD.',
-  'ui.mp.primer.footer': 'IT WILL ASK. TAP ALLOW. IT IS NOT A TRICK QUESTION.',
+  'ui.mp.primer.footer': 'CONTINUE OPENS THE SYSTEM REQUEST. YOU CHOOSE THERE.',
   'ui.mp.primer.macos_footer':
-      'YOUR MAC MAY ASK. CLICK ALLOW SO IT CAN FIND THE PARTY.',
+      'CONTINUE OPENS THE SYSTEM REQUEST. YOU CHOOSE THERE.',
   'ui.mp.primer.continue': 'CONTINUE',
-  'ui.mp.primer.not_now': 'NOT NOW',
   'ui.mp.permission.network_denied':
       "LOCAL NETWORK ACCESS IS OFF. WITHOUT IT THIS DEVICE CAN'T FIND THE TV.",
   'ui.mp.permission.open_settings': 'OPEN SETTINGS',

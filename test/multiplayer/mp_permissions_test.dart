@@ -4,6 +4,7 @@
 import 'package:are_you_stupid/services/app_services.dart';
 import 'package:are_you_stupid/services/local_network_permission.dart';
 import 'package:are_you_stupid/ui/screens/multiplayer/mp_home_screen.dart';
+import 'package:are_you_stupid/ui/widgets/ays_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -91,15 +92,25 @@ void main() {
     expect(fake.statusCalls, 1);
   });
 
-  testWidgets('NOT NOW leaves multiplayer without touching the network', (
+  testWidgets('primer has one neutral action and cannot be dismissed', (
     tester,
   ) async {
     final (services, fake) = await open(tester, primerSeen: false);
 
-    await tester.tap(find.text('NOT NOW'));
+    expect(find.text('CONTINUE'), findsOneWidget);
+    expect(find.text('NOT NOW'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(Dialog),
+        matching: find.byType(AysButton),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
 
-    expect(find.byType(MpHomeScreen), findsNothing);
+    expect(find.text('QUICK THING FIRST'), findsOneWidget);
     expect(services.multiplayerProfile.permissionsPrimerSeen, isFalse);
     expect(fake.statusCalls, 0);
   });

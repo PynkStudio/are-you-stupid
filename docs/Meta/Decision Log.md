@@ -1,6 +1,6 @@
 ---
 tags: [meta, decisions, adr]
-updated: 2026-10-18
+updated: 2026-10-19
 ---
 
 # Decision Log
@@ -3853,3 +3853,26 @@ proposal serves the whole room and its timing bonus depends on the locale it
 is built in, so following the room language there needs a wire field. The
 `gameEnd.tie` key exists only in the in-code baseline until the backend pack
 publishes recorded variants.
+
+### 2026-10-19 — Permission primer leaves the decision to the system alert
+
+**Decision.** The Local Network pre-alert now has one neutral **CONTINUE**
+action, cannot be dismissed with Back, and no longer says “tap Allow” in any
+of the six languages. The following system alert is the only place where the
+player grants or denies access.
+
+**Why.** Apple's privacy HIG explicitly forbids cancel/close actions and copy
+that steers a choice on a custom screen immediately before a protected-resource
+prompt. The old **NOT NOW** button and “tap Allow” footer were an avoidable App
+Review risk. Multiplayer is entered deliberately and remains optional; denial
+is still fully supported by the system alert and the existing **OPEN SETTINGS**
+recovery path. See [[Multiplayer Client (Mobile)]] and [[Testing]].
+### 2026-10-19 — Host privacy manifests declare local preferences only
+
+The tvOS host and the macOS Runner now embed an app-level Apple privacy
+manifest. Their shared host code reads and writes `UserDefaults` only for
+app-local settings and match state, so the manifest uses approved reason
+`CA92.1`, declares no tracking and no collected data. We did not copy the
+scanner's broader guessed declarations: the Flutter and advertising SDKs
+already embed their own manifests, and declaring APIs or collection the host
+does not perform would make the submission less accurate.

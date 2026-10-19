@@ -1,6 +1,6 @@
 ---
 tags: [development, release]
-updated: 2026-10-17
+updated: 2026-10-19
 ---
 
 # Release Checklist
@@ -18,8 +18,8 @@ already registered against them ([[Decision Log]]).
 
 ## Code
 
-- [x] `flutter analyze` — zero issues (2026-10-02)
-- [x] `flutter test` green — 303/303 (2026-10-02, after the audit fixes)
+- [x] `flutter analyze` — zero issues (2026-10-19)
+- [x] `flutter test` green — 371/371 (2026-10-19, after the permission-primer audit fix)
 - [x] `swift test` (from `tvos/`) green; `AYSHost-macOS` and `AYSHost-tvOS`
       Release builds succeed with the new store config (2026-10-02)
 - [x] `docs/` updated ([[Documentation Rules]])
@@ -50,6 +50,12 @@ already registered against them ([[Decision Log]]).
 - [x] AI off on Android ([[Feature Flags]])
 - [x] Export compliance: `ITSAppUsesNonExemptEncryption = false` in the
       phone and host `Info.plist`s
+- [x] The Local Network primer has one neutral **CONTINUE** action, cannot be
+      dismissed with Back, and leaves allow/deny entirely to Apple's system
+      alert ([[Multiplayer Client (Mobile)]])
+- [x] tvOS and macOS host bundles include `PrivacyInfo.xcprivacy` for their
+      direct `UserDefaults` access (`CA92.1`, no tracking or collected data);
+      iOS plugin/SDK manifests were also confirmed inside the built app
 - [x] Mac App Sandbox entitlements + macOS app icon for the board host
 - [x] The icon artwork reads "ARE YOU STUPID?!": `icon_source.png` is the
       original art (only "?"); `python3 tool/add_icon_bang.py` writes
@@ -97,8 +103,16 @@ already registered against them ([[Decision Log]]).
       game data and has no ads, analytics, accounts or purchases.
 - [x] Age rating questionnaire: frequent profanity/crude humor, ads →
       **13+** (12+ in Vietnam/Korea)
-- [x] Description, promo text, keywords, support/marketing URLs, review notes
-      and reviewer contact details are filled for iOS, tvOS and macOS.
+- [x] Description, promo text, keywords, support/marketing URLs and detailed
+      review notes are filled for iOS, tvOS and macOS.
+- [ ] **Blocker:** iOS App Review contact phone and email are empty in the live
+      version form (verified 2026-10-19). Add valid monitored contact details
+      before review starts; owner input and confirmation are required.
+- [ ] **Blocker:** the 2026-10-19 primer and privacy-manifest fixes are local
+      and are not present in the builds currently waiting for review. Replacing
+      them requires withdrawing the live iOS/tvOS/macOS submissions, uploading
+      new builds and resubmitting; do this only with the owner's explicit
+      approval.
 - [x] Review notes: multiplayer needs the Apple TV / Mac host on the same
       Wi-Fi; Apple Intelligence features need an iOS 26 eligible device and
       fall back to scripted challenges otherwise
@@ -131,6 +145,16 @@ already registered against them ([[Decision Log]]).
 - [x] iOS 1.0 plus all three in-app purchases, macOS 1.0 and tvOS 1.0 sent to
       App Review on 2026-10-03; all three submissions show **Waiting for
       Review**. Automatic release after approval remains selected.
+- [x] Live state re-verified 2026-10-19: iOS 1.0 build 13, macOS 1.0.1 and
+      tvOS 1.0 are **Waiting for Review**; the iOS submission contains the app
+      plus all three IAPs, each also waiting for review. macOS 1.0 remains
+      **Ready for Distribution**.
+- [x] Fresh iOS 27.0 simulator installs launch on iPhone 18 Pro and iPad Air
+      11-inch (M4). The home UI and Google UMP consent form fit without crash
+      or overflow. Xcode emits a future-facing iPad warning that
+      `UIRequiresFullScreen` will eventually be ignored and all orientations
+      required; portrait-only remains intentional for this release and must be
+      revisited before that SDK rule becomes enforced.
 - [x] iOS `1.1.0 (5)` delivered to App Store Connect/TestFlight with
       Transporter at 19:02 on 2026-10-03; Apple processing is still in
       progress. The two-device Stupid Streak delivery gate remains required
