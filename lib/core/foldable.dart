@@ -151,7 +151,8 @@ class FoldableState {
 }
 
 enum FoldableEventKind {
-  /// Synthetic: the state at the start of a round. Never a player action.
+  /// Synthetic: the state at the start of a round, or a first reading from
+  /// the hardware. Never a player action.
   initialState,
   deviceOpened,
   deviceClosed,
@@ -249,6 +250,17 @@ class HingeNormalizer {
     _ => HingeStatus.unknown,
   };
 
+  /// `UIUserInterfaceSizeClass` raw values (UIKit): 1 compact, 2 regular.
+  /// iPhone Duo's outer display is compact wide and its inner one regular
+  /// wide, but Split View can make the inner display compact too, so this
+  /// names the layout class, not the physical screen.
+  static DisplayConfiguration? displayFromSizeClass(Object? raw) =>
+      switch (raw) {
+        1 => DisplayConfiguration.compact,
+        2 => DisplayConfiguration.expanded,
+        _ => null,
+      };
+
   /// `UIHinge.angle` is in radians. Clamped to the 0..180 we reason about.
   static double? degreesFromRadians(Object? raw) {
     if (raw is! num || raw.isNaN) return null;
@@ -267,13 +279,27 @@ class HingeNormalizer {
     void add(FoldableEventKind k) =>
         events.add(FoldableEvent(k, previous: previous, current: current));
 
+    // A first reading describes the device; nobody moved anything. It also
+    // covers a hinge that comes back after dropping out.
+    final firstHinge =
+        previous.status == HingeStatus.unknown &&
+        current.status != HingeStatus.unknown;
+    final firstDisplay =
+        previous.display == DisplayConfiguration.unknown &&
+        current.display != DisplayConfiguration.unknown;
+    final firstOrientation =
+        previous.orientation == FoldOrientation.unknown &&
+        current.orientation != FoldOrientation.unknown;
+    if (firstHinge || firstDisplay || firstOrientation) {
+      add(FoldableEventKind.initialState);
+    }
+
     final wasOpen = previous.isOpen;
     final isOpenNow = current.isOpen;
-    if (previous.status != current.status) {
-      if (current.status == HingeStatus.unknown &&
-          previous.status != HingeStatus.unknown) {
+    if (!firstHinge && previous.status != current.status) {
+      if (current.status == HingeStatus.unknown) {
         add(FoldableEventKind.hingeUnavailable);
-      } else if (current.isClosed && previous.status != HingeStatus.closed) {
+      } else if (current.isClosed) {
         add(FoldableEventKind.deviceClosed);
       } else if (isOpenNow && !wasOpen) {
         add(FoldableEventKind.deviceOpened);
@@ -290,14 +316,16 @@ class HingeNormalizer {
     // was already open.
     final openToOpen =
         wasOpen && isOpenNow && previous.status != current.status;
-    if ((b != null && angleMoved) || openToOpen) {
+    if (!firstHinge && ((b != null && angleMoved) || openToOpen)) {
       add(FoldableEventKind.hingeAngleChanged);
     }
-    if (previous.display != current.display &&
+    if (!firstDisplay &&
+        previous.display != current.display &&
         current.display != DisplayConfiguration.unknown) {
       add(FoldableEventKind.displayConfigurationChanged);
     }
-    if (previous.orientation != current.orientation &&
+    if (!firstOrientation &&
+        previous.orientation != current.orientation &&
         current.orientation != FoldOrientation.unknown) {
       add(FoldableEventKind.deviceOrientationChanged);
     }
@@ -308,12 +336,16 @@ class HingeNormalizer {
 /// One hinge reading from a [HingeStateProvider]. `null` status = the hinge
 /// is (no longer) reporting.
 class HingeSample {
-  const HingeSample({required this.status, this.angleDegrees});
+  const HingeSample({required this.status, this.angleDegrees, this.display});
 
   static const unavailable = HingeSample(status: HingeStatus.unknown);
 
   final HingeStatus status;
   final double? angleDegrees;
+
+  /// The platform's own layout class, when it reports one. Beats the
+  /// viewport guess in [DisplayConfigurationProvider].
+  final DisplayConfiguration? display;
 }
 
 /// Where hinge readings come from: the iOS bridge, the simulator, a test.
@@ -425,6 +457,9 @@ class FoldableDeviceController {
   DeviceCapabilities _capabilities;
   bool _disposed = false;
 
+  /// The platform sent a size class, so the viewport guess is retired.
+  bool _platformReportsDisplay = false;
+
   FoldableState get state => _state;
   DeviceCapabilities get capabilities => _capabilities;
   Stream<FoldableEvent> get events => _events.stream;
@@ -433,11 +468,13 @@ class FoldableDeviceController {
   bool get isDisposed => _disposed;
 
   void _onSample(HingeSample s) {
+    if (s.display != null) _platformReportsDisplay = true;
     _apply(
       _state.copyWith(
         status: s.status,
         angleDegrees: s.angleDegrees,
         clearAngle: s.angleDegrees == null,
+        display: s.display,
       ),
     );
   }
@@ -445,7 +482,7 @@ class FoldableDeviceController {
   /// The UI reports the logical viewport whenever it changes.
   void reportViewport(double width, double height) {
     final orientation = display.orientation(width, height);
-    if (displayIsSimulated) {
+    if (displayIsSimulated || _platformReportsDisplay) {
       _apply(_state.copyWith(orientation: orientation));
       return;
     }

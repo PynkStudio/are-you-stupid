@@ -1,6 +1,6 @@
 ---
 tags: [foldable, architecture]
-updated: 2026-10-30
+updated: 2026-11-04
 ---
 
 # Foldable Architecture
@@ -29,10 +29,13 @@ UIHingeInteraction (Swift)          SimulatedHingeProvider (debug)
 |---|---|---|
 | `DeviceCapabilities` | `DeviceCapabilities` + `CapabilitySupport` (official / simulated / approximated / unavailable) | yes |
 | `HingeStateProvider` | `HingeStateProvider`: `PlatformHingeProvider`, `SimulatedHingeProvider`, `NoHingeProvider` | interface yes; platform impl in `lib/services/foldable_bridge.dart` |
-| `DisplayConfigurationProvider` | `DisplayConfigurationProvider` (viewport → compact/expanded) | yes |
+| `DisplayConfigurationProvider` | `DisplayConfigurationProvider` (viewport → compact/expanded): a fallback, retired as soon as the platform reports a size class | yes |
 | `MotionInputProvider` | `DisplayConfigurationProvider.orientation` (viewport) — no motion sensors used | yes |
 | `FoldableDeviceController` | `FoldableDeviceController` — merges both, diffs states into events, owns subscriptions | yes |
 | `FoldableChallengeAdapter` | `FoldableChallenge` base + `Challenge.onDeviceEvent` | yes |
+
+A first reading (from `unknown`) is `initialState`, never an action: the iOS
+bridge's opening reading would otherwise look like the player closing the phone.
 
 Normalized states: `HingeStatus {unknown, closed, partiallyOpen, fullyOpen}`
 (1:1 with `UIHinge.Status`), `DisplayConfiguration {unknown, compact,
@@ -79,8 +82,9 @@ The generator also refuses a hardware template right after another one.
 
 `HingeController.swift` (registered in `AppDelegate`) attaches a
 `UIHingeInteraction` to the Flutter root view on first listen (retrying while
-the window appears), streams `{available, status, angle}` raw values, and
-removes the interaction on cancel. `#available(iOS 27.1, *)` keeps the 17.6
+the window appears), streams `{available, status, angle, sizeClass}` raw values,
+sends again when only the horizontal size class changes, and removes both
+registrations on cancel. `#available(iOS 27.1, *)` keeps the 17.6
 deployment target. Payload contract in the Swift file header.
 
 ## Lifecycle and leaks

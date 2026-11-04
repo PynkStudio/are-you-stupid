@@ -1,6 +1,6 @@
 ---
 tags: [foldable, development, tooling]
-updated: 2026-10-30
+updated: 2026-11-04
 ---
 
 # Foldable Simulator
@@ -53,8 +53,24 @@ Foldable rounds start at level 4 and never back to back, so play a few
 classic rounds. Starting states matter: CLOSE the phone between rounds to get
 DO NOT OPEN; leave it OPEN for CRACK THE CODE / OPEN YOUR MIND.
 
-Apple's **iPhone Duo** device type exists in Xcode 27.1, but creating one
-needs the **iOS 27.1 simulator runtime**, which is not installed on the dev
-machine (only 26.5 and 27.0; `simctl create` reports "Incompatible device").
-Until it is, the native `UIHingeInteraction` path is unexercised even in
-Apple's simulator — this Dart simulator is the only way to play.
+## Apple's iPhone Duo simulator
+
+This panel only feeds Dart. To exercise the real `UIHingeInteraction` path, use
+Apple's simulator in **Device Hub** (it replaces Simulator.app in Xcode 27), with
+the iOS 27.2 runtime from `xcodebuild -downloadPlatform iOS`. Its bottom toolbar
+folds and unfolds the device, and holding Option turns those buttons into a hinge
+slider.
+
+```bash
+flutter test integration_test/iphone_duo_hinge_test.dart -d "AYS iPhone Duo"
+```
+
+That checks the hinge reaches Dart. To print every event while you fold by hand,
+add the listening window:
+
+```bash
+flutter test integration_test/iphone_duo_hinge_test.dart -d "AYS iPhone Duo" --dart-define=AYS_WATCH_HINGE_SECONDS=60
+```
+
+`simctl io screenshot` needs `--display=1` (cover) or `--display=3` (inner) on
+this device.

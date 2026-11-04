@@ -3941,3 +3941,33 @@ and the error was discarded, so "no ads" could not be diagnosed. The backoff
 avoids hammering AdMob during no fill or offline stretches. It lives in the
 provider because a failed load is an SDK concern, and `AdManager` stays pure
 policy. See [[Monetization and Ads]].
+
+### 2026-11-04 — The display configuration comes from the size class, not the viewport shape
+
+**Decision.** The iOS bridge sends the view's `horizontalSizeClass`, and the
+controller prefers it over `DisplayConfigurationProvider`. The capability stays
+*approximated*, so THE OTHER SIDE stays simulator-only for now.
+
+**Why.** The iPhone Duo simulator measured the closed viewport at 466×678 (aspect
+1.45) and the inner screen at aspect 1.42, so the old aspect rule would have called
+the cover display "expanded". Apple defines the two displays by size class. It
+stays approximated because Split View can also change the class, and no fold has
+been run yet. See [[Foldable Hardware Capabilities]].
+
+### 2026-11-04 — A first hardware reading is state, not a player action
+
+**Decision.** A transition out of `unknown` produces `initialState`, never
+`deviceClosed` or `deviceOpened`.
+
+**Why.** On the iPhone Duo simulator the bridge's opening reading arrived as
+`deviceClosed`. Arriving mid-round, it would have counted as a move the player
+never made, and could have revealed THE OTHER SIDE for free.
+
+### 2026-11-04 — iPhone Duo work stays on its own branch and worktree
+
+**Decision.** Unfold Your Brain lives on `feature/iphone-duo`, in a separate
+worktree, until it is ready for a release.
+
+**Why.** App Store fixes have to keep shipping from the release branch meanwhile,
+and other sessions are working in that checkout.
+

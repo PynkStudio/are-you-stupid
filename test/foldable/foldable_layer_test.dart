@@ -110,6 +110,8 @@ void main() {
       final sim = SimulatedHingeProvider();
       final c = FoldableDeviceController(hinge: sim, displayIsSimulated: true);
       expect(c.state.status, HingeStatus.fullyOpen); // seeded synchronously
+      c.setDisplay(DisplayConfiguration.expanded);
+      c.setOrientation(FoldOrientation.portrait);
       final kinds = <FoldableEventKind>[];
       c.events.listen((e) => kinds.add(e.kind));
       sim.setAngle(90);
@@ -144,6 +146,7 @@ void main() {
           hinge: SimulatedHingeProvider(),
           displayIsSimulated: true,
         );
+        c.setDisplay(DisplayConfiguration.expanded);
         var switches = 0;
         c.events
             .where(
@@ -165,6 +168,20 @@ void main() {
       },
     );
 
+    test('a first reading is state, not a player action', () {
+      // Seen on the iPhone Duo simulator: the bridge's opening reading used
+      // to arrive as deviceClosed.
+      final kinds = HingeNormalizer.diff(
+        FoldableState.unknown,
+        const FoldableState(
+          status: HingeStatus.closed,
+          angleDegrees: 0,
+          display: DisplayConfiguration.compact,
+        ),
+      ).map((e) => e.kind);
+      expect(kinds, [FoldableEventKind.initialState]);
+    });
+
     test('dispose cancels every listener — no leak, no late events', () async {
       final sim = SimulatedHingeProvider();
       final c = FoldableDeviceController(hinge: sim);
@@ -175,6 +192,32 @@ void main() {
       expect(() => sim.setAngle(10), throwsStateError); // provider closed too
       c.setDisplay(DisplayConfiguration.compact);
       expect(got, 0);
+    });
+
+    test('a platform size class retires the viewport guess', () async {
+      const channel = EventChannel('ays/foldable/hinge.sizeclass');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockStreamHandler(
+        channel,
+        MockStreamHandler.inline(
+          onListen: (args, sink) => sink.success({
+            'available': true,
+            'status': 1,
+            'angle': 0.0,
+            'sizeClass': 1,
+          }),
+        ),
+      );
+      final c = FoldableDeviceController(
+        hinge: PlatformHingeProvider(channel: channel),
+      );
+      await pumpEventQueue();
+      // Near-square, which the guess would call expanded.
+      c.reportViewport(466, 678);
+      expect(c.state.display, DisplayConfiguration.compact);
+      await c.dispose();
+      messenger.setMockStreamHandler(channel, null);
     });
 
     test('losing the hinge emits hingeUnavailable', () async {
@@ -203,6 +246,26 @@ void main() {
         HingeStatus.unknown,
       );
       expect(PlatformHingeProvider.parse('junk'), isNull);
+      expect(
+        PlatformHingeProvider.parse({'available': true, 'status': 3})!.display,
+        isNull,
+      );
+      expect(
+        PlatformHingeProvider.parse({
+          'available': true,
+          'status': 1,
+          'sizeClass': 1,
+        })!.display,
+        DisplayConfiguration.compact,
+      );
+      expect(
+        PlatformHingeProvider.parse({
+          'available': true,
+          'status': 3,
+          'sizeClass': 2,
+        })!.display,
+        DisplayConfiguration.expanded,
+      );
     });
 
     test(

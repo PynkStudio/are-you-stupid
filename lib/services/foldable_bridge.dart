@@ -73,6 +73,7 @@ class PlatformHingeProvider implements HingeStateProvider {
     return HingeSample(
       status: HingeNormalizer.statusFromRaw(raw['status']),
       angleDegrees: HingeNormalizer.degreesFromRadians(raw['angle']),
+      display: HingeNormalizer.displayFromSizeClass(raw['sizeClass']),
     );
   }
 

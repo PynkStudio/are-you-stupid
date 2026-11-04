@@ -1,6 +1,6 @@
 ---
 tags: [foldable, gameplay, product]
-updated: 2026-10-30
+updated: 2026-11-04
 ---
 
 # Unfold Your Brain
@@ -13,8 +13,9 @@ join the normal run. On every other device nothing changes.
 > **The phone isn't your controller. The phone is the puzzle.**
 
 Status: **playable through the [[Foldable Simulator]]; never run on physical
-foldable hardware.** The native bridge compiles against the iOS 27.1 SDK but
-is unverified on a device — see [[Foldable Hardware Capabilities]].
+foldable hardware.** The native bridge delivers a real hinge reading on Apple's
+iPhone Duo simulator, but no fold has been tested yet — see
+[[Foldable Hardware Capabilities]]. Work lives on `feature/iphone-duo`.
 
 ## Design
 
@@ -88,8 +89,10 @@ Hardware interactions must never encourage damage. By construction:
 - **Never tested on physical foldable hardware.** No claim of device
   compatibility is made.
 - THE OTHER SIDE judges on the display configuration, which real hardware
-  only *approximates* (viewport shape) — so it is **simulator-only** until
-  verified on a device ([[Foldable Hardware Capabilities]]).
+  only *approximates* (size class) — so it is **simulator-only** until a fold
+  run confirms it ([[Foldable Hardware Capabilities]]).
+- The inner display ignores the game's portrait lock. Every round's layout is
+  tested at landscape and Split View sizes, but Home and Game Over are not.
 - DO NOT OPEN assumes the game is visible while closed (cover display).
   Whether a Flutter scene keeps running across a fold is unverified; if the
   OS suspends rendering, the clock clamps the gap (`GameEngine.safeDelta`) so
@@ -100,13 +103,13 @@ Hardware interactions must never encourage damage. By construction:
 
 ## Roadmap
 
-1. Real-device pass on an iPhone Duo: confirm `UIHingeInteraction` delivery
-   on the Flutter root view, status/angle cadence, lifecycle across folds.
-2. Promote the display configuration from approximated to official if Apple
-   ships an API, or once viewport heuristics are validated → THE OTHER SIDE
-   leaves the simulator.
-3. More rounds (tabletop posture, "close it halfway, then tap the top half").
-4. Optional dedicated generated SFX for the safe.
+1. Fold run on Apple's iPhone Duo simulator: angle while moving, size class
+   changes, state across a fold, every challenge end to end.
+2. Promote the display configuration to official once that run confirms the
+   size class → THE OTHER SIDE leaves the simulator.
+3. Real-device pass, when one is available.
+4. More rounds (tabletop posture, "close it halfway, then tap the top half").
+5. Optional dedicated generated SFX for the safe.
 
 Related: [[Foldable Architecture]], [[Foldable Simulator]],
 [[Foldable Hardware Capabilities]].
