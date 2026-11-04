@@ -1,6 +1,6 @@
 ---
 tags: [development, howto, challenges]
-updated: 2026-10-03
+updated: 2026-10-30
 ---
 
 # Adding a Challenge
@@ -139,3 +139,14 @@ Add a row to [[Challenge Catalog]] in the **same commit**, including its
 - [ ] `swift test --package-path ios/iMessageExtensionCore` green
 - [ ] `StupidStreak` simulator target builds
 - [ ] `flutter analyze` clean, `flutter test` green
+
+## Hardware (foldable) challenges
+
+Subclass `FoldableChallenge` in `lib/challenges/foldable_challenges.dart`,
+react in `onHardware` (normalized `FoldableEvent`s only — never a platform
+API), declare `requires: DeviceRequirement(...)` and add it to
+`kFoldableChallengeTemplates`, **not** `kChallengeTemplates`. Keep every
+threshold in `FoldThresholds`, never a starter, and add a `successQuip` + a
+fail line per outcome. They are iMessage exceptions by design. Full spec:
+[[Foldable Architecture]]; rows go in [[Challenge Catalog]] → Foldable.
+

@@ -1,6 +1,6 @@
 ---
 tags: [ai, gameplay, humor]
-updated: 2026-10-02
+updated: 2026-10-30
 ---
 
 # AI Commentary
@@ -68,7 +68,9 @@ forbidden-token and meta-AI lists carry a few localized entries
 - **Context the model gets** (per unit): the `kind`, the moment's facts
   (`wrong`: the level; `gameOver`: `RunSummary` — level reached, personal
   best, new best yes/no, best fast streak, the failed instruction and its
-  fail line), the spicy-roasts setting (off → "keep it gentle"), the recent
+  fail line — plus, when the fatal round involved the hinge, the
+  [[Unfold Your Brain]] facts: expected physical action, what the player
+  tried, seconds taken, opens/closes, hardware fails this run), the spicy-roasts setting (off → "keep it gentle"), the recent
   lines to avoid, and *nothing else* — no names, no raw transcript, no
   history dumps. Everything in the context is game text the player already
   saw ([[Privacy and Offline]]).

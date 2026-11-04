@@ -1,6 +1,6 @@
 ---
 tags: [architecture, localization, i18n]
-updated: 2026-10-17
+updated: 2026-11-04
 ---
 
 # Localization
@@ -89,6 +89,13 @@ directly (no `flutter_localizations` delegate). Any screen whose text must
 update the moment the language changes wraps its body in
 `AnimatedBuilder(animation: services.settings, ...)` — see `home_screen.dart`
 and `settings_screen.dart`.
+
+### Foldable strings
+
+`fold.*` keys (all six locales, same parity test): instruction, hint, fail
+lines and host quip per [[Unfold Your Brain]] challenge, shape names, and the
+`fold.host.*` aside pools. The [[Foldable Simulator]] panel is English-only
+on purpose (debug tool, never shipped).
 
 ### Party board (tvOS / Mac host)
 

@@ -5,6 +5,7 @@ import UIKit
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var appleAIController: AppleAIController?
   private var permissionsController: PermissionsController?
+  private var hingeController: HingeController?
 
   override func application(
     _ application: UIApplication,
@@ -21,5 +22,8 @@ import UIKit
     // Multiplayer permissions UX: Local Network probe + open Settings
     // (docs/Architecture/Multiplayer Client (Mobile).md, "Permissions").
     permissionsController = PermissionsController(messenger: engineBridge.applicationRegistrar.messenger())
+    // Unfold Your Brain: public iOS 27.1 hinge state → Dart
+    // (docs/Foldable/Foldable Architecture.md).
+    hingeController = HingeController(messenger: engineBridge.applicationRegistrar.messenger())
   }
 }

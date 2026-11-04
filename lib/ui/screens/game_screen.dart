@@ -1,25 +1,33 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../challenges/foldable_challenges.dart';
 import '../../challenges/registry.dart';
 import '../../core/challenge.dart';
 import '../../core/challenge_generator.dart';
 import '../../core/difficulty.dart';
+import '../../core/foldable.dart';
 import '../../core/game_engine.dart';
 import '../../core/game_state.dart';
 import '../../i18n/app_locale.dart';
 import '../../i18n/strings.dart';
 import '../../services/app_services.dart';
+import '../../services/foldable_bridge.dart';
 import '../../ai/apple_ai_service.dart';
 import '../../ai/commentary.dart';
 import '../../ai/feature_flags.dart';
+import '../../ai/foldable_commentary.dart';
 import '../../ai/providers.dart';
 import '../../ai/solo_commentary.dart';
 import '../../ai/telemetry.dart';
 import '../theme.dart';
 import '../widgets/challenge_renderer.dart';
 import '../widgets/flash_overlay.dart';
+import '../widgets/foldable_simulator_panel.dart';
 import '../widgets/timer_bar.dart';
 import 'game_over_view.dart';
 import '../widgets/balanced_text.dart';
@@ -34,8 +42,21 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final GameEngine _engine;
+
+  /// Unfold Your Brain ([[Foldable Architecture]]): the normalized hardware
+  /// layer. On a conventional phone the provider never reports, so the
+  /// generator keeps serving exactly the classic templates.
+  late final HingeStateProvider _hinge;
+  late final FoldableDeviceController _device;
+  StreamSubscription<FoldableEvent>? _deviceSub;
+  final FoldableRoundTracker _foldTracker = FoldableRoundTracker();
+  final Random _asideRng = Random();
+
+  /// Bumped on every hardware event so the simulated display frame repaints.
+  final ValueNotifier<int> _deviceTick = ValueNotifier(0);
+  int _lastPulse = 0;
   late final Ticker _ticker;
   final TapClaim _claim = TapClaim();
 
@@ -62,6 +83,15 @@ class _GameScreenState extends State<GameScreen>
   @override
   void initState() {
     super.initState();
+    _hinge = createHingeProvider(simulator: kFoldableSimulatorEnabled);
+    _device = FoldableDeviceController(
+      hinge: _hinge,
+      displayIsSimulated: kFoldableSimulatorEnabled,
+    );
+    if (kFoldableSimulatorEnabled) {
+      _device.setDisplay(DisplayConfiguration.expanded);
+    }
+    WidgetsBinding.instance.addObserver(this);
     // Loaded once, shared by [AIChallengeProvider]'s internal async init and
     // this screen's own adaptive-difficulty gating below — a single
     // `SharedPreferences` round trip, not two ([[Development Plan]] Phase 5).
@@ -79,7 +109,11 @@ class _GameScreenState extends State<GameScreen>
     final adaptive = AdaptiveChallengeProvider(
       inner: FallbackChallengeProvider(
         scripted: ScriptedChallengeProvider(
-          generator: ChallengeGenerator(templates: kChallengeTemplates),
+          generator: ChallengeGenerator(
+            templates: soloTemplates(kChallengeTemplates),
+            capabilities: () => _device.capabilities,
+            deviceState: () => _device.state,
+          ),
         ),
         ai: AIChallengeProvider(
           service: aiService,
@@ -90,7 +124,10 @@ class _GameScreenState extends State<GameScreen>
     );
     _adaptive = adaptive;
     _engine = GameEngine(provider: adaptive);
+    _engine.deviceState = _device.state;
     _engine.addEventListener(_onGameEvent);
+    _engine.addListener(_watchHardwarePulse);
+    _deviceSub = _device.events.listen(_onDeviceEvent);
     _ticker = createTicker(_onTick)..start();
   }
 
@@ -139,7 +176,10 @@ class _GameScreenState extends State<GameScreen>
 
   /// Asks for the Game Over verdict the moment the run fails: the wrong
   /// flash is its latency budget ([[AI Commentary]]).
-  void _requestVerdict(GameState state) {
+  void _requestVerdict(
+    GameState state, {
+    Map<String, Object?> hardware = const {},
+  }) {
     final services = _services;
     final commentator = _commentator;
     _aiVerdict = null;
@@ -157,6 +197,7 @@ class _GameScreenState extends State<GameScreen>
             bestStreak: state.bestFastStreak,
             failedInstruction: state.challenge?.view.instruction,
             failReason: state.flashMessage,
+            hardware: hardware,
           ),
         )
         .then((line) {
@@ -174,10 +215,38 @@ class _GameScreenState extends State<GameScreen>
       _engine.spicyRoasts = services.settings.roastsEnabled;
       _engine.locale = services.settings.locale;
       services.settings.addListener(_syncSettings);
+      _reportViewport();
       _engine.startRun();
       _setupTelemetry();
     }
   }
+
+  void _onDeviceEvent(FoldableEvent event) {
+    _foldTracker.recordEvent(event);
+    _engine.handleDeviceEvent(event);
+    _deviceTick.value++;
+  }
+
+  /// A foldable challenge asks for a light haptic tick by bumping
+  /// [DeviceVisual.pulse] (challenges stay pure Dart).
+  void _watchHardwarePulse() {
+    final pulse = _engine.state.challenge?.view.device?.pulse ?? 0;
+    if (pulse > _lastPulse) _services?.haptics.tap();
+    _lastPulse = pulse;
+  }
+
+  /// The viewport is the only display signal real hardware gives us
+  /// (approximated — see [[Foldable Hardware Capabilities]]).
+  void _reportViewport() {
+    final views = WidgetsBinding.instance.platformDispatcher.views;
+    if (views.isEmpty) return;
+    final view = views.first;
+    final size = view.physicalSize / view.devicePixelRatio;
+    _device.reportViewport(size.width, size.height);
+  }
+
+  @override
+  void didChangeMetrics() => _reportViewport();
 
   void _syncSettings() {
     _engine.spicyRoasts = _services?.settings.roastsEnabled ?? true;
@@ -186,6 +255,11 @@ class _GameScreenState extends State<GameScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _deviceSub?.cancel();
+    _device.dispose();
+    _deviceTick.dispose();
+    _engine.removeListener(_watchHardwarePulse);
     _services?.settings.removeListener(_syncSettings);
     _telemetry?.detach();
     _telemetry = null;
@@ -196,13 +270,9 @@ class _GameScreenState extends State<GameScreen>
   }
 
   void _onTick(Duration elapsed) {
-    var delta = elapsed - _lastTick;
+    final delta = elapsed - _lastTick;
     _lastTick = elapsed;
-    // Survive frame hitches / returning from an ad without eating a life.
-    if (delta > const Duration(milliseconds: 64)) {
-      delta = const Duration(milliseconds: 16);
-    }
-    _engine.tick(delta);
+    _engine.tick(GameEngine.safeDelta(delta));
   }
 
   void _onGameEvent(GameEvent event, GameState state) {
@@ -210,6 +280,7 @@ class _GameScreenState extends State<GameScreen>
     if (services == null) return;
     switch (event) {
       case GameEvent.correct:
+        _foldTracker.finish(passed: true, elapsed: state.elapsed);
         services.sound.correct();
         services.haptics.correct();
         // One event behind telemetry's own listener (registered later, in
@@ -219,16 +290,30 @@ class _GameScreenState extends State<GameScreen>
         services.sound.wrong();
         services.haptics.wrong();
         _syncAdaptiveProfile();
-        _wrongAside = _commentator?.takeWrongAside()?.toUpperCase();
-        _requestVerdict(state);
+        final fold = _foldTracker.finish(passed: false, elapsed: state.elapsed);
+        // A hardware joke that fits beats a generic aside; the challenge's
+        // own fail line stays the headline either way.
+        _wrongAside =
+            scriptedAside(fold, services.settings.locale, _asideRng) ??
+            _commentator?.takeWrongAside()?.toUpperCase();
+        _requestVerdict(
+          state,
+          hardware: fold.isHardwareRound || fold.physical
+              ? fold.toContext()
+              : const {},
+        );
       case GameEvent.gameOver:
         _recordRun(state);
         _telemetry?.persist();
       case GameEvent.runStarted:
+        _foldTracker.resetRun();
         _recorded = false;
         _isRecord = false;
         _continuedRun = false;
       case GameEvent.levelStarted:
+        final challenge = state.challenge;
+        if (challenge != null) _foldTracker.startRound(challenge);
+        _lastPulse = challenge?.view.device?.pulse ?? 0;
         if (state.level > 1) services.sound.levelUp();
         _warmCommentary();
       case GameEvent.continued:
@@ -280,6 +365,7 @@ class _GameScreenState extends State<GameScreen>
 
   void _onBackgroundDown() {
     if (_claim.consumeDown()) return;
+    if (_engine.state.phase == GamePhase.playing) _foldTracker.recordTap();
     _engine.handleTap(const TapInfo(targetId: null, elapsed: Duration.zero));
   }
 
@@ -291,6 +377,9 @@ class _GameScreenState extends State<GameScreen>
   }
 
   void _onTarget(String id, int index, TapKind kind) {
+    if (kind == TapKind.down && _engine.state.phase == GamePhase.playing) {
+      _foldTracker.recordTap();
+    }
     _engine.handleTap(
       TapInfo(targetId: id, index: index, elapsed: Duration.zero, kind: kind),
     );
@@ -300,7 +389,7 @@ class _GameScreenState extends State<GameScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: AnimatedBuilder(
-        animation: _engine,
+        animation: Listenable.merge([_engine, _deviceTick]),
         builder: (context, _) {
           final state = _engine.state;
           final locale = _services?.settings.locale ?? _engine.locale;
@@ -308,11 +397,16 @@ class _GameScreenState extends State<GameScreen>
             decoration: const BoxDecoration(gradient: Ays.pageGradient),
             child: Stack(
               children: [
-                Listener(
-                  behavior: HitTestBehavior.opaque,
-                  onPointerDown: (_) => _onBackgroundDown(),
-                  onPointerUp: (_) => _onBackgroundUp(),
-                  child: SafeArea(child: _buildBody(state, locale)),
+                _SimulatedDisplay(
+                  display: kFoldableSimulatorEnabled
+                      ? _device.state.display
+                      : DisplayConfiguration.unknown,
+                  child: Listener(
+                    behavior: HitTestBehavior.opaque,
+                    onPointerDown: (_) => _onBackgroundDown(),
+                    onPointerUp: (_) => _onBackgroundUp(),
+                    child: SafeArea(child: _buildBody(state, locale)),
+                  ),
                 ),
                 if (state.phase == GamePhase.correct)
                   FlashOverlay(
@@ -348,6 +442,19 @@ class _GameScreenState extends State<GameScreen>
                     onRetry: _retry,
                     onContinue: _continueWithAd,
                     onQuit: _quit,
+                  ),
+                if (kFoldableSimulatorEnabled &&
+                    _hinge is SimulatedHingeProvider)
+                  Positioned(
+                    left: 10,
+                    right: 10,
+                    bottom: 10,
+                    child: SafeArea(
+                      child: FoldableSimulatorPanel(
+                        hinge: _hinge,
+                        device: _device,
+                      ),
+                    ),
                   ),
               ],
             ),
@@ -403,6 +510,15 @@ class _GameScreenState extends State<GameScreen>
               style: Ays.mono(11, color: Ays.warning),
             ),
           ),
+        if (state.hostQuip != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+            child: Text(
+              state.hostQuip!,
+              textAlign: TextAlign.center,
+              style: Ays.mono(11, color: Ays.purple),
+            ),
+          ),
         if (state.viralPrompt != null)
           Padding(
             padding: const EdgeInsets.only(top: 10),
@@ -435,6 +551,32 @@ class _ReadyText extends StatelessWidget {
       Strings.t(locale, 'ui.game.ready'),
       style: Ays.title(64),
       maxLines: 1,
+    );
+  }
+}
+
+/// DEVELOPMENT ONLY: squeezes the game into a cover-display-sized column
+/// when the simulator says the compact display is active, so layouts get
+/// exercised at both sizes. A pass-through on real devices.
+class _SimulatedDisplay extends StatelessWidget {
+  const _SimulatedDisplay({required this.display, required this.child});
+
+  final DisplayConfiguration display;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (display != DisplayConfiguration.compact) return child;
+    return LayoutBuilder(
+      builder: (context, c) => Center(
+        child: Container(
+          width: c.maxWidth * 0.62,
+          decoration: BoxDecoration(
+            border: Border.all(color: Ays.warning.withValues(alpha: 0.5)),
+          ),
+          child: child,
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,6 @@
 ---
 tags: [product, roadmap]
-updated: 2026-10-17
+updated: 2026-11-04
 ---
 
 # Roadmap
@@ -76,6 +76,15 @@ those three trains** — only fixes and release gates go in. Everything under
    ad pacing.
 8. **Replay clip export** — record the last 10 s to camera roll.
    Highest-effort, highest-reward for TikTok; builds on item 2.
+
+## On a branch, not in any release train
+
+- **Unfold Your Brain** (foldable iPhone challenges) — lives on
+  `feature/iphone-duo`, so App Store fixes can ship from the release branch
+  meanwhile. Behind a hardware gate: on every non-foldable device the game
+  keeps the classic selection. Not part of 1.0–1.2 (scope freeze);
+  ships no earlier than 1.3.0 and only after a real-device pass. Its own
+  roadmap: [[Unfold Your Brain]] → Roadmap.
 
 ## Demand-gated opportunities (not prioritized)
 

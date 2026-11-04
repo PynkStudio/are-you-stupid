@@ -1,6 +1,6 @@
 ---
 tags: [gameplay, tone, copy]
-updated: 2026-10-03
+updated: 2026-10-30
 ---
 
 # Humor and Roasts
@@ -49,6 +49,16 @@ roast. These are the *useful* ones, because they teach:
 **Rule: a new challenge must ship with its own fail line.** A generic roast on a
 tricky challenge feels unfair; a specific one feels like a joke the player is in
 on. See [[Game Design Pillars]].
+
+## Foldable host lines
+
+[[Unfold Your Brain]] adds, in all six locales: a fail line + host quip per
+foldable challenge (`fold.<id>.*`, quips shown over the next round), and
+scripted wrong-flash asides picked from what the player physically did
+(`fold.host.flapping` — opening and closing over and over;
+`tapped_instead`, `folded_instead`, `needless_fold`, `smarter` — the hinge got
+it, you didn't). The challenge's own line stays the headline; the aside is the
+host's jab underneath.
 
 ## Praise is understated
 

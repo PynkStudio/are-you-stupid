@@ -3877,6 +3877,57 @@ scanner's broader guessed declarations: the Flutter and advertising SDKs
 already embed their own manifests, and declaring APIs or collection the host
 does not perform would make the submission less accurate.
 
+### 2026-10-30 — Unfold Your Brain: foldable templates live outside the shared registry
+
+**Decision.** The five foldable challenges are a separate list,
+`kFoldableChallengeTemplates`, appended only by the solo `GameScreen`; they
+are not in `kChallengeTemplates` and are not mirrored in Stupid Streak.
+
+**Why.** `kChallengeTemplates` is the deterministic contract every
+multiplayer phone and the iMessage port rebuild from. A hinge round cannot be
+judged on a phone without a hinge, and players in a room or a thread don't
+share hardware. Keeping them out leaves the 39-template contract, its seed
+determinism and the iMessage parity rule untouched. See [[Foldable Architecture]].
+
+### 2026-10-30 — A phone is foldable only when its hinge reports
+
+**Decision.** `PlatformHingeProvider` starts at no capability and upgrades
+on the first known `UIHinge.status`; never from a model identifier. The
+display configuration (inner vs cover) is *approximated* from the viewport
+and no template judges on approximated signals unless it opts in — so THE
+OTHER SIDE is simulator-only for now.
+
+**Why.** The iOS 27.1 SDK exposes hinge status/angle publicly but no
+inner/cover display API ([[Foldable Hardware Capabilities]]). A challenge
+that misreads the screen would be "technically unreliable", which the brief
+forbids and the pillars can't absorb.
+
+### 2026-10-30 — Hardware rounds skip, never fail, when the hinge goes away
+
+**Decision.** `hingeUnavailable` mid-round = `pass(note: SKIPPED)`.
+
+**Why.** Losing the signal is never the player's fault and there is no
+pause/skip concept in the engine; a free level is the least bad outcome and
+keeps "every failure explainable in one line" honest.
+
+### 2026-10-30 — Foldable success lines show over the next round
+
+**Decision.** The brief's success commentary is a `successQuip` carried to
+the next round's header (`GameState.hostQuip`), not the correct flash.
+
+**Why.** The lines are 6–12 words; the correct flash is 240 ms and must stay
+that short ([[Game Design Pillars]]). The next round's header is idle screen
+real estate the player sees for seconds — readable, zero added downtime.
+
+### 2026-10-30 — Physical pacing floor and no back-to-back hardware rounds
+
+**Decision.** Foldable rounds last ≥ 4.5 s at any speed and the generator
+never serves two hardware templates in a row.
+
+**Why.** Safety: rushing a hinge or folding repeatedly is how hardware gets
+hurt. Pacing: a run that keeps asking for physical moves stops being a
+one-handed game.
+
 
 ### 2026-11-04 — Failed ad loads retry with backoff, inside the provider
 

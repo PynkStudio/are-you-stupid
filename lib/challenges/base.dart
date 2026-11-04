@@ -34,6 +34,9 @@ abstract class BaseChallenge extends Challenge {
   String? tapCounter;
   String? note;
 
+  /// Foldable challenges only — see [ChallengeView.device].
+  DeviceVisual? device;
+
   @override
   String? get successNote => note;
 
@@ -48,6 +51,7 @@ abstract class BaseChallenge extends Challenge {
     showTimer: showTimer,
     pressure: pressure,
     tapCounter: tapCounter,
+    device: device,
   );
 
   /// The current target with [targetId], or null when the tap hit a button

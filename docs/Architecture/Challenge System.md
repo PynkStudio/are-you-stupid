@@ -1,6 +1,6 @@
 ---
 tags: [architecture, challenges]
-updated: 2026-10-02
+updated: 2026-10-30
 ---
 
 # Challenge System
@@ -21,6 +21,8 @@ abstract class Challenge {
   void onTick(Duration elapsed, ChallengeHost host) {}
   void onTap(TapInfo tap, ChallengeHost host);
   void onTimeout(ChallengeHost host) => host.fail(reason: params.tr('common.too_slow'));
+  void onDeviceEvent(FoldableEvent event, ChallengeHost host) {} // foldable only
+  String? get successQuip => null; // host line shown over the next round
 }
 ```
 
@@ -44,6 +46,9 @@ Pure data, no widgets:
 - `hint`, `bigCenterText`, `tapCounter`
 - `blackout` — hides the play area (memory challenges)
 - `showTimer`, `pressure` (0..1 visual stress)
+- `device` — foldable rounds only: a `DeviceVisual` (hinge / safe /
+  otherSide / mind, progress, solved, revealed, angle, `pulse` haptic counter)
+  — see [[Foldable Architecture]]
 
 ## Input model
 
@@ -99,17 +104,27 @@ ChallengeTemplate(
   minLevel: 1,     // never appears earlier
   weight: 1.4,     // relative pick probability
   starter: true,   // usable in levels 1-3
+  // requires: DeviceRequirement(...)  — hardware templates only; default none
 )
 ```
+
+`requires` declares hardware needs (capabilities, accepted approximations,
+starting hinge state). Every classic template keeps the default
+`DeviceRequirement.none`. The foldable templates live in their own list,
+`kFoldableChallengeTemplates`, not in `kChallengeTemplates` — so
+`buildFromSeed`/multiplayer never see them ([[Foldable Architecture]]).
 
 See [[Adding a Challenge]] and the full list in [[Challenge Catalog]].
 
 ## Selection
 
 `ChallengeGenerator`:
-1. filters by `minLevel` (and `starter` for levels 1–3),
-2. drops the last 4 played ids so nothing repeats back to back,
-3. picks by `weight`.
+1. drops hardware templates the device can't judge right now
+   (`eligibleOn(capabilities, deviceState)`; default = conventional phone, so
+   they never appear) and any hardware template right after another one,
+2. filters by `minLevel` (and `starter` for levels 1–3),
+3. drops the last 4 played ids so nothing repeats back to back,
+4. picks by `weight`.
 
 Rules covered by tests in [[Testing]]. See [[Localization]] for how
 `instruction`/`hint`/fail-reason strings are translated.

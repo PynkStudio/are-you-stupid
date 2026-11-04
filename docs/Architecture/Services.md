@@ -1,6 +1,6 @@
 ---
 tags: [architecture, services]
-updated: 2026-10-06
+updated: 2026-10-30
 ---
 
 # Services
@@ -23,6 +23,7 @@ final services = AppServices.of(context);
 | `AdManager` | *policy*: when ads may show; consent (UMP) + ATT before the SDK starts | started post-frame via `AppServices.startAds()`, never during the splash — see [[Monetization and Ads]] |
 | `PurchaseManager` | *policy*: buy/restore Remove Ads + Party Pack + Party Bundle IAPs | `ChangeNotifier`, see [[Monetization and Ads]] |
 | `LocalNetworkPermission` | multiplayer Local Network permission + active Wi-Fi transport probes, and "open this app's Settings" | `ays/permissions` MethodChannel (`PermissionsController.swift`, `MainActivity.kt`); never exposes SSID/BSSID, never throws, and returns `unknown` when the channel or a reliable platform answer is missing — see [[Multiplayer Client (Mobile)]] "Permissions" |
+| `PlatformHingeProvider` | foldable hinge readings (iOS 27.1 `UIHingeInteraction`) via the `ays/foldable/hinge` EventChannel | `lib/services/foldable_bridge.dart` + `HingeController.swift`; owned per `GameScreen`, not by `AppServices`; never throws, stays "no foldable" without readings — see [[Foldable Architecture]] |
 | `AppleAIService` (Phase 2) | on-device Foundation Models client via the `ays/apple_intelligence` MethodChannel | `lib/ai/apple_ai_service.dart` + `AppleAIController.swift`; `available` real, generation stubbed until Phases 4–5 ([[Foundation Models Integration]]); `MockAppleAIService` for tests |
 
 The **dynamic AI director** itself is *not* a service — it's the

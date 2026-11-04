@@ -1,6 +1,6 @@
 ---
 tags: [architecture, engine]
-updated: 2026-10-02
+updated: 2026-10-30
 ---
 
 # Game Engine
@@ -45,8 +45,11 @@ for the first 600 ms after the card appears. See [[Decision Log]].
 The engine has no timers. `GameScreen` drives it with a `Ticker`:
 
 ```dart
-_engine.tick(delta); // delta clamped to 16 ms if a frame hitches or an ad ran
+_engine.tick(GameEngine.safeDelta(delta)); // > 64 ms → one 16 ms frame
 ```
+
+`safeDelta` covers hitches, ads, backgrounding and a fold that pauses
+rendering while the scene resizes: none of them may eat a round.
 
 Deterministic and trivially testable: tests call `tick()` in a loop.
 
@@ -75,6 +78,21 @@ starting the level instantly — a player returning from a 30-second rewarded
 ad must not land in a level whose timer is already running. The UI only
 offers it once per run, and only behind a rewarded ad — see
 [[Monetization and Ads]].
+
+## Hardware events
+
+`handleDeviceEvent(FoldableEvent)` updates `deviceState` and, only while
+`playing`, forwards to `Challenge.onDeviceEvent`. Right after `onStart`, every
+round gets the current state as a synthetic `initialState` event. Device
+events never advance or pause the clock. See [[Foldable Architecture]].
+
+## Host quips
+
+On `pass()` the engine keeps `challenge.successQuip`; the **next**
+`_startLevel` puts it in `GameState.hostQuip` (cleared the round after, and on
+a new run). The screen shows it under the timer bar. This lets the
+foldable host lines be read without stretching the 240 ms correct flash
+([[Unfold Your Brain]]).
 
 ## Pace notes
 

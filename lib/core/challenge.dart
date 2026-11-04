@@ -11,6 +11,7 @@ library;
 import 'dart:math';
 
 import '../i18n/app_locale.dart';
+import 'foldable.dart';
 import '../i18n/spell_count_data.dart';
 import '../i18n/strings.dart';
 
@@ -154,6 +155,7 @@ class ChallengeView {
     this.showTimer = true,
     this.pressure = 0.0,
     this.tapCounter,
+    this.device,
   });
 
   /// Short. Under 8 words. Always uppercase on screen.
@@ -179,6 +181,59 @@ class ChallengeView {
 
   /// Optional live counter, e.g. taps done so far.
   final String? tapCounter;
+
+  /// Foldable challenges only: what the hardware visual should show
+  /// ([[Foldable Architecture]]). Null for every other challenge.
+  final DeviceVisual? device;
+}
+
+/// The hardware-driven visual of a foldable challenge. Pure data; the
+/// renderer draws it.
+enum DeviceVisualKind {
+  /// A half-folded phone silhouette breathing toward [DeviceVisual.progress].
+  hinge,
+
+  /// A safe dial. [DeviceVisual.progress] = closeness 0..1.
+  safe,
+
+  /// A puzzle card that flips when the display configuration changes.
+  otherSide,
+
+  /// A brain that opens with the hinge.
+  mind,
+}
+
+class DeviceVisual {
+  const DeviceVisual({
+    required this.kind,
+    this.progress = 0,
+    this.solved = false,
+    this.revealed = false,
+    this.angleDegrees,
+    this.pulse = 0,
+    this.label,
+  });
+
+  final DeviceVisualKind kind;
+
+  /// 0..1, meaning depends on [kind].
+  final double progress;
+
+  /// Safe unlocked / mind opened — the success animation plays.
+  final bool solved;
+
+  /// The hidden half of the puzzle is visible.
+  final bool revealed;
+
+  /// The live hinge angle, when the challenge exposes one.
+  final double? angleDegrees;
+
+  /// Incremented whenever the UI should fire a light haptic tick. A counter,
+  /// not a callback, so challenges stay pure Dart.
+  final int pulse;
+
+  /// Short text drawn inside the visual.
+  final String? label;
 }
 
 /// Input is judged on pointer DOWN: the game must feel instant.
@@ -343,6 +398,15 @@ abstract class Challenge {
 
   /// Extra text shown on the "correct" flash, e.g. "+0.13s".
   String? get successNote => null;
+
+  /// The host's line about a pass, shown over the next round
+  /// ([GameState.hostQuip]). Too long for the 240 ms flash on purpose.
+  String? get successQuip => null;
+
+  /// A hardware event reached the round ([[Foldable Architecture]]). The
+  /// engine first sends [FoldableEventKind.initialState] right after
+  /// [onStart]. Ignored by every non-foldable challenge.
+  void onDeviceEvent(FoldableEvent event, ChallengeHost host) {}
 }
 
 /// A registered challenge template.
@@ -354,6 +418,7 @@ class ChallengeTemplate {
     this.minLevel = 1,
     this.weight = 1.0,
     this.starter = false,
+    this.requires = DeviceRequirement.none,
   });
 
   final String id;
@@ -368,4 +433,56 @@ class ChallengeTemplate {
 
   /// Can be used for the very first levels (must be dead simple + fair).
   final bool starter;
+
+  /// Hardware this template needs. [DeviceRequirement.none] for every
+  /// classic template, which therefore runs everywhere, unchanged.
+  final DeviceRequirement requires;
+
+  bool get needsHardware => requires.capabilities.isNotEmpty;
+
+  /// Whether this template may be served on a device with [capabilities]
+  /// currently in [state].
+  bool eligibleOn(DeviceCapabilities capabilities, FoldableState state) =>
+      requires.isMetBy(capabilities, state);
+}
+
+/// What a hardware template needs from the device, declared up front so the
+/// generator never serves a challenge the device can't judge.
+class DeviceRequirement {
+  const DeviceRequirement({
+    this.capabilities = const {},
+    this.initialStatus = const {},
+    this.allowApproximated = const {},
+  });
+
+  static const none = DeviceRequirement();
+
+  /// Must all be judgeable ([DeviceCapabilities.canJudge]).
+  final Set<DeviceCapability> capabilities;
+
+  /// The round only starts from one of these hinge states (empty = any
+  /// known state). E.g. DO NOT OPEN needs a closed phone.
+  final Set<HingeStatus> initialStatus;
+
+  /// Capabilities this template accepts at
+  /// [CapabilitySupport.approximated] support.
+  final Set<DeviceCapability> allowApproximated;
+
+  bool isMetBy(DeviceCapabilities caps, FoldableState state) {
+    for (final c in capabilities) {
+      if (!caps.canJudge(c, allowApproximated: allowApproximated.contains(c))) {
+        return false;
+      }
+    }
+    if (capabilities.isEmpty) return true;
+    if (state.status == HingeStatus.unknown &&
+        capabilities.contains(DeviceCapability.foldState)) {
+      return false;
+    }
+    if (state.display == DisplayConfiguration.unknown &&
+        capabilities.contains(DeviceCapability.displayConfiguration)) {
+      return false;
+    }
+    return initialStatus.isEmpty || initialStatus.contains(state.status);
+  }
 }

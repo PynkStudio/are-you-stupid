@@ -6,6 +6,7 @@ import '../../core/challenge.dart';
 import '../theme.dart';
 import 'target_button.dart';
 import 'balanced_text.dart';
+import 'foldable_visual.dart';
 
 /// Lets the background listener know a target already handled this pointer.
 ///
@@ -127,6 +128,23 @@ class _PlayArea extends StatelessWidget {
 
     final big = view.bigCenterText;
     final grid = _buildTargets(context);
+    final device = view.device;
+
+    if (device != null) {
+      // Foldable round: the hardware visual on top, any targets below it.
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+        child: Column(
+          children: [
+            Expanded(flex: 3, child: FoldableVisual(visual: device)),
+            if (view.targets.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              Expanded(flex: 2, child: grid),
+            ],
+          ],
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),

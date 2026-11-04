@@ -1,11 +1,11 @@
 ---
 tags: [gameplay, challenges, reference]
-updated: 2026-10-17
+updated: 2026-10-30
 ---
 
 # Challenge Catalog
 
-39 templates. Source of truth is `lib/challenges/registry.dart` — **if you add
+39 templates (+ 5 hardware-gated foldable ones, below). Source of truth is `lib/challenges/registry.dart` — **if you add
 or change one, update this note in the same commit** ([[Documentation Rules]]).
 Everything below is shown in English; the app ships in five more languages —
 see [[Localization]] for how each instruction/hint/fail-line is translated.
@@ -108,6 +108,22 @@ Legend: **Lv** = first level it can appear · **W** = pick weight ·
 | `ignore_next` | 12 | 0.8 | IGNORE THE NEXT LINE / TAP RED | obeying loses |
 | `rule_flip` | 14 | 1.0 | TAP RED … becomes TAP BLUE mid-round | read twice |
 | `tap_reverse_order` | 17 | 0.8 | TAP IN REVERSE ORDER | 3 → 2 → 1 |
+
+## Foldable (Unfold Your Brain)
+
+Five more templates in `kFoldableChallengeTemplates`
+(`lib/challenges/foldable_challenges.dart`), **solo only** and served only on
+a device that can judge them (`ChallengeTemplate.requires`). Never starters,
+never back to back. Full design in [[Unfold Your Brain]].
+**`[iMessage: Exception]`** for all five — see [[iMessage Multiplayer]].
+
+| Id | Lv | W | Needs | What the player sees | The catch |
+|---|---|---|---|---|---|
+| `bend_over` | 4 | 0.7 | fold state; starts closed or flat | BEND OVER. | fold partially (90° ± 30° with a real angle); tapping fails |
+| `dont_open` | 4 | 0.7 | fold state; starts closed | DO NOT OPEN. + huge OPEN button | wait; opening or pressing fails |
+| `crack_the_code` | 7 | 0.6 | fold state; starts open | FIND THE RIGHT ANGLE. | hold a secret hinge angle 0.6 s (state variant without angle) |
+| `other_side` | 7 | 0.6 | display configuration (exact) | THE ANSWER IS ON THE OTHER SIDE. | switch screens to reveal the digit; guessing fails — simulator-only today |
+| `open_your_mind` | 8 | 0.6 | fold state; starts open | OPEN YOUR MIND. | fully open names a decoy; tap the real shape while half open |
 
 ## Fairness audit
 

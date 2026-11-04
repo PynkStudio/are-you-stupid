@@ -9,6 +9,7 @@ import '../i18n/app_locale.dart';
 import '../i18n/strings.dart';
 import 'challenge.dart';
 import 'difficulty.dart';
+import 'foldable.dart';
 import 'game_state.dart';
 
 /// Things the engine shouts about. The UI layer wires these to sound, haptics
@@ -62,6 +63,25 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
 
   Duration _phaseElapsed = Duration.zero;
 
+  /// Latest normalized hardware state, kept current by the UI via
+  /// [handleDeviceEvent]. Each round's challenge receives it as an
+  /// [FoldableEventKind.initialState] event right after `onStart`.
+  FoldableState deviceState = FoldableState.unknown;
+
+  /// The previous round's [Challenge.successQuip], waiting for the next
+  /// round to start.
+  String? _pendingQuip;
+
+  /// Clamps one frame's delta. A hitch, an ad, the app going to the
+  /// background — or a fold that pauses rendering while the scene resizes —
+  /// must never eat a round: anything over 64 ms counts as one 16 ms frame.
+  static Duration safeDelta(Duration delta) {
+    if (delta.isNegative) return Duration.zero;
+    return delta > const Duration(milliseconds: 64)
+        ? const Duration(milliseconds: 16)
+        : delta;
+  }
+
   void addEventListener(GameEventListener listener) => _listeners.add(listener);
   void removeEventListener(GameEventListener listener) =>
       _listeners.remove(listener);
@@ -76,6 +96,7 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
 
   void startRun() {
     _provider.reset();
+    _pendingQuip = null;
     _phaseElapsed = Duration.zero;
     _state = GameState.initial().copyWith(phase: GamePhase.intro, level: 1);
     _emit(GameEvent.runStarted);
@@ -133,8 +154,21 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
       clearViral: !Difficulty.showViralPrompt(level),
       paceNote: milestoneKey != null ? Strings.t(locale, milestoneKey) : null,
       clearPaceNote: milestoneKey == null,
+      hostQuip: _pendingQuip,
+      clearHostQuip: _pendingQuip == null,
     );
+    _pendingQuip = null;
     challenge.onStart(this);
+    if (_state.phase == GamePhase.playing) {
+      challenge.onDeviceEvent(
+        FoldableEvent(
+          FoldableEventKind.initialState,
+          previous: deviceState,
+          current: deviceState,
+        ),
+        this,
+      );
+    }
     if (_state.phase == GamePhase.playing) {
       _emit(GameEvent.levelStarted);
     }
@@ -191,6 +225,18 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
     notifyListeners();
   }
 
+  /// A normalized hardware event ([[Foldable Architecture]]). Always updates
+  /// [deviceState]; reaches the challenge only while a round is playing.
+  /// Never touches the clock: folding can't pause, extend or corrupt a timer.
+  void handleDeviceEvent(FoldableEvent event) {
+    deviceState = event.current;
+    if (_state.phase != GamePhase.playing) return;
+    final challenge = _state.challenge;
+    if (challenge == null) return;
+    challenge.onDeviceEvent(event, this);
+    notifyListeners();
+  }
+
   /// Lets the player cut the wrong-flash roast short instead of waiting out
   /// [wrongFlash] — a no-op outside that phase.
   void skipWrongFlash() {
@@ -215,6 +261,7 @@ class GameEngine extends ChangeNotifier implements ChallengeHost {
         _state.duration.inMilliseconds > 0 &&
         _state.elapsed.inMilliseconds < _state.duration.inMilliseconds * 0.45;
     final streak = fast ? _state.fastStreak + 1 : 0;
+    _pendingQuip = _state.challenge?.successQuip;
     _phaseElapsed = Duration.zero;
     _state = _state.copyWith(
       phase: GamePhase.correct,

@@ -32,6 +32,7 @@ class RunSummary {
     required this.bestStreak,
     this.failedInstruction,
     this.failReason,
+    this.hardware = const {},
   });
 
   final int level;
@@ -47,7 +48,12 @@ class RunSummary {
   /// The challenge's own one-line explanation of the failure.
   final String? failReason;
 
+  /// Foldable facts about the fatal round, when it involved the hinge
+  /// ([FoldableRoundSummary.toContext]). Empty on conventional phones.
+  final Map<String, Object?> hardware;
+
   Map<String, Object?> toContext() => {
+    ...hardware,
     'levelReached': level,
     'personalBest': best,
     'newPersonalBest': newBest ? 'yes' : 'no',

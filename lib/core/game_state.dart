@@ -35,7 +35,8 @@ class GameState {
       bestFastStreak = 0,
       continueUsed = false,
       viralPrompt = null,
-      paceNote = null;
+      paceNote = null,
+      hostQuip = null;
 
   GameState({
     required this.phase,
@@ -50,6 +51,7 @@ class GameState {
     required this.continueUsed,
     required this.viralPrompt,
     required this.paceNote,
+    this.hostQuip,
   });
 
   final GamePhase phase;
@@ -76,6 +78,11 @@ class GameState {
 
   /// One-off "the game just changed" callout — see [Difficulty.milestoneKey].
   final String? paceNote;
+
+  /// The host's remark about the round just passed ([Challenge.successQuip]).
+  /// Shown on the *next* round's header line, so a joke longer than the
+  /// 240 ms correct flash still gets read without adding downtime.
+  final String? hostQuip;
 
   double get progress {
     if (duration.inMilliseconds <= 0) return 0;
@@ -104,6 +111,8 @@ class GameState {
     bool clearViral = false,
     String? paceNote,
     bool clearPaceNote = false,
+    String? hostQuip,
+    bool clearHostQuip = false,
   }) {
     return GameState(
       phase: phase ?? this.phase,
@@ -118,6 +127,7 @@ class GameState {
       continueUsed: continueUsed ?? this.continueUsed,
       viralPrompt: clearViral ? null : (viralPrompt ?? this.viralPrompt),
       paceNote: clearPaceNote ? null : (paceNote ?? this.paceNote),
+      hostQuip: clearHostQuip ? null : (hostQuip ?? this.hostQuip),
     );
   }
 }

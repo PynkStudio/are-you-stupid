@@ -1,6 +1,6 @@
 ---
 tags: [development, setup, troubleshooting]
-updated: 2026-10-17
+updated: 2026-10-30
 ---
 
 # Getting Started
@@ -35,6 +35,16 @@ flutter pub get
 flutter run                 # attached device
 flutter run -d <device-id>  # flutter devices to list them
 ```
+
+### Foldable simulator
+
+```bash
+flutter run --dart-define=AYS_FOLD_SIM=true   # debug only
+```
+
+Adds the FOLD SIM panel to the game screen — see [[Foldable Simulator]].
+The native hinge bridge needs the iOS 27.1 SDK (Xcode 27.1) to build its
+`#available(iOS 27.1, *)` branch.
 
 ## Verify
 

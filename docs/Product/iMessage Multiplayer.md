@@ -1,6 +1,6 @@
 ---
 tags: [product, multiplayer, imessage, ios]
-updated: 2026-10-17
+updated: 2026-10-30
 ---
 
 # iMessage Multiplayer
@@ -40,6 +40,14 @@ spectator rules are not part of v1.
 - The first player's result is encoded in the message state but not displayed
   before the reply. This is social fairness, not tamper-proof competition;
   the no-backend design has no server authority or anti-cheat claim.
+
+### Platform exception: foldable challenges
+
+The five [[Unfold Your Brain]] templates are **not** mirrored. They need a
+live hinge (`UIHingeInteraction` on the host app's own view hierarchy) and a
+starting fold state, neither of which a Messages extension can rely on, and
+two players on different phones could not get the same judgeable round.
+Recorded in [[Decision Log]] (2026-10-30).
 
 ## Difficulty
 

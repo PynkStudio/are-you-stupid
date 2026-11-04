@@ -464,6 +464,26 @@ gain contract and the global sound-setting gate. `swift test` compiles the
 shared host resource bundle and native player. Final loudness and overlap are
 still a real-headphone/TV check; automated tests cannot judge perceived level.
 
+### `test/foldable/` — Unfold Your Brain (49 cases)
+- `foldable_layer_test.dart` — `UIHinge.Status`/radians normalization,
+  state diff → events (open/close/debounce/partial↔full/unavailable),
+  capability levels (approximated only when opted in), viewport
+  classification, controller event order, 50 repeated display transitions,
+  **dispose leaves no live listener**, the iOS EventChannel payloads and the
+  "foldable only once the hinge speaks" upgrade (mocked stream handler).
+- `foldable_challenges_test.dart` — each of the five challenges: success,
+  every failure line, angle vs status-only variants, hold/reset on the safe,
+  reveal surviving repeated switches, skip on hinge loss, the 4.5 s physical
+  floor, < 8 words in all six locales, never a starter.
+- `foldable_engine_test.dart` — generator eligibility (never on a
+  conventional phone, never back to back, starting states,
+  approximated-display gating), engine routing, device events never touching
+  the clock, `safeDelta`, host quip carry-over, the commentary tracker, and a
+  widget test driving the simulator panel.
+
+Not covered: the Swift bridge on a device (no iPhone Duo, no iOS 27.1
+simulator runtime here) — see [[Foldable Hardware Capabilities]].
+
 ## Writing tests for a new challenge
 
 ```dart

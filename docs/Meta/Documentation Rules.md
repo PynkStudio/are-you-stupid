@@ -1,6 +1,6 @@
 ---
 tags: [meta, rules, mandatory]
-updated: 2026-10-03
+updated: 2026-10-30
 ---
 
 # Documentation Rules
@@ -58,6 +58,9 @@ No "I'll document it later". No separate docs PR.
 | AI: localization/locale gating | [[Localization and Language]] |
 | AI: quality/guardrail/rollback posture | [[Quality Neutrality and Guardrails]] |
 | AI: test strategy for the AI suites | [[Testing and Evaluation]] (+ [[Testing]]) |
+| Foldable challenges, thresholds, host lines | [[Unfold Your Brain]] (+ [[Challenge Catalog]] → Foldable) |
+| Foldable hardware layer, bridge, eligibility | [[Foldable Architecture]] (+ [[Foldable Hardware Capabilities]] when an Apple API is (re)verified) |
+| Foldable simulator controls | [[Foldable Simulator]] |
 
 ### Spec documents
 
