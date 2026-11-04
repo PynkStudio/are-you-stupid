@@ -1,6 +1,6 @@
 ---
 tags: [product, ads, monetization]
-updated: 2026-10-12
+updated: 2026-11-04
 ---
 
 # Monetization and Ads
@@ -115,6 +115,17 @@ button only renders when a rewarded ad is actually sitting there ready to
 play. If the interstitial isn't ready when TRY AGAIN is tapped,
 `AdManager.maybeShowInterstitial` just no-ops and the run restarts —
 restart speed always wins (see Guardrails below).
+
+**A failed load retries on its own.** `AdMobAdProvider` gives each ad type an
+`AdLoadRetry` (`lib/services/ads/ad_load_retry.dart`): 30 s, doubling up to a
+5-minute cap, reset by a successful load. Before this, one failure at launch
+left CONTINUE missing until the app restarted, because nothing asks for a
+rewarded load while `isReady` is false. A retry is silent and never shows an ad:
+one that succeeds while the Game Over screen is up only makes CONTINUE available
+from that screen's next rebuild. No request goes out while `canRequestAds` is
+false, so a retry can't outlive withdrawn consent. Debug builds log consent and
+load results with the `[ads]` prefix (AdMob error code and message), which is
+how to tell no fill from a consent or setup problem on a real device.
 
 ## User-initiated only
 

@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import 'ad_load_retry.dart';
 import 'ad_provider.dart';
 import 'ad_unit_ids.dart';
 
@@ -13,11 +15,15 @@ import 'ad_unit_ids.dart';
 /// Every failure mode — no network, no fill, load error — just leaves
 /// [isReady] false and [show] returning false. Nothing here ever throws or
 /// shows an error to the player: no ad is exactly the same as "declined".
+/// Failed loads retry on their own ([AdLoadRetry]) and are logged in debug
+/// builds, since the player is never told.
 class AdMobAdProvider implements AdProvider {
   InterstitialAd? _interstitial;
   RewardedAd? _rewarded;
   bool _loadingInterstitial = false;
   bool _loadingRewarded = false;
+  late final _interstitialRetry = AdLoadRetry(_loadInterstitial);
+  late final _rewardedRetry = AdLoadRetry(_loadRewarded);
 
   /// False until consent allows ad requests (UMP `canRequestAds`). Every
   /// load is a no-op while false, so a player who declined in the EEA simply
@@ -82,9 +88,10 @@ class AdMobAdProvider implements AdProvider {
       () {
         if (!done.isCompleted) done.complete();
       },
-      (_) {
+      (error) {
         // Offline or misconfigured: UMP falls back to the last stored
         // consent, which `canRequestAds` below still honours.
+        _log('consent update failed: ${error.errorCode} ${error.message}');
         if (!done.isCompleted) done.complete();
       },
     );
@@ -93,7 +100,11 @@ class AdMobAdProvider implements AdProvider {
 
   Future<void> _showConsentFormIfRequired() async {
     try {
-      await ConsentForm.loadAndShowConsentFormIfRequired((_) {});
+      await ConsentForm.loadAndShowConsentFormIfRequired((error) {
+        if (error != null) {
+          _log('consent form failed: ${error.errorCode} ${error.message}');
+        }
+      });
     } catch (_) {
       // No form available (e.g. offline) — same fallback as above.
     }
@@ -113,6 +124,7 @@ class AdMobAdProvider implements AdProvider {
   }
 
   Future<void> _startSdkIfAllowed() async {
+    _log('canRequestAds: $_canRequestAds');
     if (!_canRequestAds || _sdkStarted) return;
     _sdkStarted = true;
     await MobileAds.instance.initialize();
@@ -135,7 +147,12 @@ class AdMobAdProvider implements AdProvider {
   };
 
   Future<void> _loadInterstitial() async {
-    if (!_sdkStarted || _interstitial != null || _loadingInterstitial) return;
+    if (!_canRequestAds ||
+        !_sdkStarted ||
+        _interstitial != null ||
+        _loadingInterstitial) {
+      return;
+    }
     _loadingInterstitial = true;
     await InterstitialAd.load(
       adUnitId: AdUnitIds.forPlacement(AdPlacement.interstitial),
@@ -144,14 +161,28 @@ class AdMobAdProvider implements AdProvider {
         onAdLoaded: (ad) {
           _loadingInterstitial = false;
           _interstitial = ad;
+          _interstitialRetry.succeeded();
+          _log('interstitial loaded');
         },
-        onAdFailedToLoad: (_) => _loadingInterstitial = false,
+        onAdFailedToLoad: (error) {
+          _loadingInterstitial = false;
+          _log(
+            'interstitial failed: ${error.code} ${error.message}, '
+            'retry in ${_interstitialRetry.nextDelay.inSeconds} s',
+          );
+          _interstitialRetry.failed();
+        },
       ),
     );
   }
 
   Future<void> _loadRewarded() async {
-    if (!_sdkStarted || _rewarded != null || _loadingRewarded) return;
+    if (!_canRequestAds ||
+        !_sdkStarted ||
+        _rewarded != null ||
+        _loadingRewarded) {
+      return;
+    }
     _loadingRewarded = true;
     await RewardedAd.load(
       adUnitId: AdUnitIds.forPlacement(AdPlacement.rewardedContinue),
@@ -160,10 +191,23 @@ class AdMobAdProvider implements AdProvider {
         onAdLoaded: (ad) {
           _loadingRewarded = false;
           _rewarded = ad;
+          _rewardedRetry.succeeded();
+          _log('rewarded loaded');
         },
-        onAdFailedToLoad: (_) => _loadingRewarded = false,
+        onAdFailedToLoad: (error) {
+          _loadingRewarded = false;
+          _log(
+            'rewarded failed: ${error.code} ${error.message}, '
+            'retry in ${_rewardedRetry.nextDelay.inSeconds} s',
+          );
+          _rewardedRetry.failed();
+        },
       ),
     );
+  }
+
+  void _log(String message) {
+    if (kDebugMode) debugPrint('[ads] $message');
   }
 
   @override

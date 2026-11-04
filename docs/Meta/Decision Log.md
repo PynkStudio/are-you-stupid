@@ -1,6 +1,6 @@
 ---
 tags: [meta, decisions, adr]
-updated: 2026-10-19
+updated: 2026-11-04
 ---
 
 # Decision Log
@@ -3876,3 +3876,17 @@ app-local settings and match state, so the manifest uses approved reason
 scanner's broader guessed declarations: the Flutter and advertising SDKs
 already embed their own manifests, and declaring APIs or collection the host
 does not perform would make the submission less accurate.
+
+
+### 2026-11-04 — Failed ad loads retry with backoff, inside the provider
+
+**Decision.** `AdMobAdProvider` retries a failed load through `AdLoadRetry`:
+30 s, doubling up to 5 minutes, reset by a success. Debug builds log the result
+of every load. Loads also stop while `canRequestAds` is false.
+
+**Why.** On a failed load the placement stayed empty: a hidden CONTINUE button
+is never tapped, so nothing asked for a rewarded load again until the next launch,
+and the error was discarded, so "no ads" could not be diagnosed. The backoff
+avoids hammering AdMob during no fill or offline stretches. It lives in the
+provider because a failed load is an SDK concern, and `AdManager` stays pure
+policy. See [[Monetization and Ads]].

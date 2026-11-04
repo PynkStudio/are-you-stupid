@@ -1,6 +1,6 @@
 ---
 tags: [development, testing]
-updated: 2026-10-19
+updated: 2026-11-04
 ---
 
 # Testing
@@ -333,6 +333,12 @@ rewarded-continue button is never offered when `isReady` is false, i.e. the
 rewarded continue is granted for free (offline included) and the interstitial
 never fires, even with the fill/counter conditions that would otherwise show
 one. See [[Monetization and Ads]].
+
+### `test/ad_load_retry_test.dart` — the failed-load backoff
+`AdLoadRetry` with an injected fake timer: delays go 30 s → 5-minute cap, a
+retry runs the load, a new failure replaces the pending retry instead of
+stacking one, and success cancels it and resets the backoff. The AdMob SDK calls
+around it have no automated test; check those on a real device.
 
 ### `test/localization_test.dart` — the six languages stay in sync
 Asserts every locale in `lib/i18n/strings_*.dart` defines the exact same key
