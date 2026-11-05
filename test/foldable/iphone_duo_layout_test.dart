@@ -19,6 +19,7 @@ const _sizes = {
   'cover': Size(466, 678),
   'inner': Size(669, 951),
   'inner landscape': Size(951, 669),
+  'inner portrait frame': Size(482, 669),
   'inner split view': Size(334, 951),
 };
 

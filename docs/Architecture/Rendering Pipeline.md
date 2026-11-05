@@ -53,6 +53,17 @@ increment fires `HapticManager.tap()` from `GameScreen`. The previous round's
 [[Foldable Simulator]] a compact display squeezes the game into a cover-sized
 column. See [[Foldable Architecture]].
 
+## Portrait frame
+
+iPhone Duo's inner display hands the app a 951×669 landscape window whatever
+orientation it asks for. On iOS, `PortraitFrame`
+(`lib/ui/widgets/portrait_frame.dart`, the `MaterialApp` builder in `main.dart`)
+keeps every screen in a centered column 0.72 × the height wide, so opening the
+phone doesn't rearrange the game. The app still fills the display, so iOS reports
+the real size class ([[Foldable Hardware Capabilities]]). Taps beside the column
+do nothing, and full-screen overlays such as the red flash stop at its edges. The
+Mac app is left out: its window is meant to be wide.
+
 ## Target rendering
 
 `TargetButton` applies, in order: wobble offset (`dx`/`dy` × constraints),

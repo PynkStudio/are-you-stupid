@@ -4000,3 +4000,15 @@ pose rests near 129°. The old 60°–120° window missed that pose, and DO NOT 
 let the phone open most of the way. Safes stay above 100° so a round doesn't
 drop the status to `closed` partway.
 
+### 2026-11-05 — The game stays portrait on iPhone Duo's inner display
+
+**Decision.** When iOS gives the app a landscape window, `PortraitFrame` keeps
+all screens in a centered portrait column on the full-screen background. The
+window itself stays full screen.
+
+**Why.** The owner didn't want opening the phone to change the game's
+orientation. iOS can't be asked: the inner display ignores the portrait lock. The
+system's own letterbox (`UIRequiresFullScreen`) looks the same but reports compact
+on both displays, which would blind THE OTHER SIDE, so we draw the column ourselves.
+See [[Rendering Pipeline]].
+

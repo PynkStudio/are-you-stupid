@@ -89,9 +89,9 @@ Hardware interactions must never encourage damage. By construction:
 - **Never tested on physical foldable hardware.** No claim of device
   compatibility is made.
 - Thresholds are tuned to Apple's simulator; real hinge values may differ.
-- The inner display is landscape, and the game follows. Every round's layout is
-  tested there, and Home and Game Over were checked by eye, but Settings,
-  Stats and Multiplayer were not.
+- The inner display is landscape, but the game stays in a portrait column
+  ([[Rendering Pipeline]] → Portrait frame). Home, a round and Game Over were
+  checked by eye, but Settings, Stats and Multiplayer were not.
 - A Split View size change also reveals THE OTHER SIDE's digit.
 - A fold kept the Flutter scene running on the simulator. If a real device
   suspends rendering, the clock clamps the gap (`GameEngine.safeDelta`), so no

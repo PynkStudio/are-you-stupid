@@ -144,7 +144,7 @@ All five challenges pass against the real hinge on Apple's iPhone Duo simulator;
 |---|---|
 | MVP gameplay loop | Done |
 | Challenge templates | 39 shipped + 5 foldable (solo, hardware-gated — [[Unfold Your Brain]]) |
-| Foldable (Unfold Your Brain) | Hardware layer, iOS 27.1 hinge bridge (verified on Apple's simulator, not on a device), dev simulator, 5 challenges, host commentary; 56 tests in `test/foldable/` |
+| Foldable (Unfold Your Brain) | Hardware layer, iOS 27.1 hinge bridge (verified on Apple's simulator, not on a device), dev simulator, 5 challenges, host commentary; 59 tests in `test/foldable/` |
 | Persistence (best score, stats, settings) | Done |
 | Ads | Real, via AdMob (`AdMobAdProvider`) behind GDPR/UMP consent + ATT; `MockAdProvider` stays default for tests/local dev |
 | Sound / haptics | Reviewed generated SFX at 32% playback gain + platform haptics |
@@ -160,7 +160,7 @@ All five challenges pass against the real hinge on Apple's iPhone Duo simulator;
 | Target | State |
 |---|---|
 | `flutter analyze` | clean |
-| `flutter test` | 431/431 passing (2026-11-05, foldable suites included) — see [[Testing]] |
+| `flutter test` | 434/434 passing (2026-11-05, foldable suites included) — see [[Testing]] |
 | `swift test` (from `tvos/`) | 104 host core cases plus protocol and board UI suites, all green (2026-10-19); 5 real-socket cases skip by default (`AYS_RUN_NETWORK_TESTS=1` to run for real) — see [[Testing]] |
 | Android debug APK | builds |
 | Android release APK | builds, signed with a real upload key (not debug) — see [[Release Checklist]] |
