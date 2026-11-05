@@ -12,6 +12,7 @@ import 'services/ads/admob_ad_provider.dart';
 import 'services/ads/mock_ad_provider.dart';
 import 'services/ads/no_ad_provider.dart';
 import 'services/app_services.dart';
+import 'services/foldable_bridge.dart';
 import 'services/purchases/iap_purchase_provider.dart';
 import 'services/purchases/mock_purchase_provider.dart';
 import 'services/purchases/purchase_provider.dart';
@@ -29,6 +30,7 @@ Future<void> main() async {
   // multiplayer — see [AiFeatureFlags.platformSupported].
   AiFeatureFlags.platformSupported = Platform.isIOS;
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  if (Platform.isIOS) unlockRotationWhenHingeFound();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

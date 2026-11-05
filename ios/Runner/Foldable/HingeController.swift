@@ -18,12 +18,19 @@
 //  Nothing is ever sent before iOS 27.1 or on a device whose hierarchy
 //  provides no hinge updates: Dart then stays at "no foldable capability".
 //
+//  The interaction lives as long as the app, because the first known status
+//  also unlocks rotation: `hasHinge` for AppDelegate, plus a one-off
+//  `hingeDetected` call on `ays/foldable` so Dart lifts its portrait lock.
+//
 
 import Flutter
 import UIKit
 
 final class HingeController: NSObject, FlutterStreamHandler {
   private let channel: FlutterEventChannel
+  private let presenceChannel: FlutterMethodChannel
+  /// A hinge reported a known status. Never true on a conventional phone.
+  private(set) var hasHinge = false
   private var sink: FlutterEventSink?
   /// `UIHingeInteraction` on iOS 27.1+, typed loosely so the class still
   /// compiles for the 17.6 deployment target.
@@ -36,29 +43,31 @@ final class HingeController: NSObject, FlutterStreamHandler {
 
   init(messenger: FlutterBinaryMessenger) {
     channel = FlutterEventChannel(name: "ays/foldable/hinge", binaryMessenger: messenger)
+    presenceChannel = FlutterMethodChannel(name: "ays/foldable", binaryMessenger: messenger)
     super.init()
     channel.setStreamHandler(self)
+    DispatchQueue.main.async { [weak self] in
+      MainActor.assumeIsolated { self?.attach() }
+    }
   }
 
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
     sink = events
-    attachAttempts = 0
+    // A new listener (each game screen) starts from the current reading.
     DispatchQueue.main.async { [weak self] in
-      MainActor.assumeIsolated { self?.attach() }
+      MainActor.assumeIsolated { self?.resend() }
     }
     return nil
   }
 
   func onCancel(withArguments arguments: Any?) -> FlutterError? {
-    // Flutter calls stream handlers on the platform (main) thread.
-    MainActor.assumeIsolated { detach() }
     sink = nil
     return nil
   }
 
   @MainActor
   private func attach() {
-    guard sink != nil, interaction == nil else { return }
+    guard interaction == nil else { return }
     guard #available(iOS 27.1, *) else { return }
     guard let view = Self.flutterRootView() else {
       // The window may not exist yet at engine start; retry briefly.
@@ -82,16 +91,23 @@ final class HingeController: NSObject, FlutterStreamHandler {
     traitRegistration = view.registerForTraitChanges(
       [UITraitHorizontalSizeClass.self]
     ) { [weak self] (_: UIView, _: UITraitCollection) in
-      guard let self, #available(iOS 27.1, *),
-        let hinge = self.lastHinge as? UIHinge
-      else { return }
-      self.send(hinge)
+      self?.resend()
     }
+  }
+
+  @MainActor
+  private func resend() {
+    guard #available(iOS 27.1, *), let hinge = lastHinge as? UIHinge else { return }
+    send(hinge)
   }
 
   @available(iOS 27.1, *)
   private func send(_ hinge: UIHinge?) {
     lastHinge = hinge
+    if let hinge, hinge.status != .unknown, !hasHinge {
+      hasHinge = true
+      presenceChannel.invokeMethod("hingeDetected", arguments: nil)
+    }
     guard let sink else { return }
     guard let hinge else {
       sink(["available": false])
@@ -103,20 +119,6 @@ final class HingeController: NSObject, FlutterStreamHandler {
       "angle": Double(hinge.angle),
       "sizeClass": hostView?.traitCollection.horizontalSizeClass.rawValue ?? 0,
     ])
-  }
-
-  @MainActor
-  private func detach() {
-    if #available(iOS 27.1, *), let hinge = interaction as? UIHingeInteraction {
-      hostView?.removeInteraction(hinge)
-    }
-    if let traitRegistration {
-      hostView?.unregisterForTraitChanges(traitRegistration)
-    }
-    traitRegistration = nil
-    lastHinge = nil
-    interaction = nil
-    hostView = nil
   }
 
   @MainActor

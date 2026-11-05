@@ -14,6 +14,18 @@ import UIKit
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
+  // Overrides Info.plist's portrait-only list, for iPhone Duo's cover display.
+  // Info.plist stays portrait so no other iPhone can launch sideways.
+  override func application(
+    _ application: UIApplication,
+    supportedInterfaceOrientationsFor window: UIWindow?
+  ) -> UIInterfaceOrientationMask {
+    if UIDevice.current.userInterfaceIdiom == .pad {
+      return [.portrait, .portraitUpsideDown]
+    }
+    return hingeController?.hasHinge == true ? .allButUpsideDown : .portrait
+  }
+
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     // Phase 2 of the Dynamic AI Director: register the on-device model bridge

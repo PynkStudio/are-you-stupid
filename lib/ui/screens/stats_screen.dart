@@ -28,43 +28,56 @@ class StatsScreen extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    BalancedText(
-                      t('ui.stats.title'),
-                      style: Ays.title(44),
-                      textAlign: TextAlign.left,
-                    ),
-                    const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 26),
-                      decoration: BoxDecoration(
-                        color: Ays.surface,
-                        borderRadius: Ays.radius,
+                    Expanded(
+                      // Scrolls on short displays, such as iPhone Duo's cover
+                      // held sideways.
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            BalancedText(
+                              t('ui.stats.title'),
+                              style: Ays.title(44),
+                              textAlign: TextAlign.left,
+                            ),
+                            const SizedBox(height: 24),
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 26),
+                              decoration: BoxDecoration(
+                                color: Ays.surface,
+                                borderRadius: Ays.radius,
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    t('ui.stats.level'),
+                                    style: Ays.mono(14),
+                                  ),
+                                  BalancedText(
+                                    '${s.bestLevel}',
+                                    style: Ays.title(86),
+                                    maxLines: 1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            _Row(
+                              label: t('ui.stats.total_attempts'),
+                              value: '${s.totalAttempts}',
+                            ),
+                            _Row(
+                              label: t('ui.stats.average_level'),
+                              value: s.averageLevel.toStringAsFixed(1),
+                            ),
+                            _Row(
+                              label: t('ui.stats.highest_streak'),
+                              value: '${s.bestStreak}',
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Column(
-                        children: [
-                          Text(t('ui.stats.level'), style: Ays.mono(14)),
-                          BalancedText(
-                            '${s.bestLevel}',
-                            style: Ays.title(86),
-                            maxLines: 1,
-                          ),
-                        ],
-                      ),
                     ),
-                    const SizedBox(height: 18),
-                    _Row(
-                      label: t('ui.stats.total_attempts'),
-                      value: '${s.totalAttempts}',
-                    ),
-                    _Row(
-                      label: t('ui.stats.average_level'),
-                      value: s.averageLevel.toStringAsFixed(1),
-                    ),
-                    _Row(
-                      label: t('ui.stats.highest_streak'),
-                      value: '${s.bestStreak}',
-                    ),
-                    const Spacer(),
                     AysButton(
                       label: t('ui.stats.back'),
                       height: 66,

@@ -17,6 +17,7 @@ import '../support/fake_host.dart';
 
 const _sizes = {
   'cover': Size(466, 678),
+  'cover landscape': Size(678, 466),
   'inner': Size(669, 951),
   'inner landscape': Size(951, 669),
   'inner upright': Size(669, 951),

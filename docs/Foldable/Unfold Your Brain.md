@@ -92,8 +92,7 @@ Hardware interactions must never encourage damage. By construction:
 - The game fills the inner display held either way ([[Rendering Pipeline]] →
   Any screen shape). Home, a round and Game Over were checked by eye; Settings
   and Stats only by overflow tests, and Multiplayer not at all.
-- The cover display stays locked to portrait, so it doesn't turn when the phone
-  is held sideways.
+- A phone held sideways at launch starts portrait until the hinge reports.
 - A Split View size change also reveals THE OTHER SIDE's digit.
 - A fold kept the Flutter scene running on the simulator. If a real device
   suspends rendering, the clock clamps the gap (`GameEngine.safeDelta`), so no

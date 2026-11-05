@@ -55,15 +55,17 @@ column. See [[Foldable Architecture]].
 
 ## Any screen shape
 
-iPhone Duo's inner display gives the app a 951×669 window when held one way and
-669×951 the other, whatever orientation it asks for, and the game fills both.
+iPhone Duo's displays can turn: the inner one is 951×669 held one way and 669×951
+the other, and the cover about 678×466 sideways ([[Foldable Architecture]] →
+Rotation). The game fills all of them.
 When a box is clearly wider than tall (`Ays.isWide`), Home, rounds and Game Over
 sit side by side: title or instruction on the left, what you tap on the right.
 Otherwise they stay stacked as on any phone. `ChallengeRenderer`, `HomeScreen` and
 `GameOverView` decide from their own `LayoutBuilder`, never from the device or
 orientation, as Apple's iPhone Duo guidance asks. The wide instruction wraps with
 `BalancedText` instead of shrinking to one line. The Mac app's window uses the
-same layouts when it is wide. Settings, Stats and Multiplayer just stretch.
+same layouts when it is wide. Short displays scale those columns down
+(`FitColumn`) and Stats scrolls. Settings, Stats and Multiplayer just stretch.
 
 ## Target rendering
 

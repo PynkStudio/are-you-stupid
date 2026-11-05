@@ -8,6 +8,7 @@ import '../../services/app_services.dart';
 import '../theme.dart';
 import '../widgets/ays_button.dart';
 import '../widgets/balanced_text.dart';
+import '../widgets/fit_column.dart';
 
 /// Designed to be screenshotted: the verdict, the big number, and the
 /// stupidly simple instruction that ended the run — readable at thumbnail
@@ -300,13 +301,7 @@ class _GameOverViewState extends State<GameOverView>
                           children: [
                             Expanded(child: summary),
                             const SizedBox(width: 32),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: buttons,
-                              ),
-                            ),
+                            Expanded(child: FitColumn(children: buttons)),
                           ],
                         ),
                       ),

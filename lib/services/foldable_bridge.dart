@@ -86,6 +86,22 @@ class PlatformHingeProvider implements HingeStateProvider {
   }
 }
 
+/// Lifts the portrait lock once the iOS bridge finds a hinge, so iPhone Duo's
+/// cover display can turn. Every other phone never gets the call and stays in
+/// portrait ([[Foldable Architecture]] → Rotation).
+void unlockRotationWhenHingeFound({MethodChannel? channel}) {
+  (channel ?? const MethodChannel('ays/foldable')).setMethodCallHandler((
+    call,
+  ) async {
+    if (call.method != 'hingeDetected') return;
+    await SystemChrome.setPreferredOrientations(const [
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  });
+}
+
 /// The provider for this build/platform: the simulator when explicitly
 /// enabled in a debug build, the iOS bridge on iOS, nothing elsewhere.
 HingeStateProvider createHingeProvider({required bool simulator}) {

@@ -5,6 +5,7 @@ import '../../services/app_services.dart';
 import '../theme.dart';
 import '../widgets/ays_button.dart';
 import '../widgets/balanced_text.dart';
+import '../widgets/fit_column.dart';
 import 'game_screen.dart';
 import 'multiplayer/mp_role_chooser.dart';
 import 'settings_screen.dart';
@@ -137,21 +138,9 @@ class HomeScreen extends StatelessWidget {
                     if (Ays.isWide(box)) {
                       return Row(
                         children: [
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: hero,
-                            ),
-                          ),
+                          Expanded(child: FitColumn(children: hero)),
                           const SizedBox(width: 32),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: actions,
-                            ),
-                          ),
+                          Expanded(child: FitColumn(children: actions)),
                         ],
                       );
                     }

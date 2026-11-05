@@ -299,6 +299,37 @@ void main() {
       },
     );
 
+    test('rotation unlocks only when the hinge is found', () async {
+      const channel = MethodChannel('ays/foldable.test');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      final calls = <MethodCall>[];
+      messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'SystemChrome.setPreferredOrientations') {
+          calls.add(call);
+        }
+        return null;
+      });
+      unlockRotationWhenHingeFound(channel: channel);
+      Future<void> nativeCalls(String method) async {
+        final message = const StandardMethodCodec().encodeMethodCall(
+          MethodCall(method),
+        );
+        await messenger.handlePlatformMessage(channel.name, message, (_) {});
+      }
+
+      await nativeCalls('somethingElse');
+      expect(calls, isEmpty);
+      await nativeCalls('hingeDetected');
+      expect(calls.single.arguments, [
+        'DeviceOrientation.portraitUp',
+        'DeviceOrientation.landscapeLeft',
+        'DeviceOrientation.landscapeRight',
+      ]);
+      messenger.setMockMethodCallHandler(SystemChannels.platform, null);
+      channel.setMethodCallHandler(null);
+    });
+
     test('a missing native handler leaves the phone conventional', () async {
       final p = PlatformHingeProvider(
         channel: const EventChannel('ays/foldable/none'),

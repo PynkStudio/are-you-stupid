@@ -81,11 +81,21 @@ The generator also refuses a hardware template right after another one.
 ## Native bridge
 
 `HingeController.swift` (registered in `AppDelegate`) attaches a
-`UIHingeInteraction` to the Flutter root view on first listen (retrying while
-the window appears), streams `{available, status, angle, sizeClass}` raw values,
-sends again when only the horizontal size class changes, and removes both
-registrations on cancel. `#available(iOS 27.1, *)` keeps the 17.6
+`UIHingeInteraction` to the Flutter root view at launch (retrying while the
+window appears), streams `{available, status, angle, sizeClass}` raw values,
+and sends again when only the horizontal size class changes, or when a new
+listener arrives. `#available(iOS 27.1, *)` keeps the 17.6
 deployment target. Payload contract in the Swift file header.
+
+## Rotation
+
+`Info.plist` lists portrait only on iPhone, so no conventional phone can launch
+sideways. The first known hinge status sets `HingeController.hasHinge`, which
+makes `AppDelegate`'s `supportedInterfaceOrientationsFor` allow all but
+upside down, and calls `hingeDetected` on `ays/foldable`, where
+`unlockRotationWhenHingeFound` lifts Flutter's portrait lock. iPad keeps its own
+list. So the interaction stays attached for the app's lifetime, and an event
+channel listener only starts and stops receiving readings.
 
 ## Lifecycle and leaks
 

@@ -4024,3 +4024,16 @@ guidance and covers the inner display held both ways. The cover display stays
 locked to portrait for now: unlocking it means changing the orientations in
 `Info.plist` for every iPhone, which needs its own check on conventional phones.
 
+### 2026-11-05 — Rotation unlocks only once a hinge reports
+
+**Decision.** iPhone Duo's cover display can now turn. `Info.plist` stays portrait
+on iPhone, and `AppDelegate` plus Flutter's preferred orientations open up after
+the first known hinge status. This replaces the earlier choice to keep the cover
+locked.
+
+**Why.** The owner wants the game to adapt in any orientation. Listing landscape in
+`Info.plist` also worked, but a conventional iPhone launched sideways flashed
+through landscape before Flutter locked it, because iOS reads that list before the
+app runs. The delegate method overrides the list at runtime, and both a Duo cover
+and a sideways iPhone 17 behaved correctly on the simulator.
+

@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _sizes = {
   'cover': Size(466, 678),
+  'cover landscape': Size(678, 466),
   'inner landscape': Size(951, 669),
   'inner upright': Size(669, 951),
   'inner split view': Size(334, 951),
