@@ -28,114 +28,143 @@ class HomeScreen extends StatelessWidget {
                 final locale = services.settings.locale;
                 String t(String key, [Map<String, String>? args]) =>
                     Strings.t(locale, key, args);
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Spacer(flex: 3),
-                    BalancedText(
-                      t('ui.home.title1'),
-                      style: Ays.title(74),
-                      maxLines: 1,
-                    ),
-                    BalancedText(
-                      t('ui.home.title2'),
-                      style: Ays.title(96).copyWith(color: Ays.red),
-                      maxLines: 1,
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      t('ui.home.tagline'),
-                      textAlign: TextAlign.center,
-                      style: Ays.label(16, color: Ays.inkDim),
-                    ),
-                    const Spacer(flex: 3),
-                    AnimatedBuilder(
-                      animation: services.scores,
-                      builder: (context, _) {
-                        final best = services.scores.bestLevel;
-                        return Text(
-                          best > 0
-                              ? t('ui.home.best', {'n': '$best'})
-                              : t('ui.home.no_score'),
-                          textAlign: TextAlign.center,
-                          style: Ays.mono(15, color: Ays.warning),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    AysButton(
-                      label: t('ui.home.play'),
-                      height: 92,
-                      fontSize: 38,
-                      onTap: () {
-                        services.sound.button();
-                        services.haptics.tap();
-                        Navigator.of(context).push(
-                          PageRouteBuilder(
-                            transitionDuration: const Duration(
-                              milliseconds: 120,
+                final hero = <Widget>[
+                  BalancedText(
+                    t('ui.home.title1'),
+                    style: Ays.title(74),
+                    maxLines: 1,
+                  ),
+                  BalancedText(
+                    t('ui.home.title2'),
+                    style: Ays.title(96).copyWith(color: Ays.red),
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    t('ui.home.tagline'),
+                    textAlign: TextAlign.center,
+                    style: Ays.label(16, color: Ays.inkDim),
+                  ),
+                ];
+                final actions = <Widget>[
+                  AnimatedBuilder(
+                    animation: services.scores,
+                    builder: (context, _) {
+                      final best = services.scores.bestLevel;
+                      return Text(
+                        best > 0
+                            ? t('ui.home.best', {'n': '$best'})
+                            : t('ui.home.no_score'),
+                        textAlign: TextAlign.center,
+                        style: Ays.mono(15, color: Ays.warning),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  AysButton(
+                    label: t('ui.home.play'),
+                    height: 92,
+                    fontSize: 38,
+                    onTap: () {
+                      services.sound.button();
+                      services.haptics.tap();
+                      Navigator.of(context).push(
+                        PageRouteBuilder(
+                          transitionDuration: const Duration(milliseconds: 120),
+                          pageBuilder: (_, _, _) => const GameScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  AysButton(
+                    label: t('ui.home.multiplayer'),
+                    height: 66,
+                    fontSize: 24,
+                    outlined: true,
+                    onTap: () {
+                      services.sound.button();
+                      openMultiplayerForPlatform(context);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AysButton(
+                          label: t('ui.home.best_score_button'),
+                          height: 58,
+                          fontSize: 17,
+                          outlined: true,
+                          onTap: () {
+                            services.sound.button();
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const StatsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: AysButton(
+                          label: t('ui.home.settings'),
+                          height: 58,
+                          fontSize: 17,
+                          outlined: true,
+                          onTap: () {
+                            services.sound.button();
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const SettingsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    t('ui.home.footer'),
+                    textAlign: TextAlign.center,
+                    style: Ays.mono(11),
+                  ),
+                ];
+                return LayoutBuilder(
+                  builder: (context, box) {
+                    if (Ays.isWide(box)) {
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: hero,
                             ),
-                            pageBuilder: (_, _, _) => const GameScreen(),
                           ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    AysButton(
-                      label: t('ui.home.multiplayer'),
-                      height: 66,
-                      fontSize: 24,
-                      outlined: true,
-                      onTap: () {
-                        services.sound.button();
-                        openMultiplayerForPlatform(context);
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
+                          const SizedBox(width: 32),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: actions,
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          child: AysButton(
-                            label: t('ui.home.best_score_button'),
-                            height: 58,
-                            fontSize: 17,
-                            outlined: true,
-                            onTap: () {
-                              services.sound.button();
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const StatsScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AysButton(
-                            label: t('ui.home.settings'),
-                            height: 58,
-                            fontSize: 17,
-                            outlined: true,
-                            onTap: () {
-                              services.sound.button();
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const SettingsScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
+                        const Spacer(flex: 3),
+                        ...hero,
+                        const Spacer(flex: 3),
+                        ...actions,
                       ],
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      t('ui.home.footer'),
-                      textAlign: TextAlign.center,
-                      style: Ays.mono(11),
-                    ),
-                  ],
+                    );
+                  },
                 );
               },
             ),

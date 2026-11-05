@@ -86,6 +86,11 @@ class Ays {
   );
 
   // ------------------------------------------------------------------ shapes
+  /// Whether a box is clearly wider than tall, so a screen should sit side by
+  /// side instead of stacked. iPhone Duo's inner display is 951x669 and ignores
+  /// the portrait lock ([[Rendering Pipeline]] → Any screen shape).
+  static bool isWide(BoxConstraints box) => box.maxWidth > box.maxHeight * 1.15;
+
   static const radius = BorderRadius.all(Radius.circular(26));
   static const radiusSmall = BorderRadius.all(Radius.circular(16));
 

@@ -160,132 +160,168 @@ class _GameOverViewState extends State<GameOverView>
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
+            child: LayoutBuilder(
+              builder: (context, outer) {
+                final summary = LayoutBuilder(
+                  builder: (context, box) => Center(
+                    // Scales the whole block down on short screens instead
+                    // of overflowing; never scales up.
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: SizedBox(
+                        width: box.maxWidth,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _beat(
+                              0,
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 220),
+                                child: BalancedText(
+                                  headline,
+                                  key: ValueKey(headline),
+                                  maxLines: 3,
+                                  maxWidth: box.maxWidth,
+                                  style: Ays.title(
+                                    headline.length <= 18 ? 40 : 30,
+                                  ).copyWith(color: Ays.red, height: 1.0),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 22),
+                            _beat(
+                              0.15,
+                              _ScoreCard(
+                                level: widget.level,
+                                best: widget.best,
+                                isRecord: widget.isRecord,
+                                reachedLabel: t('ui.game_over.i_reached'),
+                                levelLabel: (n) =>
+                                    t('ui.game_over.level', {'n': '$n'}),
+                                newBestLabel: t('ui.game_over.new_best'),
+                                bestLabel: t('ui.game_over.best', {
+                                  'n': '${widget.best}',
+                                }),
+                                streakLabel: widget.bestStreak >= 3
+                                    ? t('ui.game_over.streak', {
+                                        'n': '${widget.bestStreak}',
+                                      })
+                                    : null,
+                                intro: _intro,
+                              ),
+                            ),
+                            if (instruction != null &&
+                                instruction.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              _beat(
+                                0.3,
+                                _KilledByCard(
+                                  label: t('ui.game_over.killed_by'),
+                                  instruction: instruction,
+                                  reason: widget.failReason,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+                final buttons = <Widget>[
+                  AysButton(
+                    label: t('ui.game_over.try_again'),
+                    height: 84,
+                    fontSize: 34,
+                    onTap: widget.onRetry,
+                  ),
+                  if (widget.canContinue) ...[
+                    const SizedBox(height: 12),
+                    AysButton(
+                      label: t('ui.game_over.continue_btn'),
+                      icon: '▶',
+                      height: 60,
+                      fontSize: 20,
+                      color: Ays.green,
+                      textColor: Ays.bg,
+                      onTap: widget.onContinue,
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AysButton(
+                          label: t('ui.game_over.share'),
+                          height: 56,
+                          fontSize: 17,
+                          outlined: true,
+                          onTap: _share,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 96,
+                        child: AysButton(
+                          label: t('ui.game_over.home'),
+                          height: 56,
+                          fontSize: 15,
+                          outlined: true,
+                          onTap: widget.onQuit,
+                        ),
+                      ),
+                    ],
+                  ),
+                ];
+                final header = Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(t('app.title'), style: Ays.mono(13)),
+                    Flexible(
+                      child: Text(
+                        t('app.title'),
+                        style: Ays.mono(13),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     Text(
                       t('ui.game_over.title'),
                       style: Ays.mono(13, color: Ays.red),
                     ),
                   ],
-                ),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, box) => Center(
-                      // Scales the whole block down on short screens instead
-                      // of overflowing; never scales up.
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: SizedBox(
-                          width: box.maxWidth,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _beat(
-                                0,
-                                AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 220),
-                                  child: BalancedText(
-                                    headline,
-                                    key: ValueKey(headline),
-                                    maxLines: 3,
-                                    maxWidth: box.maxWidth,
-                                    style: Ays.title(
-                                      headline.length <= 18 ? 40 : 30,
-                                    ).copyWith(color: Ays.red, height: 1.0),
-                                  ),
-                                ),
+                );
+                if (Ays.isWide(outer)) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      header,
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(child: summary),
+                            const SizedBox(width: 32),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: buttons,
                               ),
-                              const SizedBox(height: 22),
-                              _beat(
-                                0.15,
-                                _ScoreCard(
-                                  level: widget.level,
-                                  best: widget.best,
-                                  isRecord: widget.isRecord,
-                                  reachedLabel: t('ui.game_over.i_reached'),
-                                  levelLabel: (n) =>
-                                      t('ui.game_over.level', {'n': '$n'}),
-                                  newBestLabel: t('ui.game_over.new_best'),
-                                  bestLabel: t('ui.game_over.best', {
-                                    'n': '${widget.best}',
-                                  }),
-                                  streakLabel: widget.bestStreak >= 3
-                                      ? t('ui.game_over.streak', {
-                                          'n': '${widget.bestStreak}',
-                                        })
-                                      : null,
-                                  intro: _intro,
-                                ),
-                              ),
-                              if (instruction != null &&
-                                  instruction.isNotEmpty) ...[
-                                const SizedBox(height: 12),
-                                _beat(
-                                  0.3,
-                                  _KilledByCard(
-                                    label: t('ui.game_over.killed_by'),
-                                    instruction: instruction,
-                                    reason: widget.failReason,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ),
-                ),
-                AysButton(
-                  label: t('ui.game_over.try_again'),
-                  height: 84,
-                  fontSize: 34,
-                  onTap: widget.onRetry,
-                ),
-                if (widget.canContinue) ...[
-                  const SizedBox(height: 12),
-                  AysButton(
-                    label: t('ui.game_over.continue_btn'),
-                    icon: '▶',
-                    height: 60,
-                    fontSize: 20,
-                    color: Ays.green,
-                    textColor: Ays.bg,
-                    onTap: widget.onContinue,
-                  ),
-                ],
-                const SizedBox(height: 12),
-                Row(
+                    ],
+                  );
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: AysButton(
-                        label: t('ui.game_over.share'),
-                        height: 56,
-                        fontSize: 17,
-                        outlined: true,
-                        onTap: _share,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      width: 96,
-                      child: AysButton(
-                        label: t('ui.game_over.home'),
-                        height: 56,
-                        fontSize: 15,
-                        outlined: true,
-                        onTap: widget.onQuit,
-                      ),
-                    ),
+                    header,
+                    Expanded(child: summary),
+                    ...buttons,
                   ],
-                ),
-              ],
+                );
+              },
             ),
           ),
         ),

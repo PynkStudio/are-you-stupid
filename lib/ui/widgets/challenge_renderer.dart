@@ -49,13 +49,30 @@ class ChallengeRenderer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _InstructionBlock(view: view),
-        Expanded(
-          child: _PlayArea(view: view, claim: claim, onTarget: onTarget),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, box) {
+        final play = _PlayArea(view: view, claim: claim, onTarget: onTarget);
+        if (Ays.isWide(box)) {
+          return Row(
+            children: [
+              Expanded(flex: 2, child: _WideInstructionBlock(view: view)),
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 14),
+                  child: play,
+                ),
+              ),
+            ],
+          );
+        }
+        return Column(
+          children: [
+            _InstructionBlock(view: view),
+            Expanded(child: play),
+          ],
+        );
+      },
     );
   }
 }
@@ -104,6 +121,47 @@ class _InstructionBlock extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The instruction beside the play area: it has the height to wrap, so it
+/// stays big instead of shrinking to fit one line.
+class _WideInstructionBlock extends StatelessWidget {
+  const _WideInstructionBlock({required this.view});
+
+  final ChallengeView view;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AnimatedScale(
+            scale: 1 + view.pressure * 0.06,
+            duration: const Duration(milliseconds: 120),
+            child: BalancedText(
+              view.instruction,
+              style: Ays.instruction(46),
+              maxLines: 4,
+            ),
+          ),
+          if (view.hint != null) ...[
+            const SizedBox(height: 14),
+            Text(
+              view.hint!,
+              textAlign: TextAlign.center,
+              style: Ays.label(18, color: Ays.inkDim),
+            ),
+          ],
+          if (view.tapCounter != null) ...[
+            const SizedBox(height: 14),
+            Text(view.tapCounter!, style: Ays.mono(20, color: Ays.warning)),
+          ],
+        ],
       ),
     );
   }

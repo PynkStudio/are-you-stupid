@@ -4012,3 +4012,15 @@ system's own letterbox (`UIRequiresFullScreen`) looks the same but reports compa
 on both displays, which would blind THE OTHER SIDE, so we draw the column ourselves.
 See [[Rendering Pipeline]].
 
+### 2026-11-05 — The game fills the display in any shape, no portrait column
+
+**Decision.** `PortraitFrame` is gone. Home, rounds and Game Over lay themselves
+out side by side when their box is wide, and stacked otherwise. This replaces the
+earlier 2026-11-05 entry on keeping the game portrait.
+
+**Why.** The owner wants the whole screen used in any orientation, not a column
+with empty sides. Deciding from the available space follows Apple's iPhone Duo
+guidance and covers the inner display held both ways. The cover display stays
+locked to portrait for now: unlocking it means changing the orientations in
+`Info.plist` for every iPhone, which needs its own check on conventional phones.
+

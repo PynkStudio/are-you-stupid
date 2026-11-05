@@ -21,7 +21,6 @@ import 'ui/screens/multiplayer/mp_home_screen.dart';
 import 'ui/screens/multiplayer/mp_join_screen.dart';
 import 'ui/screens/splash_screen.dart';
 import 'ui/theme.dart';
-import 'ui/widgets/portrait_frame.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -214,7 +213,6 @@ class _AreYouStupidAppState extends State<AreYouStupidApp> {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: Ays.theme(),
-        builder: _portraitFrame,
         home: const SplashScreen(),
       );
     }
@@ -225,15 +223,8 @@ class _AreYouStupidAppState extends State<AreYouStupidApp> {
         title: Strings.t(services.settings.locale, 'app.title'),
         debugShowCheckedModeBanner: false,
         theme: Ays.theme(),
-        builder: _portraitFrame,
         home: const HomeScreen(),
       ),
     );
   }
-
-  /// iOS only: the Mac app's window is meant to be wide.
-  Widget _portraitFrame(BuildContext context, Widget? child) => PortraitFrame(
-    enabled: Platform.isIOS,
-    child: child ?? const SizedBox.shrink(),
-  );
 }

@@ -53,16 +53,17 @@ increment fires `HapticManager.tap()` from `GameScreen`. The previous round's
 [[Foldable Simulator]] a compact display squeezes the game into a cover-sized
 column. See [[Foldable Architecture]].
 
-## Portrait frame
+## Any screen shape
 
-iPhone Duo's inner display hands the app a 951×669 landscape window whatever
-orientation it asks for. On iOS, `PortraitFrame`
-(`lib/ui/widgets/portrait_frame.dart`, the `MaterialApp` builder in `main.dart`)
-keeps every screen in a centered column 0.72 × the height wide, so opening the
-phone doesn't rearrange the game. The app still fills the display, so iOS reports
-the real size class ([[Foldable Hardware Capabilities]]). Taps beside the column
-do nothing, and full-screen overlays such as the red flash stop at its edges. The
-Mac app is left out: its window is meant to be wide.
+iPhone Duo's inner display gives the app a 951×669 window when held one way and
+669×951 the other, whatever orientation it asks for, and the game fills both.
+When a box is clearly wider than tall (`Ays.isWide`), Home, rounds and Game Over
+sit side by side: title or instruction on the left, what you tap on the right.
+Otherwise they stay stacked as on any phone. `ChallengeRenderer`, `HomeScreen` and
+`GameOverView` decide from their own `LayoutBuilder`, never from the device or
+orientation, as Apple's iPhone Duo guidance asks. The wide instruction wraps with
+`BalancedText` instead of shrinking to one line. The Mac app's window uses the
+same layouts when it is wide. Settings, Stats and Multiplayer just stretch.
 
 ## Target rendering
 

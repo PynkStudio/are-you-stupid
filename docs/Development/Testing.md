@@ -464,7 +464,7 @@ gain contract and the global sound-setting gate. `swift test` compiles the
 shared host resource bundle and native player. Final loudness and overlap are
 still a real-headphone/TV check; automated tests cannot judge perceived level.
 
-### `test/foldable/` — Unfold Your Brain (59 cases)
+### `test/foldable/` — Unfold Your Brain (61 cases)
 - `foldable_layer_test.dart` — `UIHinge.Status`/radians normalization,
   state diff → events (open/close/debounce/partial↔full/unavailable),
   capability levels (approximated only when opted in), viewport
@@ -482,10 +482,10 @@ still a real-headphone/TV check; automated tests cannot judge perceived level.
   widget test driving the simulator panel.
 
 - `iphone_duo_layout_test.dart` — every round (classic and foldable) renders
-  without overflow at the cover, inner, inner landscape, portrait frame and
+  without overflow at the cover, inner, inner landscape, inner upright and
   Split View sizes.
-- `portrait_frame_test.dart` — a landscape window gets the portrait column;
-  portrait windows and other platforms are untouched.
+- `iphone_duo_screens_test.dart` — Home, Settings, Stats and Game Over render
+  without overflow at the cover, inner (both ways) and Split View sizes.
 
 `integration_test/` runs on the iPhone Duo simulator against the real Swift
 bridge, not in `flutter test` ([[Foldable Simulator]]).

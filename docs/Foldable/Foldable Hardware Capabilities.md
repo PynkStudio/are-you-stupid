@@ -52,7 +52,7 @@ from a simulator, so a real device may differ.
 | Size class on closing | `regular` → `compact` around 75° |
 | Angle updates while moving | one every 5–25° |
 | Cover viewport | 466×678 pt, safe area 84 right, 34 bottom |
-| Inner viewport | 951×669 pt, landscape, safe area 84 right, 34 bottom (the game draws in a portrait column) |
+| Inner viewport | 951×669 pt, safe area 84 right, 34 bottom; rotated, the game is laid out for 669×951 |
 
 So `closed` does not mean shut: the phone can be well ajar and still report it.
 DO NOT OPEN therefore also fails on the angle (`FoldThresholds.openedAbove`).
