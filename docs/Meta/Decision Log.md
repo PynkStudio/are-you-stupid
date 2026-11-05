@@ -1,6 +1,6 @@
 ---
 tags: [meta, decisions, adr]
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 # Decision Log
@@ -3970,4 +3970,33 @@ worktree, until it is ready for a release.
 
 **Why.** App Store fixes have to keep shipping from the release branch meanwhile,
 and other sessions are working in that checkout.
+
+### 2026-11-05 — `UIRequiresFullScreen` applies to iPad only
+
+**Decision.** The key is now `UIRequiresFullScreen~ipad`.
+
+**Why.** On the iPhone Duo simulator it kept the opened game in a 469×669 window
+with black bands, still compact. Without it the game fills the inner display at
+951×669. iPad behaved the same either way when rotated on the iPadOS 26.5
+simulator, so the iPad fix stays ([[Foldable Hardware Capabilities]]).
+
+### 2026-11-05 — The size class counts as official for THE OTHER SIDE
+
+**Decision.** The display configuration is reported as official, and THE OTHER
+SIDE can appear on hardware. This replaces the 2026-11-04 choice to keep it
+approximated.
+
+**Why.** The size class flipped in both directions on real folds in the
+simulator. Split View can flip it too, but the challenge only needs the layout to
+change, so that is a free reveal rather than a broken round.
+
+### 2026-11-05 — Hinge thresholds follow what the hinge really reports
+
+**Decision.** The Dart simulator's `closed` now ends at 90°, BEND OVER's window is
+80°–150°, DO NOT OPEN fails past 30°, and safe combinations stay in 100°–160°.
+
+**Why.** `UIHinge.status` stays `closed` until about 90°, and the Partially Open
+pose rests near 129°. The old 60°–120° window missed that pose, and DO NOT OPEN
+let the phone open most of the way. Safes stay above 100° so a round doesn't
+drop the status to `closed` partway.
 

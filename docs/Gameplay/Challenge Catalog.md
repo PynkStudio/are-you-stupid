@@ -1,6 +1,6 @@
 ---
 tags: [gameplay, challenges, reference]
-updated: 2026-10-30
+updated: 2026-11-05
 ---
 
 # Challenge Catalog
@@ -119,10 +119,10 @@ never back to back. Full design in [[Unfold Your Brain]].
 
 | Id | Lv | W | Needs | What the player sees | The catch |
 |---|---|---|---|---|---|
-| `bend_over` | 4 | 0.7 | fold state; starts closed or flat | BEND OVER. | fold partially (90° ± 30° with a real angle); tapping fails |
-| `dont_open` | 4 | 0.7 | fold state; starts closed | DO NOT OPEN. + huge OPEN button | wait; opening or pressing fails |
+| `bend_over` | 4 | 0.7 | fold state; starts closed or flat | BEND OVER. | fold partially (80°–150° with a real angle); tapping fails |
+| `dont_open` | 4 | 0.7 | fold state; starts closed | DO NOT OPEN. + huge OPEN button | wait; opening past 30° or pressing fails |
 | `crack_the_code` | 7 | 0.6 | fold state; starts open | FIND THE RIGHT ANGLE. | hold a secret hinge angle 0.6 s (state variant without angle) |
-| `other_side` | 7 | 0.6 | display configuration (exact) | THE ANSWER IS ON THE OTHER SIDE. | switch screens to reveal the digit; guessing fails — simulator-only today |
+| `other_side` | 7 | 0.6 | display configuration (exact) | THE ANSWER IS ON THE OTHER SIDE. | switch screens to reveal the digit; guessing fails |
 | `open_your_mind` | 8 | 0.6 | fold state; starts open | OPEN YOUR MIND. | fully open names a decoy; tap the real shape while half open |
 
 ## Fairness audit

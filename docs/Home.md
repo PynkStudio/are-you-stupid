@@ -1,6 +1,6 @@
 ---
 tags: [moc, index]
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 # ARE YOU STUPID? — Documentation Home
@@ -126,9 +126,8 @@ Implementation phases are tracked in [[Development Plan]].
 **ARE YOU STUPID?! — UNFOLD YOUR BRAIN**: five hardware challenges for
 foldable iPhones (iPhone Duo) that join the solo run only when the hinge
 reports. Built on the public iOS 27.1 `UIHinge` API, on the `feature/iphone-duo` branch.
-Playable through a debug-only simulator, with the native hinge reading confirmed
-on Apple's iPhone Duo simulator; **no fold tested yet, never run on physical
-hardware**.
+All five challenges pass against the real hinge on Apple's iPhone Duo simulator;
+**never run on physical hardware**.
 
 - [[Unfold Your Brain]] — vision, the five challenges, safety, limitations, roadmap
 - [[Foldable Hardware Capabilities]] — what Apple's SDK really exposes (matrix)
@@ -145,7 +144,7 @@ hardware**.
 |---|---|
 | MVP gameplay loop | Done |
 | Challenge templates | 39 shipped + 5 foldable (solo, hardware-gated — [[Unfold Your Brain]]) |
-| Foldable (Unfold Your Brain) | Hardware layer, iOS 27.1 hinge bridge (reads the hinge on Apple's simulator, no fold tested yet), dev simulator, 5 challenges, host commentary; 55 tests in `test/foldable/` |
+| Foldable (Unfold Your Brain) | Hardware layer, iOS 27.1 hinge bridge (verified on Apple's simulator, not on a device), dev simulator, 5 challenges, host commentary; 56 tests in `test/foldable/` |
 | Persistence (best score, stats, settings) | Done |
 | Ads | Real, via AdMob (`AdMobAdProvider`) behind GDPR/UMP consent + ATT; `MockAdProvider` stays default for tests/local dev |
 | Sound / haptics | Reviewed generated SFX at 32% playback gain + platform haptics |
@@ -161,7 +160,7 @@ hardware**.
 | Target | State |
 |---|---|
 | `flutter analyze` | clean |
-| `flutter test` | 430/430 passing (2026-11-04, foldable suites included) — see [[Testing]] |
+| `flutter test` | 431/431 passing (2026-11-05, foldable suites included) — see [[Testing]] |
 | `swift test` (from `tvos/`) | 104 host core cases plus protocol and board UI suites, all green (2026-10-19); 5 real-socket cases skip by default (`AYS_RUN_NETWORK_TESTS=1` to run for real) — see [[Testing]] |
 | Android debug APK | builds |
 | Android release APK | builds, signed with a real upload key (not debug) — see [[Release Checklist]] |

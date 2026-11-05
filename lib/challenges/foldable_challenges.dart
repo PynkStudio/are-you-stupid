@@ -160,9 +160,13 @@ class DontOpenChallenge extends FoldableChallenge {
 
   @override
   void onHardware(FoldableEvent event, ChallengeHost host) {
-    if (event.kind == FoldableEventKind.deviceOpened) {
-      host.fail(reason: params.tr('fold.dont_open.fail'));
-    }
+    final angle = hw.angleDegrees;
+    final opened =
+        event.kind == FoldableEventKind.deviceOpened ||
+        (event.isPlayerAction &&
+            angle != null &&
+            angle > thresholds.openedAbove);
+    if (opened) host.fail(reason: params.tr('fold.dont_open.fail'));
   }
 
   @override
@@ -497,8 +501,6 @@ const kFoldableChallengeTemplates = <ChallengeTemplate>[
     build: OtherSideChallenge.new,
     minLevel: 7,
     weight: 0.6,
-    // Judged on the display configuration, which real hardware only
-    // approximates today: simulator-only until verified on a device.
     requires: DeviceRequirement(
       capabilities: {DeviceCapability.displayConfiguration},
     ),

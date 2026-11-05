@@ -191,21 +191,25 @@ class FoldableEvent {
 /// ([[Unfold Your Brain]] → Safety).
 class FoldThresholds {
   const FoldThresholds({
-    this.closedBelow = 8,
-    this.fullyOpenAbove = 172,
+    this.closedBelow = 90,
+    this.fullyOpenAbove = 175,
     this.angleChangeEpsilon = 2,
-    this.bendTarget = 90,
-    this.bendTolerance = 30,
+    this.bendTarget = 115,
+    this.bendTolerance = 35,
+    this.openedAbove = 30,
     this.safeTolerance = 14,
     this.safeHold = const Duration(milliseconds: 600),
     this.minPhysicalRound = const Duration(milliseconds: 4500),
     this.maxSafeAngle = 160,
-    this.minSafeAngle = 40,
+    this.minSafeAngle = 100,
   });
 
   static const standard = FoldThresholds();
 
-  /// Simulator only: angle → status. Real hardware reports status itself.
+  /// Simulator only: angle → status. Real hardware reports status itself;
+  /// these copy what the iPhone Duo simulator does. Its status stays `closed`
+  /// up to about 90° and drops back there around 75°, and the app only changes
+  /// display around 154° on the way open.
   final double closedBelow;
   final double fullyOpenAbove;
 
@@ -213,9 +217,14 @@ class FoldThresholds {
   /// — debounces sensor jitter.
   final double angleChangeEpsilon;
 
-  /// BEND OVER: the "about 90°" window (only with a real angle).
+  /// BEND OVER: the window with a real angle. It holds the simulator's
+  /// Partially Open pose, which rests at about 129°.
   final double bendTarget;
   final double bendTolerance;
+
+  /// DO NOT OPEN: past this angle the phone is open, even though the status
+  /// still says `closed` until about 90°.
+  final double openedAbove;
 
   /// CRACK THE CODE: how close counts, and for how long.
   final double safeTolerance;
@@ -386,23 +395,21 @@ class NoHingeProvider implements HingeStateProvider {
   Future<void> dispose() async {}
 }
 
-/// Viewport shape → [DisplayConfiguration] / [FoldOrientation].
+/// Viewport size → [DisplayConfiguration] / [FoldOrientation].
 ///
-/// An *approximation* on real hardware: no public API identifies the cover
-/// vs the inner display ([[Foldable Hardware Capabilities]]). A near-square
-/// viewport is read as the unfolded inner display, a tall/narrow one as the
-/// compact (cover) display. Never used to judge a challenge unless it opts in.
+/// Only a fallback for when the platform sends no size class: the iOS bridge
+/// does, and that retires this guess. It uses the short side, not the shape:
+/// the iPhone Duo's two displays have nearly the same aspect ratio.
 class DisplayConfigurationProvider {
-  const DisplayConfigurationProvider({this.expandedMaxAspect = 1.5});
+  const DisplayConfigurationProvider({this.expandedMinShortSide = 600});
 
   /// Long side / short side at or below this → expanded.
-  final double expandedMaxAspect;
+  final double expandedMinShortSide;
 
   DisplayConfiguration classify(double width, double height) {
     if (width <= 0 || height <= 0) return DisplayConfiguration.unknown;
-    final long = width > height ? width : height;
     final short = width > height ? height : width;
-    return long / short <= expandedMaxAspect
+    return short >= expandedMinShortSide
         ? DisplayConfiguration.expanded
         : DisplayConfiguration.compact;
   }

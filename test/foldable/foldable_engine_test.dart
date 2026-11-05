@@ -13,6 +13,7 @@ import 'package:are_you_stupid/core/foldable.dart';
 import 'package:are_you_stupid/core/game_engine.dart';
 import 'package:are_you_stupid/core/game_state.dart';
 import 'package:are_you_stupid/i18n/app_locale.dart';
+import 'package:are_you_stupid/services/foldable_bridge.dart';
 import 'package:are_you_stupid/ui/widgets/foldable_simulator_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -117,7 +118,7 @@ void main() {
       );
     });
 
-    test('THE OTHER SIDE stays simulator-only on approximated hardware', () {
+    test('THE OTHER SIDE needs an exact display signal', () {
       const hw = DeviceCapabilities({
         DeviceCapability.foldState: CapabilitySupport.official,
         DeviceCapability.displayConfiguration: CapabilitySupport.approximated,
@@ -126,6 +127,10 @@ void main() {
         (t) => t.id == 'other_side',
       );
       expect(other.eligibleOn(hw, _flat), isFalse);
+      expect(
+        other.eligibleOn(PlatformHingeProvider.foldableCapabilities, _flat),
+        isTrue,
+      );
       expect(other.eligibleOn(DeviceCapabilities.simulated, _flat), isTrue);
       expect(
         other.eligibleOn(

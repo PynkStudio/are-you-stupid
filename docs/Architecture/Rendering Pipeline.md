@@ -1,6 +1,6 @@
 ---
 tags: [architecture, ui]
-updated: 2026-10-30
+updated: 2026-11-05
 ---
 
 # Rendering Pipeline
@@ -43,7 +43,7 @@ how "DON'T TAP ANYTHING" can fail on a tap anywhere on screen while
 When `ChallengeView.device` is set, `_PlayArea` stacks a `FoldableVisual`
 (`lib/ui/widgets/foldable_visual.dart`, flex 3) above the targets (flex 2).
 All generated with `CustomPainter`, sized from the box (cover or inner display):
-a folding-phone silhouette with a green 90° window and a breathing "ghost"
+a folding-phone silhouette with a green target window and a breathing "ghost"
 hint, a safe dial that warms red→green and slides its bolt open, a code card
 that flips (rotateY) on a display switch, and two hemispheres that drift apart
 as the hinge opens. Reduce-motion (`MediaQuery.disableAnimationsOf`) makes

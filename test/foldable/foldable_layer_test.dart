@@ -35,7 +35,8 @@ void main() {
     test('simulator thresholds turn angles into statuses', () {
       const t = FoldThresholds.standard;
       expect(t.statusForAngle(0), HingeStatus.closed);
-      expect(t.statusForAngle(90), HingeStatus.partiallyOpen);
+      expect(t.statusForAngle(80), HingeStatus.closed);
+      expect(t.statusForAngle(129), HingeStatus.partiallyOpen);
       expect(t.statusForAngle(180), HingeStatus.fullyOpen);
     });
 
@@ -78,7 +79,10 @@ void main() {
     });
 
     test('approximated only counts when explicitly allowed', () {
-      const caps = PlatformHingeProvider.foldableCapabilities;
+      const caps = DeviceCapabilities({
+        DeviceCapability.foldState: CapabilitySupport.official,
+        DeviceCapability.displayConfiguration: CapabilitySupport.approximated,
+      });
       expect(caps.isFoldable, isTrue);
       expect(caps.canJudge(DeviceCapability.displayConfiguration), isFalse);
       expect(
@@ -99,7 +103,8 @@ void main() {
     test('viewport shape approximates the display configuration', () {
       const d = DisplayConfigurationProvider();
       expect(d.classify(390, 844), DisplayConfiguration.compact);
-      expect(d.classify(700, 760), DisplayConfiguration.expanded);
+      expect(d.classify(466, 678), DisplayConfiguration.compact);
+      expect(d.classify(951, 669), DisplayConfiguration.expanded);
       expect(d.classify(0, 0), DisplayConfiguration.unknown);
       expect(d.orientation(844, 390), FoldOrientation.landscape);
     });

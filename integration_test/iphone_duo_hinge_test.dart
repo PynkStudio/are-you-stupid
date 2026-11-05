@@ -30,7 +30,26 @@ void main() {
       for (var i = 0; i < 100 && !device.capabilities.isFoldable; i++) {
         await Future<void>.delayed(const Duration(milliseconds: 100));
       }
-      await Future<void>.delayed(const Duration(seconds: _watchSeconds));
+      // Print the viewport as it changes: a fold resizes the app, and the
+      // hinge events don't say how.
+      var last = Size.zero;
+      final end = DateTime.now().add(const Duration(seconds: _watchSeconds));
+      while (DateTime.now().isBefore(end)) {
+        final v = WidgetsBinding.instance.platformDispatcher.views.first;
+        final now = v.physicalSize / v.devicePixelRatio;
+        if (now != last) {
+          last = now;
+          debugPrint(
+            '[viewport] ${now.width}x${now.height} '
+            'padding ${v.padding.left / v.devicePixelRatio},'
+            '${v.padding.top / v.devicePixelRatio},'
+            '${v.padding.right / v.devicePixelRatio},'
+            '${v.padding.bottom / v.devicePixelRatio} '
+            'display ${device.state.display.name}',
+          );
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
     });
 
     debugPrint(

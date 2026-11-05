@@ -1,6 +1,6 @@
 ---
 tags: [foldable, gameplay, product]
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 # Unfold Your Brain
@@ -12,10 +12,10 @@ join the normal run. On every other device nothing changes.
 
 > **The phone isn't your controller. The phone is the puzzle.**
 
-Status: **playable through the [[Foldable Simulator]]; never run on physical
-foldable hardware.** The native bridge delivers a real hinge reading on Apple's
-iPhone Duo simulator, but no fold has been tested yet — see
-[[Foldable Hardware Capabilities]]. Work lives on `feature/iphone-duo`.
+Status: **all five challenges pass against the real hinge on Apple's iPhone Duo
+simulator; never run on physical hardware**, and no full run has reached them in
+real play yet. Measurements are in [[Foldable Hardware Capabilities]]. Work lives
+on `feature/iphone-duo`.
 
 ## Design
 
@@ -37,8 +37,8 @@ Source of truth: `lib/challenges/foldable_challenges.dart`. Catalog rows in
 
 | # | Id | Instruction | Solution | Fails on | Lv |
 |---|---|---|---|---|---|
-| 01 | `bend_over` | BEND OVER. | fold partially — with a real angle, 90° ± 30° | any tap; timeout | 4 |
-| 02 | `dont_open` | DO NOT OPEN. | wait, starting closed; a huge OPEN button begs | opening the phone; pressing OPEN | 4 |
+| 01 | `bend_over` | BEND OVER. | fold partially — with a real angle, 80°–150° | any tap; timeout | 4 |
+| 02 | `dont_open` | DO NOT OPEN. | wait, starting closed; a huge OPEN button begs | opening past 30°; pressing OPEN | 4 |
 | 03 | `crack_the_code` | FIND THE RIGHT ANGLE. | hold a secret hinge angle (± 14°) for 0.6 s — or, status-only, the other open state for ~1 s | tapping the safe; timeout | 7 |
 | 04 | `other_side` | THE ANSWER IS ON THE OTHER SIDE. | switch display configuration to reveal the missing digit, then tap that code | guessing before switching (even if right); wrong code; timeout | 7 |
 | 05 | `open_your_mind` | OPEN YOUR MIND. | half-open: the brain names the real shape; tap it *while half open* | the decoy shown when fully open; the right shape while fully open | 8 |
@@ -79,7 +79,7 @@ opens/closes, hardware fails this run — and feeds the **existing** pipeline:
 Hardware interactions must never encourage damage. By construction:
 
 - no challenge needs force, speed, repeated folding, or the hinge's extremes
-  (safe combinations stay within 40°–160°; tolerances are generous);
+  (safe combinations stay within 100°–160°; tolerances are generous);
 - two physical rounds never run back to back;
 - every threshold lives in `FoldThresholds` (configurable, one place);
 - the round skips if the hinge stops reporting.
@@ -88,26 +88,24 @@ Hardware interactions must never encourage damage. By construction:
 
 - **Never tested on physical foldable hardware.** No claim of device
   compatibility is made.
-- THE OTHER SIDE judges on the display configuration, which real hardware
-  only *approximates* (size class) — so it is **simulator-only** until a fold
-  run confirms it ([[Foldable Hardware Capabilities]]).
-- The inner display ignores the game's portrait lock. Every round's layout is
-  tested at landscape and Split View sizes, but Home and Game Over are not.
-- DO NOT OPEN assumes the game is visible while closed (cover display).
-  Whether a Flutter scene keeps running across a fold is unverified; if the
-  OS suspends rendering, the clock clamps the gap (`GameEngine.safeDelta`) so
-  no round is eaten, but the experience is unconfirmed.
+- Thresholds are tuned to Apple's simulator; real hinge values may differ.
+- The inner display is landscape, and the game follows. Every round's layout is
+  tested there, and Home and Game Over were checked by eye, but Settings,
+  Stats and Multiplayer were not.
+- A Split View size change also reveals THE OTHER SIDE's digit.
+- A fold kept the Flutter scene running on the simulator. If a real device
+  suspends rendering, the clock clamps the gap (`GameEngine.safeDelta`), so no
+  round is eaten.
 - Solo only. Multiplayer and iMessage are excluded on purpose ([[Decision Log]]).
 - No dedicated SFX; the existing correct/wrong cues and a light haptic tick
   on safe "warmer" steps are reused.
 
 ## Roadmap
 
-1. Fold run on Apple's iPhone Duo simulator: angle while moving, size class
-   changes, state across a fold, every challenge end to end.
-2. Promote the display configuration to official once that run confirms the
-   size class → THE OTHER SIDE leaves the simulator.
-3. Real-device pass, when one is available.
+1. Play a full run on Apple's simulator until the rounds come up naturally,
+   then check Settings, Stats and Multiplayer on the inner display.
+2. Real-device pass, when one is available.
+3. iPhone Duo screenshots for App Store Connect.
 4. More rounds (tabletop posture, "close it halfway, then tap the top half").
 5. Optional dedicated generated SFX for the safe.
 

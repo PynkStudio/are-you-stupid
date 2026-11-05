@@ -1,6 +1,6 @@
 ---
 tags: [foldable, architecture]
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 # Foldable Architecture
@@ -29,7 +29,7 @@ UIHingeInteraction (Swift)          SimulatedHingeProvider (debug)
 |---|---|---|
 | `DeviceCapabilities` | `DeviceCapabilities` + `CapabilitySupport` (official / simulated / approximated / unavailable) | yes |
 | `HingeStateProvider` | `HingeStateProvider`: `PlatformHingeProvider`, `SimulatedHingeProvider`, `NoHingeProvider` | interface yes; platform impl in `lib/services/foldable_bridge.dart` |
-| `DisplayConfigurationProvider` | `DisplayConfigurationProvider` (viewport → compact/expanded): a fallback, retired as soon as the platform reports a size class | yes |
+| `DisplayConfigurationProvider` | `DisplayConfigurationProvider` (viewport short side → compact/expanded): a fallback, retired as soon as the platform reports a size class | yes |
 | `MotionInputProvider` | `DisplayConfigurationProvider.orientation` (viewport) — no motion sensors used | yes |
 | `FoldableDeviceController` | `FoldableDeviceController` — merges both, diffs states into events, owns subscriptions | yes |
 | `FoldableChallengeAdapter` | `FoldableChallenge` base + `Challenge.onDeviceEvent` | yes |

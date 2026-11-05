@@ -26,12 +26,13 @@ class PlatformHingeProvider implements HingeStateProvider {
 
   /// What a reporting hinge unlocks. The angle is official but its rate and
   /// precision are system policy (UIHinge.h), so every angle check uses
-  /// [FoldThresholds] tolerances. The display configuration has no public
-  /// API: it is approximated from the viewport.
+  /// [FoldThresholds] tolerances. No public API names the physical display,
+  /// but the size class flips on a fold (seen on the iPhone Duo simulator),
+  /// and a layout change is all THE OTHER SIDE needs.
   static const foldableCapabilities = DeviceCapabilities({
     DeviceCapability.foldState: CapabilitySupport.official,
     DeviceCapability.hingeAngle: CapabilitySupport.official,
-    DeviceCapability.displayConfiguration: CapabilitySupport.approximated,
+    DeviceCapability.displayConfiguration: CapabilitySupport.official,
     DeviceCapability.orientation: CapabilitySupport.official,
   }, source: 'platform');
 

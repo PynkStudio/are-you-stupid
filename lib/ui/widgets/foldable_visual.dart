@@ -131,15 +131,15 @@ class _HingePainter extends CustomPainter {
       ..strokeWidth = stroke
       ..strokeCap = StrokeCap.round;
 
-    // Target window around 90°.
+    // Target window.
     final arc = Paint()
       ..color = Ays.correct.withValues(alpha: 0.22)
       ..style = PaintingStyle.stroke
       ..strokeWidth = s * 0.09;
     canvas.drawArc(
       Rect.fromCircle(center: hinge, radius: len * 0.7),
-      -math.pi * 2 / 3,
-      math.pi / 3,
+      -math.pi * 5 / 9, // 80°..150°, BEND OVER's window
+      math.pi * 7 / 18,
       false,
       arc,
     );
@@ -158,7 +158,7 @@ class _HingePainter extends CustomPainter {
     );
 
     // The live panel.
-    final angle = v.angleDegrees ?? (v.progress >= 1 ? 90 : 180);
+    final angle = v.angleDegrees ?? (v.progress >= 1 ? 115 : 180);
     final live = Color.lerp(Ays.ink, Ays.correct, v.progress)!;
     _drawPanel(canvas, hinge, len, angle, panel..color = live);
     canvas.drawCircle(hinge, stroke * 0.8, Paint()..color = live);

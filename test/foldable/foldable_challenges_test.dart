@@ -53,9 +53,9 @@ void main() {
       final c = BendOverChallenge(_p());
       final h = FakeHost();
       _start(c, h, _flat);
-      _move(c, h, _flat, _at(150)); // partially open, but not "bent"
+      _move(c, h, _flat, _at(170)); // partially open, but not "bent"
       expect(h.settled, isFalse);
-      _move(c, h, _at(150), _at(95));
+      _move(c, h, _at(170), _at(129)); // the simulator's Partially Open pose
       expect(h.passed, isTrue);
       expect(c.successQuip, _en('fold.bend_over.quip'));
     });
@@ -111,6 +111,20 @@ void main() {
       DontOpenChallenge(_p()).onTap(tapOn('open'), h2);
       expect(h2.reason, _en('fold.dont_open.fail'));
     });
+  });
+
+  test('DO NOT OPEN fails before the status admits the phone is open', () {
+    final c = DontOpenChallenge(_p());
+    final h = FakeHost();
+    _start(c, h, _closed);
+    // The real status still says closed here (iPhone Duo simulator).
+    const ajar = FoldableState(
+      status: HingeStatus.closed,
+      angleDegrees: 49,
+      display: DisplayConfiguration.compact,
+    );
+    _move(c, h, _closed, ajar);
+    expect(h.reason, _en('fold.dont_open.fail'));
   });
 
   group('CRACK THE CODE', () {

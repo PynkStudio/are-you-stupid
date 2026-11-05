@@ -1,6 +1,6 @@
 ---
 tags: [foldable, development, tooling]
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 # Foldable Simulator
@@ -27,7 +27,7 @@ angle · status · display.
 
 | Control | Effect |
 |---|---|
-| Slider 0°–180° (5° steps) | hinge angle; status derived by `FoldThresholds.statusForAngle` (< 8° closed, > 172° fully open) |
+| Slider 0°–180° (5° steps) | hinge angle; status derived by `FoldThresholds.statusForAngle` (< 90° closed, > 175° fully open, matching Apple's simulator) |
 | OPEN | 180° + expanded display |
 | CLOSE | 0° + compact display |
 | DISPLAY | toggles compact ↔ expanded |
@@ -44,8 +44,8 @@ The simulator is just another `HingeStateProvider` (`SimulatedHingeProvider`)
 plus the controller's `setDisplay` / `setOrientation`. Events flow through
 the same `FoldableDeviceController` → `GameEngine.handleDeviceEvent` path as
 the iOS bridge ([[Foldable Architecture]]). It reports
-`DeviceCapabilities.simulated`, which is why THE OTHER SIDE is playable here
-but not yet on real hardware ([[Foldable Hardware Capabilities]]).
+`DeviceCapabilities.simulated`. See [[Foldable Hardware Capabilities]] for how
+the real hinge compares.
 
 ## Trying each challenge
 
@@ -70,6 +70,13 @@ add the listening window:
 
 ```bash
 flutter test integration_test/iphone_duo_hinge_test.dart -d "AYS iPhone Duo" --dart-define=AYS_WATCH_HINGE_SECONDS=60
+```
+
+To play the five challenges against the real hinge, run the test below and press
+what each `[need]` and `[round]` line asks. Start the device Closed:
+
+```bash
+flutter test integration_test/iphone_duo_challenges_test.dart -d "AYS iPhone Duo"
 ```
 
 `simctl io screenshot` needs `--display=1` (cover) or `--display=3` (inner) on
